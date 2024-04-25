@@ -1,0 +1,9 @@
+LICENSE.txt
+pyproject.toml
+setup.cfg
+fast_vertex_quality/__init__.py
+fast_vertex_quality.egg-info/PKG-INFO
+fast_vertex_quality.egg-info/SOURCES.txt
+fast_vertex_quality.egg-info/dependency_links.txt
+fast_vertex_quality.egg-info/top_level.txt
+fast_vertex_quality/tools/config.py
