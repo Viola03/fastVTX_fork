@@ -5,19 +5,19 @@ from fast_vertex_quality.tools.config import rd, read_definition
 
 
 def reco_loss(x, x_decoded_mean):
-    xent_loss = tf.keras.losses.mean_squared_error(x, x_decoded_mean)
-    return xent_loss
+	xent_loss = tf.keras.losses.mean_squared_error(x, x_decoded_mean)
+	return xent_loss
 
 
 def kl_loss(z_mean, z_log_var):
-    kl_loss = -0.5 * K.sum(1 + z_log_var - K.square(z_mean) - K.exp(z_log_var), axis=-1)
-    return kl_loss
+	kl_loss = -0.5 * K.sum(1 + z_log_var - K.square(z_mean) - K.exp(z_log_var), axis=-1)
+	return kl_loss
 
 
 @tf.function
-def train_step(images, kl_factor, reco_factor, toggle_kl):
+def train_step(images, cut_idx, kl_factor, reco_factor, toggle_kl):
 
-    sample_targets, sample_conditions = images[:, 0, :10], images[:, 0, 10:]
+    sample_targets, sample_conditions = images[:, 0, :cut_idx], images[:, 0, cut_idx:]
 
     with tf.GradientTape() as tape:
 

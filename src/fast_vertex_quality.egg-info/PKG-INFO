@@ -1,5 +1,5 @@
 Metadata-Version: 2.1
-Name: fast-vertex-quality
+Name: fast_vertex_quality
 Version: 1.0.0
 Summary: Code for fast generation of vertex quality variables
 Home-page: https://gitlab.cern.ch/amarshal/fast_vertex_quality

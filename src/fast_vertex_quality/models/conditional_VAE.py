@@ -14,15 +14,15 @@ def sampling(args):
     return z_mean + K.exp(z_log_var / 2) * epsilon
 
 
-class conditional_VAE_builder:
+class VAE_builder:
 
-    def __init__(self, E_architecture, D_architecture):
+    def __init__(self, E_architecture, D_architecture, target_dim, conditions_dim, latent_dim):
 
         self.E_architecture = E_architecture
         self.D_architecture = D_architecture
-        self.target_dim = 10
-        self.conditions_dim = 11
-        self.latent_dim = 6
+        self.target_dim = target_dim
+        self.conditions_dim = conditions_dim
+        self.latent_dim = latent_dim
 
         self.encoder = self.build_encoder()
         self.decoder = self.build_decoder()

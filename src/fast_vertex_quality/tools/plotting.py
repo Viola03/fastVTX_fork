@@ -38,15 +38,17 @@ def plot(data, gen_data, filename, Nevents=10000):
 
     print(f"Plotting {filename}.pdf....")
 
-    data_all, data_targets, data_condtions = data.get_physical_data()
-    data_all_pp, data_targets_pp, data_condtions_pp = data.get_processed_data()
-    data_physics = data.get_physics_variables()
+    data_all = data.get_branches(rd.targets+rd.conditions, processed=False)
+    data_all_pp = data.get_branches(rd.targets+rd.conditions, processed=True)
+    # data_physics = data.get_physics_variables()
 
-    gen_data_all, gen_data_targets, gen_data_condtions = gen_data.get_physical_data()
-    gen_data_all_pp, gen_data_targets_pp, gen_data_condtions_pp = (
-        gen_data.get_processed_data()
-    )
-    gen_data_physics = gen_data.get_physics_variables()
+    gen_data_all = gen_data.get_branches(rd.targets+rd.conditions, processed=False)
+    gen_data_all_pp = gen_data.get_branches(rd.targets+rd.conditions, processed=True)
+    # gen_data_all, gen_data_targets, gen_data_condtions = gen_data.get_physical_data()
+    # gen_data_all_pp, gen_data_targets_pp, gen_data_condtions_pp = (
+    #     gen_data.get_processed_data()
+    # )
+    # gen_data_physics = gen_data.get_physics_variables()
 
     columns = list(data_all.keys())
     N = len(columns)
@@ -83,44 +85,44 @@ def plot(data, gen_data, filename, Nevents=10000):
                 pdf.savefig(bbox_inches="tight")
                 plt.close()
 
-        for particle in ["K_Kst", "e_minus", "e_plus"]:
+        # for particle in ["K_Kst", "e_minus", "e_plus"]:
 
-            plt.figure(figsize=(12, 16))
-            idx = 0
-            for i in range(0, N):
+        #     plt.figure(figsize=(12, 16))
+        #     idx = 0
+        #     for i in range(0, N):
 
-                if (
-                    "B_plus" in columns[i]
-                    or particle in columns[i]
-                    and columns[i] in rd.targets
-                ):
+        #         if (
+        #             "B_plus" in columns[i]
+        #             or particle in columns[i]
+        #             and columns[i] in rd.targets
+        #         ):
 
-                    idx += 1
+        #             idx += 1
 
-                    plt.subplot(4, 3, idx)
-                    hist = plt.hist2d(
-                        np.log10(data_physics[f"{particle}_P"][:Nevents]),
-                        data_all_pp[columns[i]][:Nevents],
-                        norm=LogNorm(),
-                        bins=35,
-                        cmap="Reds",
-                    )
-                    plt.xlabel(f"log {particle} P")
-                    plt.ylabel(columns[i])
+        #             plt.subplot(4, 3, idx)
+        #             hist = plt.hist2d(
+        #                 np.log10(data_physics[f"{particle}_P"][:Nevents]),
+        #                 data_all_pp[columns[i]][:Nevents],
+        #                 norm=LogNorm(),
+        #                 bins=35,
+        #                 cmap="Reds",
+        #             )
+        #             plt.xlabel(f"log {particle} P")
+        #             plt.ylabel(columns[i])
 
-                    plt.subplot(4, 3, idx + 3)
-                    plt.hist2d(
-                        np.log10(gen_data_physics[f"{particle}_P"][:Nevents]),
-                        gen_data_all_pp[columns[i]][:Nevents],
-                        norm=LogNorm(),
-                        bins=[hist[1], hist[2]],
-                        cmap="Blues",
-                    )
-                    plt.xlabel(f"log {particle} P")
-                    plt.ylabel(columns[i])
+        #             plt.subplot(4, 3, idx + 3)
+        #             plt.hist2d(
+        #                 np.log10(gen_data_physics[f"{particle}_P"][:Nevents]),
+        #                 gen_data_all_pp[columns[i]][:Nevents],
+        #                 norm=LogNorm(),
+        #                 bins=[hist[1], hist[2]],
+        #                 cmap="Blues",
+        #             )
+        #             plt.xlabel(f"log {particle} P")
+        #             plt.ylabel(columns[i])
 
-                    if idx % 3 == 0 and idx > 0:
-                        idx += 3
+        #             if idx % 3 == 0 and idx > 0:
+        #                 idx += 3
 
-            pdf.savefig(bbox_inches="tight")
-            plt.close()
+        #     pdf.savefig(bbox_inches="tight")
+        #     plt.close()
