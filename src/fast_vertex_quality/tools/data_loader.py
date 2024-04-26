@@ -1,249 +1,319 @@
-from fast_vertex_quality.tools.config import read_definition, rd
-
-import pandas as pd
 import numpy as np
+import pandas as pd
 from sklearn.preprocessing import PowerTransformer, QuantileTransformer
+
+from fast_vertex_quality.tools.config import rd, read_definition
+
 
 class NoneError(Exception):
     pass
 
-rd.targets = ["B_plus_ENDVERTEX_CHI2",
-		"B_plus_IPCHI2_OWNPV",
-		"B_plus_FDCHI2_OWNPV",
-		"B_plus_DIRA_OWNPV",
-		"K_Kst_IPCHI2_OWNPV",
-		"K_Kst_TRACK_CHI2NDOF",
-		"e_minus_IPCHI2_OWNPV",
-		"e_minus_TRACK_CHI2NDOF",
-		"e_plus_IPCHI2_OWNPV",
-		"e_plus_TRACK_CHI2NDOF"]
-		
-		
-rd.conditions = ['K_Kst_PX','K_Kst_PY','K_Kst_PZ',
-				'e_minus_PX','e_minus_PY','e_minus_PZ',
-				'e_plus_PX','e_plus_PY','e_plus_PZ',
-				'nTracks','nSPDHits'
-				]
+
+rd.targets = [
+    "B_plus_ENDVERTEX_CHI2",
+    "B_plus_IPCHI2_OWNPV",
+    "B_plus_FDCHI2_OWNPV",
+    "B_plus_DIRA_OWNPV",
+    "K_Kst_IPCHI2_OWNPV",
+    "K_Kst_TRACK_CHI2NDOF",
+    "e_minus_IPCHI2_OWNPV",
+    "e_minus_TRACK_CHI2NDOF",
+    "e_plus_IPCHI2_OWNPV",
+    "e_plus_TRACK_CHI2NDOF",
+]
+
+
+rd.conditions = [
+    "K_Kst_PX",
+    "K_Kst_PY",
+    "K_Kst_PZ",
+    "e_minus_PX",
+    "e_minus_PY",
+    "e_minus_PZ",
+    "e_plus_PX",
+    "e_plus_PY",
+    "e_plus_PZ",
+    "nTracks",
+    "nSPDHits",
+]
 
 
 class dataset:
 
-	def __init__(self, generated=False):
+    def __init__(self, generated=False):
 
-		self.generated = generated
+        self.generated = generated
 
-		self.log_columns = ["B_plus_FDCHI2_OWNPV", "K_Kst_IPCHI2_OWNPV", 
-						"e_minus_IPCHI2_OWNPV", "e_plus_IPCHI2_OWNPV",
-						"K_Kst_PZ","e_minus_PZ","e_plus_PZ"]
-		
-		self.one_minus_log_columns = ["B_plus_DIRA_OWNPV"]
+        self.log_columns = [
+            "B_plus_FDCHI2_OWNPV",
+            "K_Kst_IPCHI2_OWNPV",
+            "e_minus_IPCHI2_OWNPV",
+            "e_plus_IPCHI2_OWNPV",
+            "K_Kst_PZ",
+            "e_minus_PZ",
+            "e_plus_PZ",
+        ]
 
-	def fill(self, data, processed=False):
+        self.one_minus_log_columns = ["B_plus_DIRA_OWNPV"]
 
-		if not isinstance(data, pd.DataFrame):
-			raise NoneError("Dataset must be a pd.dataframe.")
+    def fill(self, data, processed=False):
 
-		if not processed:
-			self.physical_data = data[rd.targets+rd.conditions]
-			self.pre_process(data[rd.targets+rd.conditions])
-		elif processed:
-			self.processed_data = data[rd.targets+rd.conditions]
-			self.post_process(data[rd.targets+rd.conditions])
+        if not isinstance(data, pd.DataFrame):
+            raise NoneError("Dataset must be a pd.dataframe.")
 
-		self.produce_physics_variables()
+        if not processed:
+            self.physical_data = data[rd.targets + rd.conditions]
+            self.pre_process(data[rd.targets + rd.conditions])
+        elif processed:
+            self.processed_data = data[rd.targets + rd.conditions]
+            self.post_process(data[rd.targets + rd.conditions])
 
-	def get_physical_data(self):
-		return self.physical_data, self.physical_data[rd.targets], self.physical_data[rd.conditions]
+        self.produce_physics_variables()
 
-	def get_processed_data(self):
-		return self.processed_data, self.processed_data[rd.targets], self.processed_data[rd.conditions]
+    def get_physical_data(self):
+        return (
+            self.physical_data,
+            self.physical_data[rd.targets],
+            self.physical_data[rd.conditions],
+        )
 
-	def get_physics_variables(self):
-		return self.physics_variables
+    def get_processed_data(self):
+        return (
+            self.processed_data,
+            self.processed_data[rd.targets],
+            self.processed_data[rd.conditions],
+        )
 
-	def apply_cut(self, cut):
-		
-		self.processed_data = self.processed_data.add_suffix('_processed_data')
-		self.physics_variables = self.physics_variables.add_suffix('_physics_variables')
-		self.physical_data = self.physical_data.add_suffix('_physical_data')
+    def get_physics_variables(self):
+        return self.physics_variables
 
-		all_vars = pd.concat([self.physical_data, self.physics_variables, self.processed_data], axis=1)
+    def apply_cut(self, cut):
 
-		try:
-			all_vars = all_vars.query(cut)
-		except:
-			print('cut query failed, try adding _processed_data, _physics_variables, or _physical_data?')
-			quit()
+        self.processed_data = self.processed_data.add_suffix("_processed_data")
+        self.physics_variables = self.physics_variables.add_suffix("_physics_variables")
+        self.physical_data = self.physical_data.add_suffix("_physical_data")
 
-		self.processed_data = all_vars[[col for col in all_vars.columns if '_processed_data' in col]]
-		self.physics_variables = all_vars[[col for col in all_vars.columns if '_physics_variables' in col]]
-		self.physical_data = all_vars[[col for col in all_vars.columns if '_physical_data' in col]]
+        all_vars = pd.concat(
+            [self.physical_data, self.physics_variables, self.processed_data], axis=1
+        )
 
-		self.processed_data.columns = [col.replace('_processed_data','') for col in self.processed_data.columns]
-		self.physics_variables.columns = [col.replace('_physics_variables','') for col in self.physics_variables.columns]
-		self.physical_data.columns = [col.replace('_physical_data','') for col in self.physical_data.columns]
+        try:
+            all_vars = all_vars.query(cut)
+        except:
+            print(
+                "cut query failed, try adding _processed_data, _physics_variables, or _physical_data?"
+            )
+            quit()
 
-	def produce_physics_variables(self):
+        self.processed_data = all_vars[
+            [col for col in all_vars.columns if "_processed_data" in col]
+        ]
+        self.physics_variables = all_vars[
+            [col for col in all_vars.columns if "_physics_variables" in col]
+        ]
+        self.physical_data = all_vars[
+            [col for col in all_vars.columns if "_physical_data" in col]
+        ]
 
-		physics_variables = {}
+        self.processed_data.columns = [
+            col.replace("_processed_data", "") for col in self.processed_data.columns
+        ]
+        self.physics_variables.columns = [
+            col.replace("_physics_variables", "")
+            for col in self.physics_variables.columns
+        ]
+        self.physical_data.columns = [
+            col.replace("_physical_data", "") for col in self.physical_data.columns
+        ]
 
-		physics_variables["K_Kst_P"] = np.sqrt(self.physical_data['K_Kst_PX']**2+self.physical_data['K_Kst_PY']**2+self.physical_data['K_Kst_PZ']**2)
-		physics_variables["e_plus_P"] = np.sqrt(self.physical_data['e_plus_PX']**2+self.physical_data['e_plus_PY']**2+self.physical_data['e_plus_PZ']**2)
-		physics_variables["e_minus_P"] = np.sqrt(self.physical_data['e_minus_PX']**2+self.physical_data['e_minus_PY']**2+self.physical_data['e_minus_PZ']**2)
-		physics_variables["kFold"] = np.random.randint(low=0, high=9, size=np.shape(self.physical_data["K_Kst_PX"])[0])
+    def produce_physics_variables(self):
 
-		electron_mass = 0.51099895000*1E-3
+        physics_variables = {}
 
-		PE = np.sqrt(electron_mass**2+self.physical_data['e_plus_PX']**2+self.physical_data['e_plus_PY']**2+self.physical_data['e_plus_PZ']**2) + np.sqrt(electron_mass**2+self.physical_data['e_minus_PX']**2+self.physical_data['e_minus_PY']**2+self.physical_data['e_minus_PZ']**2)
-		PX = self.physical_data['e_plus_PX'] + self.physical_data['e_minus_PX']
-		PY = self.physical_data['e_plus_PY'] + self.physical_data['e_minus_PY']
-		PZ = self.physical_data['e_plus_PZ'] + self.physical_data['e_minus_PZ']
+        physics_variables["K_Kst_P"] = np.sqrt(
+            self.physical_data["K_Kst_PX"] ** 2
+            + self.physical_data["K_Kst_PY"] ** 2
+            + self.physical_data["K_Kst_PZ"] ** 2
+        )
+        physics_variables["e_plus_P"] = np.sqrt(
+            self.physical_data["e_plus_PX"] ** 2
+            + self.physical_data["e_plus_PY"] ** 2
+            + self.physical_data["e_plus_PZ"] ** 2
+        )
+        physics_variables["e_minus_P"] = np.sqrt(
+            self.physical_data["e_minus_PX"] ** 2
+            + self.physical_data["e_minus_PY"] ** 2
+            + self.physical_data["e_minus_PZ"] ** 2
+        )
+        physics_variables["kFold"] = np.random.randint(
+            low=0, high=9, size=np.shape(self.physical_data["K_Kst_PX"])[0]
+        )
 
-		physics_variables["q2"] = (PE**2-PX**2-PY**2-PZ**2)*1e-6
+        electron_mass = 0.51099895000 * 1e-3
 
-		self.physics_variables = pd.DataFrame.from_dict(physics_variables)
+        PE = np.sqrt(
+            electron_mass**2
+            + self.physical_data["e_plus_PX"] ** 2
+            + self.physical_data["e_plus_PY"] ** 2
+            + self.physical_data["e_plus_PZ"] ** 2
+        ) + np.sqrt(
+            electron_mass**2
+            + self.physical_data["e_minus_PX"] ** 2
+            + self.physical_data["e_minus_PY"] ** 2
+            + self.physical_data["e_minus_PZ"] ** 2
+        )
+        PX = self.physical_data["e_plus_PX"] + self.physical_data["e_minus_PX"]
+        PY = self.physical_data["e_plus_PY"] + self.physical_data["e_minus_PY"]
+        PZ = self.physical_data["e_plus_PZ"] + self.physical_data["e_minus_PZ"]
 
-	# def pre_process(self, physical_data):
+        physics_variables["q2"] = (PE**2 - PX**2 - PY**2 - PZ**2) * 1e-6
 
-	# 	df = {}
-		
-	# 	for column in rd.targets+rd.conditions:
-		
-	# 		if column in self.log_columns:
-	# 			df[column] = np.log10(physical_data[column])
-	# 		elif column in self.one_minus_log_columns:
-	# 			df[column] = np.log10(1.-physical_data[column])
-	# 		else:
-	# 			df[column] = physical_data[column]
+        self.physics_variables = pd.DataFrame.from_dict(physics_variables)
 
-	# 	if self.generated == False:
-	# 		rd.normalisation_constants = {}
+    # def pre_process(self, physical_data):
 
-	# 	for column in list(df.keys()):
+    # 	df = {}
 
-	# 		if self.generated == False:
-	# 			rd.normalisation_constants[column] = {}
-	# 			rd.normalisation_constants[column]['min'] = np.amin(df[column])
+    # 	for column in rd.targets+rd.conditions:
 
-	# 		df[column] = df[column] - np.amin(df[column])
+    # 		if column in self.log_columns:
+    # 			df[column] = np.log10(physical_data[column])
+    # 		elif column in self.one_minus_log_columns:
+    # 			df[column] = np.log10(1.-physical_data[column])
+    # 		else:
+    # 			df[column] = physical_data[column]
 
-	# 		if self.generated == False: rd.normalisation_constants[column]['max'] = np.amax(df[column])
+    # 	if self.generated == False:
+    # 		rd.normalisation_constants = {}
 
-	# 		df[column] = df[column]/np.amax(df[column])
-	# 		df[column] *= 1.9
-	# 		df[column] += -0.95
+    # 	for column in list(df.keys()):
 
-	# 	self.processed_data = pd.DataFrame.from_dict(df)
+    # 		if self.generated == False:
+    # 			rd.normalisation_constants[column] = {}
+    # 			rd.normalisation_constants[column]['min'] = np.amin(df[column])
 
+    # 		df[column] = df[column] - np.amin(df[column])
 
-	# def post_process(self, processed_data):
+    # 		if self.generated == False: rd.normalisation_constants[column]['max'] = np.amax(df[column])
 
-	# 	df = {}
+    # 		df[column] = df[column]/np.amax(df[column])
+    # 		df[column] *= 1.9
+    # 		df[column] += -0.95
 
-	# 	for column in rd.targets+rd.conditions:
-	# 		df[column] = processed_data[column]
+    # 	self.processed_data = pd.DataFrame.from_dict(df)
 
-	# 	for column in list(processed_data.keys()):
-	# 		df[column] -= -0.95
-	# 		df[column] *= 1./1.9
-	# 		df[column] = df[column]*rd.normalisation_constants[column]['max']
-	# 		df[column] = df[column] + rd.normalisation_constants[column]['min']
+    # def post_process(self, processed_data):
 
-	# 		if column in self.log_columns:
-	# 			df[column] = np.power(10, df[column])
-	# 		elif column in self.one_minus_log_columns:
-	# 			df[column] = np.power(10, df[column])
-	# 			df[column] = 1.-df[column]
+    # 	df = {}
 
-	# 	self.physical_data = pd.DataFrame.from_dict(df)
+    # 	for column in rd.targets+rd.conditions:
+    # 		df[column] = processed_data[column]
 
+    # 	for column in list(processed_data.keys()):
+    # 		df[column] -= -0.95
+    # 		df[column] *= 1./1.9
+    # 		df[column] = df[column]*rd.normalisation_constants[column]['max']
+    # 		df[column] = df[column] + rd.normalisation_constants[column]['min']
 
-	def pre_process(self, physical_data):
+    # 		if column in self.log_columns:
+    # 			df[column] = np.power(10, df[column])
+    # 		elif column in self.one_minus_log_columns:
+    # 			df[column] = np.power(10, df[column])
+    # 			df[column] = 1.-df[column]
 
-		df = {}
-		
-		for column in rd.targets+rd.conditions:
-		
-			if column in self.log_columns:
-				df[column] = np.log10(physical_data[column])
-			elif column in self.one_minus_log_columns:
-				df[column] = np.log10(1.-physical_data[column])
-			else:
-				df[column] = physical_data[column]
+    # 	self.physical_data = pd.DataFrame.from_dict(df)
 
-		if self.generated == False:
-			rd.normalisation_constants = {}
+    def pre_process(self, physical_data):
 
-		rd.QuantileTransformers = {}
+        df = {}
 
-		for column in list(df.keys()):
-			
-			qt = QuantileTransformer(n_quantiles=50, output_distribution="normal")
-			rd.QuantileTransformers[column] = qt.fit(np.asarray(df[column]).reshape(-1, 1))
-			
-			df[column] = np.squeeze(rd.QuantileTransformers[column].transform(np.asarray(df[column]).reshape(-1, 1)))
+        for column in rd.targets + rd.conditions:
 
-			# if self.generated == False:
-			# 	rd.normalisation_constants[column] = {}
-			# 	rd.normalisation_constants[column]['min'] = np.mean(df[column])
+            if column in self.log_columns:
+                df[column] = np.log10(physical_data[column])
+            elif column in self.one_minus_log_columns:
+                df[column] = np.log10(1.0 - physical_data[column])
+            else:
+                df[column] = physical_data[column]
 
-			# df[column] = df[column] - rd.normalisation_constants[column]['min']
+        if self.generated == False:
+            rd.normalisation_constants = {}
 
-			# if self.generated == False: rd.normalisation_constants[column]['max'] = np.std(df[column])
+        rd.QuantileTransformers = {}
 
-			# df[column] = df[column]/rd.normalisation_constants[column]['max']
-			# # df[column] *= 1.9
-			# # df[column] += -0.95
+        for column in list(df.keys()):
 
-		self.processed_data = pd.DataFrame.from_dict(df)
+            qt = QuantileTransformer(n_quantiles=50, output_distribution="normal")
+            rd.QuantileTransformers[column] = qt.fit(
+                np.asarray(df[column]).reshape(-1, 1)
+            )
 
+            df[column] = np.squeeze(
+                rd.QuantileTransformers[column].transform(
+                    np.asarray(df[column]).reshape(-1, 1)
+                )
+            )
 
-	def post_process(self, processed_data):
+            # if self.generated == False:
+            # 	rd.normalisation_constants[column] = {}
+            # 	rd.normalisation_constants[column]['min'] = np.mean(df[column])
 
-		df = {}
+            # df[column] = df[column] - rd.normalisation_constants[column]['min']
 
-		for column in rd.targets+rd.conditions:
-			df[column] = processed_data[column]
+            # if self.generated == False: rd.normalisation_constants[column]['max'] = np.std(df[column])
 
-		for column in list(processed_data.keys()):
-			# df[column] -= -0.95
-			# df[column] *= 1./1.9
-			# df[column] = df[column]*rd.normalisation_constants[column]['max']
-			# df[column] = df[column] + rd.normalisation_constants[column]['min']
+            # df[column] = df[column]/rd.normalisation_constants[column]['max']
+            # # df[column] *= 1.9
+            # # df[column] += -0.95
 
-			df[column] = np.squeeze(rd.QuantileTransformers[column].inverse_transform(np.asarray(df[column]).reshape(-1, 1)))
+        self.processed_data = pd.DataFrame.from_dict(df)
 
-			if column in self.log_columns:
-				df[column] = np.power(10, df[column])
-			elif column in self.one_minus_log_columns:
-				df[column] = np.power(10, df[column])
-				df[column] = 1.-df[column]
+    def post_process(self, processed_data):
 
-			
+        df = {}
 
+        for column in rd.targets + rd.conditions:
+            df[column] = processed_data[column]
 
-		self.physical_data = pd.DataFrame.from_dict(df)
+        for column in list(processed_data.keys()):
+            # df[column] -= -0.95
+            # df[column] *= 1./1.9
+            # df[column] = df[column]*rd.normalisation_constants[column]['max']
+            # df[column] = df[column] + rd.normalisation_constants[column]['min']
+
+            df[column] = np.squeeze(
+                rd.QuantileTransformers[column].inverse_transform(
+                    np.asarray(df[column]).reshape(-1, 1)
+                )
+            )
+
+            if column in self.log_columns:
+                df[column] = np.power(10, df[column])
+            elif column in self.one_minus_log_columns:
+                df[column] = np.power(10, df[column])
+                df[column] = 1.0 - df[column]
+
+        self.physical_data = pd.DataFrame.from_dict(df)
 
 
 def load_data(path):
 
-	events = pd.read_csv(path)
+    events = pd.read_csv(path)
 
-	events_dataset = dataset(generated=False)
-	events_dataset.fill(events, processed=False)
+    events_dataset = dataset(generated=False)
+    events_dataset.fill(events, processed=False)
 
-	return events_dataset
+    return events_dataset
 
+    # events = pre_process_pd(events)
+    # # events = post_process_pd(events)
+    # events = events[rd.targets+rd.conditions]
+    # return events
 
-	# events = pre_process_pd(events)
-	# # events = post_process_pd(events)
-	# events = events[rd.targets+rd.conditions]
-	# return events
+    # target_array = np.asarray(events[targets])
+    # condition_array = np.asarray(events[conditions])
 
-	# target_array = np.asarray(events[targets])
-	# condition_array = np.asarray(events[conditions])
+    # full_array = np.concatenate((target_array,condition_array),axis=1)
 
-	# full_array = np.concatenate((target_array,condition_array),axis=1)
-
-	# # return events[targets], events[conditions]
-	# return full_array, targets+conditions
+    # # return events[targets], events[conditions]
+    # return full_array, targets+conditions
