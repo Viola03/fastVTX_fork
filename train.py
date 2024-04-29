@@ -98,13 +98,7 @@ for epoch in range(int(1e30)):
         rd.targets + rd.conditions, processed=True
     )
 
-    print(X_train_data_all_pp)
-
     X_train_raw = np.asarray(X_train_data_all_pp)
-
-    print(np.where(np.isinf(X_train_raw)))
-    print(np.where(np.isnan(X_train_raw)))
-    print(np.shape(X_train_raw))
 
     X_train = np.expand_dims(X_train_raw, 1).astype("float32")
 
@@ -113,14 +107,6 @@ for epoch in range(int(1e30)):
         .batch(batch_size, drop_remainder=True)
         .repeat(1)
     )
-
-    # latent_dim = 6
-    # X_train_data_loader = data_loader.load_data("datasets/Kee_2018_truthed_head.csv")
-    # conditions = X_train_data_loader.get_branches(rd.conditions, processed=True)
-    # gen_noise = np.random.normal(0, 1, (99, latent_dim))
-    # images = np.squeeze(rd.decoder.predict([gen_noise,conditions]))
-    # print(images)
-    # quit()
 
     for samples_for_batch in train_dataset:
 
@@ -166,23 +152,9 @@ for epoch in range(int(1e30)):
             )
             X_test_conditions = np.asarray(X_test_conditions)
 
-            # print(X_test_conditions)
-            # quit()
             images = np.squeeze(rd.decoder.predict([gen_noise, X_test_conditions]))
 
-            # gen_data_all_pp = X_test_data_loader.get_branches(rd.targets+rd.conditions, processed=True)
-            # print(gen_data_all_pp)
-
-            # # print(images)
-            # # print(np.where(np.isnan(images)))
-            # # print(np.where(np.isinf(images)))
             X_test_data_loader.fill_target(images)
-
-            # gen_data_all_pp = X_test_data_loader.get_branches(rd.targets+rd.conditions, processed=True)
-            # print(gen_data_all_pp)
-            # quit()
-            # gen_events_dataset = data_loader.dataset(generated=True)
-            # gen_events_dataset.fill(gen_images, processed=True)
 
             plotting.plot(
                 X_train_data_loader,
