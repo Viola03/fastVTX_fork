@@ -38,12 +38,12 @@ def plot(data, gen_data, filename, Nevents=10000):
 
     print(f"Plotting {filename}.pdf....")
 
-    data_all = data.get_branches(rd.targets+rd.conditions, processed=False)
-    data_all_pp = data.get_branches(rd.targets+rd.conditions, processed=True)
+    data_all = data.get_branches(rd.targets + rd.conditions, processed=False)
+    data_all_pp = data.get_branches(rd.targets + rd.conditions, processed=True)
     # data_physics = data.get_physics_variables()
 
-    gen_data_all = gen_data.get_branches(rd.targets+rd.conditions, processed=False)
-    gen_data_all_pp = gen_data.get_branches(rd.targets+rd.conditions, processed=True)
+    gen_data_all = gen_data.get_branches(rd.targets + rd.conditions, processed=False)
+    gen_data_all_pp = gen_data.get_branches(rd.targets + rd.conditions, processed=True)
     # gen_data_all, gen_data_targets, gen_data_condtions = gen_data.get_physical_data()
     # gen_data_all_pp, gen_data_targets_pp, gen_data_condtions_pp = (
     #     gen_data.get_processed_data()
@@ -57,6 +57,9 @@ def plot(data, gen_data, filename, Nevents=10000):
 
         for i in range(0, N):
 
+            # print(data_all[columns[i]][:Nevents])
+            # print(gen_data_all[columns[i]][:Nevents])
+            # quit()
             if columns[i] in rd.targets:
 
                 plt.figure(figsize=(8, 4))
@@ -64,7 +67,7 @@ def plot(data, gen_data, filename, Nevents=10000):
                 plt.hist(
                     [
                         data_all[columns[i]][:Nevents],
-                        gen_data_all[columns[i]][:Nevents],
+                        np.asarray(gen_data_all[columns[i]])[:Nevents],
                     ],
                     bins=75,
                     histtype="step",
@@ -76,7 +79,7 @@ def plot(data, gen_data, filename, Nevents=10000):
                 plt.hist(
                     [
                         data_all_pp[columns[i]][:Nevents],
-                        gen_data_all_pp[columns[i]][:Nevents],
+                        np.asarray(gen_data_all_pp[columns[i]])[:Nevents],
                     ],
                     bins=75,
                     histtype="step",
