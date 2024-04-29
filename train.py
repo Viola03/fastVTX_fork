@@ -50,9 +50,26 @@ rd.targets = [
 #     "nSPDHits",
 # ]
 
+# rd.conditions = [
+#     "q2",
+# ]
+
 rd.conditions = [
-    "q2",
+    "B_P",
+    "B_PT",
+    "missing_B_P",
+    "missing_B_PT",
+    "delta_0_P",
+    "delta_0_PT",
+    "delta_1_P",
+    "delta_1_PT",
+    "delta_2_P",
+    "delta_2_PT",
+    "m_01",
+    "m_02",
+    "m_12",
 ]
+
 
 latent_dim = 6
 kl_factor = 1.0
@@ -61,8 +78,9 @@ reco_factor = 100.0
 
 batch_size = 50
 
-target_dim = 10
-conditions_dim = 1
+target_dim = len(rd.targets)
+conditions_dim = len(rd.conditions)
+latent_dim = 6
 
 cut_idx = target_dim
 
@@ -71,7 +89,7 @@ VAE = VAE_builder(
     D_architecture=[50, 250, 250, 50],
     target_dim=target_dim,
     conditions_dim=conditions_dim,
-    latent_dim=6,
+    latent_dim=latent_dim,
 )
 rd.encoder = VAE.encoder
 rd.decoder = VAE.decoder
@@ -89,10 +107,14 @@ t0 = time.time()
 
 
 save_interval = 2500
+# save_interval = 25
 
 for epoch in range(int(1e30)):
 
-    X_train_data_loader = data_loader.load_data("datasets/Kee_2018_truthed.csv")
+    # X_train_data_loader = data_loader.load_data("datasets/Kee_2018_truthed.csv")
+    X_train_data_loader = data_loader.load_data(
+        "datasets/Kee_2018_truthed_more_vars.csv"
+    )
 
     X_train_data_all_pp = X_train_data_loader.get_branches(
         rd.targets + rd.conditions, processed=True
@@ -145,7 +167,10 @@ for epoch in range(int(1e30)):
 
             gen_noise = np.random.normal(0, 1, (10000, latent_dim))
 
-            X_test_data_loader = data_loader.load_data("datasets/Kee_2018_truthed.csv")
+            # X_test_data_loader = data_loader.load_data("datasets/Kee_2018_truthed.csv")
+            X_test_data_loader = data_loader.load_data(
+                "datasets/Kee_2018_truthed_more_vars.csv"
+            )
             X_test_data_loader.select_randomly(Nevents=10000)
             X_test_conditions = X_test_data_loader.get_branches(
                 rd.conditions, processed=True
