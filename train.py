@@ -71,22 +71,23 @@ rd.conditions = [
 ]
 
 
-latent_dim = 6
 kl_factor = 1.0
-# reco_factor = 1E3
-reco_factor = 100.0
+reco_factor = 1e3
+# reco_factor = 500.0
 
 batch_size = 50
 
 target_dim = len(rd.targets)
 conditions_dim = len(rd.conditions)
-latent_dim = 6
+latent_dim = 8
 
 cut_idx = target_dim
 
 VAE = VAE_builder(
     E_architecture=[50, 250, 250, 50],
     D_architecture=[50, 250, 250, 50],
+    # E_architecture=[250, 450, 450, 250],
+    # D_architecture=[250, 450, 450, 250],
     target_dim=target_dim,
     conditions_dim=conditions_dim,
     latent_dim=latent_dim,
@@ -109,12 +110,20 @@ t0 = time.time()
 save_interval = 2500
 # save_interval = 25
 
+X_train_data_loader = data_loader.load_data(
+    [
+        "datasets/Kee_2018_truthed_more_vars.csv",
+        "datasets/Kstee_2018_truthed_more_vars.csv",
+    ],
+    N=50000,
+)
+transformers = X_train_data_loader.get_transformers()
+
 for epoch in range(int(1e30)):
 
     # X_train_data_loader = data_loader.load_data("datasets/Kee_2018_truthed.csv")
-    X_train_data_loader = data_loader.load_data(
-        "datasets/Kee_2018_truthed_more_vars.csv"
-    )
+
+    # X_test_data_loader.select_randomly(Nevents=int(1e5))
 
     X_train_data_all_pp = X_train_data_loader.get_branches(
         rd.targets + rd.conditions, processed=True
@@ -168,9 +177,18 @@ for epoch in range(int(1e30)):
             gen_noise = np.random.normal(0, 1, (10000, latent_dim))
 
             # X_test_data_loader = data_loader.load_data("datasets/Kee_2018_truthed.csv")
+            # X_test_data_loader = data_loader.load_data(
+            #     "datasets/Kee_2018_truthed_more_vars.csv"
+            # )
             X_test_data_loader = data_loader.load_data(
-                "datasets/Kee_2018_truthed_more_vars.csv"
+                [
+                    "datasets/Kee_2018_truthed_more_vars.csv",
+                    "datasets/Kstee_2018_truthed_more_vars.csv",
+                ],
+                # N=50000,
+                transformers=transformers,
             )
+
             X_test_data_loader.select_randomly(Nevents=10000)
             X_test_conditions = X_test_data_loader.get_branches(
                 rd.conditions, processed=True
@@ -194,9 +212,9 @@ for epoch in range(int(1e30)):
                 os.remove(file)
             rd.decoder.save("save_state/decoder.h5")
             pickle.dump(
-                rd.QuantileTransformers,
+                transformers,
                 open("save_state/QuantileTransformers.pkl", "wb"),
             )
 
-            if iteration > 1e4:
-                quit()
+            # if iteration > 1e4:
+            #     quit()

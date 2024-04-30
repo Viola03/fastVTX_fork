@@ -11,7 +11,7 @@ class NoneError(Exception):
 
 class dataset:
 
-    def __init__(self, generated=False):
+    def __init__(self, generated=False, transformers=None):
 
         self.generated = generated
 
@@ -26,6 +26,7 @@ class dataset:
         ]
 
         self.one_minus_log_columns = ["B_plus_DIRA_OWNPV"]
+        self.QuantileTransformers = transformers
 
     def select_randomly(self, Nevents):
 
@@ -62,6 +63,9 @@ class dataset:
             # quit()
             # self.physics_variables = self.produce_physics_variables()
 
+    def get_transformers(self):
+        return self.QuantileTransformers
+
     def apply_cut(self, cut):
 
         self.all_data = self.all_data.query(cut)
@@ -93,7 +97,7 @@ class dataset:
         for column in rd.targets:
 
             df[column + "_physical_data"] = np.squeeze(
-                rd.QuantileTransformers[column + "_processed_data"].inverse_transform(
+                self.QuantileTransformers[column + "_processed_data"].inverse_transform(
                     np.asarray(df[column + "_processed_data"]).reshape(-1, 1)
                 )
             )
@@ -164,7 +168,11 @@ class dataset:
         if self.generated == False:
             rd.normalisation_constants = {}
 
-        rd.QuantileTransformers = {}
+        fresh_transformers = False
+        if self.QuantileTransformers == None:
+            fresh_transformers = True
+        if fresh_transformers:
+            self.QuantileTransformers = {}
 
         for column in rd.targets + rd.conditions:
 
@@ -173,14 +181,14 @@ class dataset:
             if column not in list(df.keys()):
                 continue
 
-            qt = QuantileTransformer(n_quantiles=50, output_distribution="normal")
-
-            rd.QuantileTransformers[column] = qt.fit(
-                np.asarray(df[column]).reshape(-1, 1)
-            )
+            if fresh_transformers:
+                qt = QuantileTransformer(n_quantiles=50, output_distribution="normal")
+                self.QuantileTransformers[column] = qt.fit(
+                    np.asarray(df[column]).reshape(-1, 1)
+                )
 
             df[column] = np.squeeze(
-                rd.QuantileTransformers[column].transform(
+                self.QuantileTransformers[column].transform(
                     np.asarray(df[column]).reshape(-1, 1)
                 )
             )
@@ -250,12 +258,12 @@ class dataset:
 
                 qt = QuantileTransformer(n_quantiles=50, output_distribution="normal")
 
-                rd.QuantileTransformers[column.replace("_physical_data", "")] = qt.fit(
-                    np.asarray(df[column]).reshape(-1, 1)
+                self.QuantileTransformers[column.replace("_physical_data", "")] = (
+                    qt.fit(np.asarray(df[column]).reshape(-1, 1))
                 )
 
                 df[column.replace("_physical_data", "_processed_data")] = np.squeeze(
-                    rd.QuantileTransformers[
+                    self.QuantileTransformers[
                         column.replace("_physical_data", "")
                     ].transform(np.asarray(df[column]).reshape(-1, 1))
                 )
@@ -264,7 +272,7 @@ class dataset:
             for column in list(df.keys()):
 
                 df[column.replace("_physical_data", "_processed_data")] = np.squeeze(
-                    rd.QuantileTransformers[
+                    self.QuantileTransformers[
                         column.replace("_physical_data", "")
                     ].transform(np.asarray(df[column]).reshape(-1, 1))
                 )
@@ -272,11 +280,25 @@ class dataset:
         return df
 
 
-def load_data(path):
+def load_data(path, equal_sizes=True, N=-1, transformers=None):
 
-    events = pd.read_csv(path)
+    if isinstance(path, list):
+        for i in range(0, len(path)):
+            if i == 0:
+                events = pd.read_csv(path[i])
+                if equal_sizes and N == -1:
+                    N = events.shape[0]
+                elif equal_sizes:
+                    events = events.sample(n=N)
+            else:
+                events_i = pd.read_csv(path[i])
+                if equal_sizes:
+                    events_i = events_i.sample(n=N)
+                events = pd.concat([events, events_i], axis=0)
+    else:
+        events = pd.read_csv(path)
 
-    events_dataset = dataset(generated=False)
+    events_dataset = dataset(generated=False, transformers=transformers)
     events_dataset.fill(events, processed=False)
 
     return events_dataset
