@@ -129,3 +129,54 @@ def plot(data, gen_data, filename, Nevents=10000):
 
         #     pdf.savefig(bbox_inches="tight")
         #     plt.close()
+
+    with PdfPages(f"{filename}_targets.pdf") as pdf:
+
+        plt.figure(figsize=(5 * 5, 5 * 2))
+
+        for subplot_idx, var in enumerate(rd.targets):
+
+            plt.subplot(2, 5, subplot_idx + 1)
+            hist = plt.hist(
+                [data_all[var][:Nevents], gen_data_all[var][:Nevents]],
+                bins=35,
+                color=["tab:blue", "tab:red"],
+                histtype="step",
+            )
+
+            plt.hist(data_all[var][:Nevents], bins=hist[1], alpha=0.5, color="tab:blue")
+            plt.hist(
+                gen_data_all[var][:Nevents],
+                bins=hist[1],
+                alpha=0.5,
+                color="tab:red",
+            )
+            plt.xlabel(f"{var}")
+
+        pdf.savefig(bbox_inches="tight")
+        plt.close()
+
+        plt.figure(figsize=(5 * 5, 5 * 2))
+
+        for subplot_idx, var in enumerate(rd.targets):
+
+            plt.subplot(2, 5, subplot_idx + 1)
+            hist = plt.hist(
+                [data_all[var][:Nevents], gen_data_all[var][:Nevents]],
+                bins=35,
+                color=["tab:blue", "tab:red"],
+                histtype="step",
+            )
+            plt.hist(data_all[var][:Nevents], bins=hist[1], alpha=0.5, color="tab:blue")
+            plt.hist(
+                gen_data_all[var][:Nevents],
+                bins=hist[1],
+                alpha=0.5,
+                color="tab:red",
+            )
+            plt.xlabel(f"{var}")
+
+            plt.yscale("log")
+
+        pdf.savefig(bbox_inches="tight")
+        plt.close()

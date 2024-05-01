@@ -12,6 +12,7 @@ import tensorflow as tf
 from sklearn.ensemble import GradientBoostingClassifier
 import fast_vertex_quality.tools.plotting as plotting
 import pickle
+from matplotlib.backends.backend_pdf import PdfPages
 
 rd.targets = [
     "B_plus_ENDVERTEX_CHI2",
@@ -190,94 +191,90 @@ for kFold in range(10):
 
     ################################
 
-    plotting.plot(
-        event_loader_MC,
-        event_loader_data,
-        f"A_BDT_signal_vs_bkg",
-        Nevents=10000,
-    )
+    with PdfPages(f"BDT.pdf") as pdf:
 
-    plotting.plot(
-        event_loader_MC,
-        event_loader_gen,
-        f"A_BDT_signal_vs_gen",
-        Nevents=10000,
-    )
+        samples = {}
 
-    # plotting.plot(
-    #     event_loader_MC,
-    #     event_loader_prc,
-    #     f"A_BDT_signal_vs_prc",
-    #     Nevents=10000,
-    # )
+        samples["sig - MC"] = {}
+        samples["sig - MC"]["data"] = out_real[:, 1]
+        samples["sig - MC"]["c"] = "tab:blue"
 
-    # plotting.plot(
-    #     event_loader_MC,
-    #     event_loader_prc,
-    #     f"A_BDT_signal_vs_prc_gen",
-    #     Nevents=10000,
-    # )
+        samples["bkg - umsb"] = {}
+        samples["bkg - umsb"]["data"] = out_fake[:, 1]
+        samples["bkg - umsb"]["c"] = "tab:red"
 
-    # plt.hist(
-    #     [out_real[:, 1], out_fake[:, 1], out_gen[:, 1]],
-    #     bins=50,
-    #     color=["tab:blue", "tab:red", "tab:green"],
-    #     alpha=0.25,
-    #     label=["Signal - MC", "Background", "Signal - generated"],
-    #     density=True,
-    #     histtype="stepfilled",
-    #     range=[0, 1],
-    # )
-    # plt.hist(
-    #     [
-    #         out_real[:, 1],
-    #         out_fake[:, 1],
-    #         out_gen[:, 1],
-    #     ],
-    #     bins=50,
-    #     color=["tab:blue", "tab:red", "tab:green"],
-    #     density=True,
-    #     histtype="step",
-    #     range=[0, 1],
-    # )
-    # plt.legend()
-    # plt.xlabel(f"BDT output")
-    # plt.yscale("log")
-    # plt.savefig("BDT")
+        samples["sig - gen"] = {}
+        samples["sig - gen"]["data"] = out_gen[:, 1]
+        samples["sig - gen"]["c"] = "tab:green"
 
-    plt.hist(
-        [
-            out_real[:, 1],
-            out_fake[:, 1],
-            out_gen[:, 1],
-            out_prc[:, 1],
-            out_gen_prc[:, 1],
-        ],
-        bins=50,
-        color=["tab:blue", "tab:red", "tab:green", "tab:purple", "k"],
-        alpha=0.25,
-        label=["sig - MC", "bkg", "sig - gen", "prc - MC", "prc - gen"],
-        density=True,
-        histtype="stepfilled",
-        range=[0, 1],
-    )
-    plt.hist(
-        [
-            out_real[:, 1],
-            out_fake[:, 1],
-            out_gen[:, 1],
-            out_prc[:, 1],
-            out_gen_prc[:, 1],
-        ],
-        bins=50,
-        color=["tab:blue", "tab:red", "tab:green", "tab:purple", "k"],
-        density=True,
-        histtype="step",
-        range=[0, 1],
-    )
-    plt.legend()
-    plt.xlabel(f"BDT output")
-    plt.yscale("log")
-    plt.savefig("BDT")
+        samples["prc - MC"] = {}
+        samples["prc - MC"]["data"] = out_prc[:, 1]
+        samples["prc - MC"]["c"] = "tab:purple"
+
+        samples["prc - gen"] = {}
+        samples["prc - gen"]["data"] = out_gen_prc[:, 1]
+        samples["prc - gen"]["c"] = "k"
+
+        figures = [
+            ["sig - MC", "bkg - umsb"],
+            ["sig - MC", "bkg - umsb", "sig - gen"],
+            ["sig - MC", "bkg - umsb", "sig - gen", "prc - MC", "prc - gen"],
+        ]
+
+        for figure_config in figures:
+
+            hists = []
+            colours = []
+            for plot_i in figure_config:
+                hists.append(samples[plot_i]["data"])
+                colours.append(samples[plot_i]["c"])
+
+            plt.figure(figsize=(10, 5))
+            plt.subplot(1, 2, 1)
+
+            plt.hist(
+                hists,
+                bins=50,
+                color=colours,
+                alpha=0.25,
+                label=figure_config,
+                density=True,
+                histtype="stepfilled",
+                range=[0, 1],
+            )
+            plt.hist(
+                hists,
+                bins=50,
+                color=colours,
+                density=True,
+                histtype="step",
+                range=[0, 1],
+            )
+            # plt.legend(loc="upper left")
+            plt.xlabel(f"BDT output")
+            plt.yscale("log")
+            plt.subplot(1, 2, 2)
+            plt.hist(
+                hists,
+                bins=50,
+                color=colours,
+                alpha=0.25,
+                label=figure_config,
+                density=True,
+                histtype="stepfilled",
+                range=[0, 1],
+            )
+            plt.hist(
+                hists,
+                bins=50,
+                color=colours,
+                density=True,
+                histtype="step",
+                range=[0, 1],
+            )
+            plt.legend(loc="upper left")
+            plt.xlabel(f"BDT output")
+            pdf.savefig(bbox_inches="tight")
+            plt.close()
 
     break

@@ -68,26 +68,27 @@ rd.conditions = [
     "m_01",
     "m_02",
     "m_12",
+    "part_reco",
 ]
 
 
 kl_factor = 1.0
-reco_factor = 1e3
+reco_factor = 3e3
 # reco_factor = 500.0
 
 batch_size = 50
 
 target_dim = len(rd.targets)
 conditions_dim = len(rd.conditions)
-latent_dim = 8
+latent_dim = 6
 
 cut_idx = target_dim
 
 VAE = VAE_builder(
-    E_architecture=[50, 250, 250, 50],
-    D_architecture=[50, 250, 250, 50],
-    # E_architecture=[250, 450, 450, 250],
-    # D_architecture=[250, 450, 450, 250],
+    # E_architecture=[50, 250, 250, 50],
+    # D_architecture=[50, 250, 250, 50],
+    E_architecture=[250, 450, 450, 250],
+    D_architecture=[250, 450, 450, 250],
     target_dim=target_dim,
     conditions_dim=conditions_dim,
     latent_dim=latent_dim,
@@ -107,16 +108,18 @@ loss_list = np.empty((0, 3))
 t0 = time.time()
 
 
-save_interval = 2500
-# save_interval = 25
+save_interval = 5000
+# save_interval = 250
 
 X_train_data_loader = data_loader.load_data(
     [
         "datasets/Kee_2018_truthed_more_vars.csv",
         "datasets/Kstee_2018_truthed_more_vars.csv",
     ],
+    part_reco=[-1.0, 1.0],
     N=50000,
 )
+
 transformers = X_train_data_loader.get_transformers()
 
 for epoch in range(int(1e30)):
@@ -185,6 +188,7 @@ for epoch in range(int(1e30)):
                     "datasets/Kee_2018_truthed_more_vars.csv",
                     "datasets/Kstee_2018_truthed_more_vars.csv",
                 ],
+                part_reco=[-1.0, 1.0],
                 # N=50000,
                 transformers=transformers,
             )

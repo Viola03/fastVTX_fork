@@ -58,6 +58,8 @@ from sklearn.preprocessing import PowerTransformer
 
 import fast_vertex_quality.tools.plotting as plotting
 
+import pickle
+
 rd.targets = [
     "B_plus_ENDVERTEX_CHI2",
     "B_plus_IPCHI2_OWNPV",
@@ -87,22 +89,60 @@ rd.targets = [
 # ]
 
 rd.conditions = [
-    "q2",
+    "B_P",
+    "B_PT",
+    "missing_B_P",
+    "missing_B_PT",
+    "delta_0_P",
+    "delta_0_PT",
+    "delta_1_P",
+    "delta_1_PT",
+    "delta_2_P",
+    "delta_2_PT",
+    "m_01",
+    "m_02",
+    "m_12",
+    "part_reco",
 ]
 
-event_loader_MC_lowq2 = data_loader.load_data("datasets/Kee_2018_truthed.csv")
-event_loader_MC_lowq2.apply_cut("q2_physical_data<6")
+latent_dim = 6
+decoder = tf.keras.models.load_model("save_state/decoder.h5")
+transformers = pickle.load(open("save_state/QuantileTransformers.pkl", "rb"))
 
-event_loader_MC_highq2 = data_loader.load_data("datasets/Kee_2018_truthed.csv")
-event_loader_MC_highq2.apply_cut("q2_physical_data>15")
+event_loader_MC_lowq2 = data_loader.load_data(
+    "datasets/Kee_2018_truthed_more_vars.csv",
+    part_reco=-1,
+    transformers=transformers,
+)
+event_loader_MC_lowq2.apply_cut("q2_physical_data<3")
+
+# #####
+# # event_loader_MC_lowq2.select_randomly(Nevents=1000)
+# X_test_conditions = event_loader_MC_lowq2.get_branches(
+#     rd.conditions + ["q2"], processed=False
+# )
+
+# plt.figure(figsize=(12, 4))
+# plt.subplot(1, 3, 1)
+# plt.hist2d(X_test_conditions["m_01"], X_test_conditions["q2"], norm=LogNorm(), bins=150)
+# plt.subplot(1, 3, 2)
+# plt.hist2d(X_test_conditions["m_02"], X_test_conditions["q2"], norm=LogNorm(), bins=150)
+# plt.subplot(1, 3, 3)
+# plt.hist2d(X_test_conditions["m_12"], X_test_conditions["q2"], norm=LogNorm(), bins=150)
+# plt.savefig("play.png", bbox_inches="tight")
+# quit()
+# #####
+
+event_loader_MC_highq2 = data_loader.load_data(
+    "datasets/Kee_2018_truthed_more_vars.csv",
+    part_reco=-1,
+    transformers=transformers,
+)
+event_loader_MC_highq2.apply_cut("q2_physical_data>17")
 
 
 plotting.plot(event_loader_MC_lowq2, event_loader_MC_highq2, "q2", Nevents=10000)
 
-
-decoder = tf.keras.models.load_model("save_state/decoder.h5")
-
-latent_dim = 6
 
 event_loader_MC_lowq2.select_randomly(Nevents=10000)
 gen_noise = np.random.normal(0, 1, (10000, latent_dim))

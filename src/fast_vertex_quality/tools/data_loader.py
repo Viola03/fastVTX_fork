@@ -280,23 +280,32 @@ class dataset:
         return df
 
 
-def load_data(path, equal_sizes=True, N=-1, transformers=None):
+def load_data(path, part_reco, equal_sizes=True, N=-1, transformers=None):
 
     if isinstance(path, list):
+        if not isinstance(part_reco, list):
+            print("path is list, part_reco must be too, quitting..")
+            quit()
+        if len(part_reco) != len(path):
+            print("path and part_reco must have same lengths, quitting..")
+            quit()
         for i in range(0, len(path)):
             if i == 0:
                 events = pd.read_csv(path[i])
+                events["part_reco"] = part_reco[i]
                 if equal_sizes and N == -1:
                     N = events.shape[0]
                 elif equal_sizes:
                     events = events.sample(n=N)
             else:
                 events_i = pd.read_csv(path[i])
+                events_i["part_reco"] = part_reco[i]
                 if equal_sizes:
                     events_i = events_i.sample(n=N)
                 events = pd.concat([events, events_i], axis=0)
     else:
         events = pd.read_csv(path)
+        events["part_reco"] = part_reco
 
     events_dataset = dataset(generated=False, transformers=transformers)
     events_dataset.fill(events, processed=False)
