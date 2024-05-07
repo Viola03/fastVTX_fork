@@ -96,9 +96,12 @@ class dataset:
 
         for column in rd.targets:
 
+            np_array = np.asarray(df[column + "_processed_data"]).reshape(-1, 1).copy()
+            np_array *= 5.0
+
             df[column + "_physical_data"] = np.squeeze(
                 self.QuantileTransformers[column + "_processed_data"].inverse_transform(
-                    np.asarray(df[column + "_processed_data"]).reshape(-1, 1)
+                    np_array
                 )
             )
 
@@ -146,6 +149,17 @@ class dataset:
 
         return output
 
+    def query_quantile_transformer(self, qt, array, inverse=False, frac=1.0):
+
+        if inverse:
+            transformed = np.squeeze(qt.inverse_transform(array.reshape(-1, 1)))
+        else:
+            transformed = np.squeeze(qt.transform(array.reshape(-1, 1)))
+
+        diff = transformed - array
+
+        return array + (diff * frac)
+
     def pre_process(self, physical_data):
 
         df = {}
@@ -183,15 +197,36 @@ class dataset:
 
             if fresh_transformers:
                 qt = QuantileTransformer(n_quantiles=50, output_distribution="normal")
-                self.QuantileTransformers[column] = qt.fit(
-                    np.asarray(df[column]).reshape(-1, 1)
-                )
+                # print(np.shape(np.asarray(df[column])))
 
-            df[column] = np.squeeze(
-                self.QuantileTransformers[column].transform(
-                    np.asarray(df[column]).reshape(-1, 1)
-                )
+                # pre = np.asarray(df[column]).copy()
+                qt_array = np.asarray(df[column]).copy()
+                # qt_mean = np.mean(qt_array)
+                # qt_array += -qt_mean
+                # qt_std = np.std(qt_array)
+                # qt_array *= 1.0 / qt_std
+                # qt_array *= 2.0
+                # qt_array *= qt_std
+                # qt_array += qt_mean
+
+                # import matplotlib.pyplot as plt
+                # plt.hist([pre, qt_array], bins=100, histtype="step")
+                # plt.savefig("here.png")
+                # quit()
+
+                self.QuantileTransformers[column] = qt.fit(qt_array.reshape(-1, 1))
+
+            np_array = self.query_quantile_transformer(
+                self.QuantileTransformers[column],
+                np.asarray(df[column]).copy(),
+                inverse=False,
+                frac=1.0,
             )
+            np_array = np_array / 5.0
+            np_array[np.where(np_array > 1)] = 1.0
+            np_array[np.where(np_array < -1)] = -1.0
+
+            df[column] = np_array
 
         return pd.DataFrame.from_dict(df)
 
@@ -262,50 +297,53 @@ class dataset:
                     qt.fit(np.asarray(df[column]).reshape(-1, 1))
                 )
 
-                df[column.replace("_physical_data", "_processed_data")] = np.squeeze(
+                np_array = np.squeeze(
                     self.QuantileTransformers[
                         column.replace("_physical_data", "")
                     ].transform(np.asarray(df[column]).reshape(-1, 1))
                 )
+
+                np_array = np_array / 5.0
+                np_array[np.where(np_array > 1)] = 1.0
+                np_array[np.where(np_array < -1)] = -1.0
+
+                df[column.replace("_physical_data", "_processed_data")] = np_array
         else:
 
             for column in list(df.keys()):
 
-                df[column.replace("_physical_data", "_processed_data")] = np.squeeze(
+                np_array = np.squeeze(
                     self.QuantileTransformers[
                         column.replace("_physical_data", "")
                     ].transform(np.asarray(df[column]).reshape(-1, 1))
                 )
 
+                np_array = np_array / 5.0
+                np_array[np.where(np_array > 1)] = 1.0
+                np_array[np.where(np_array < -1)] = -1.0
+
+                df[column.replace("_physical_data", "_processed_data")] = np_array
+
         return df
 
 
-def load_data(path, part_reco, equal_sizes=True, N=-1, transformers=None):
+def load_data(path, equal_sizes=True, N=-1, transformers=None):
 
     if isinstance(path, list):
-        if not isinstance(part_reco, list):
-            print("path is list, part_reco must be too, quitting..")
-            quit()
-        if len(part_reco) != len(path):
-            print("path and part_reco must have same lengths, quitting..")
-            quit()
         for i in range(0, len(path)):
             if i == 0:
                 events = pd.read_csv(path[i])
-                events["part_reco"] = part_reco[i]
                 if equal_sizes and N == -1:
                     N = events.shape[0]
                 elif equal_sizes:
                     events = events.sample(n=N)
             else:
                 events_i = pd.read_csv(path[i])
-                events_i["part_reco"] = part_reco[i]
                 if equal_sizes:
                     events_i = events_i.sample(n=N)
                 events = pd.concat([events, events_i], axis=0)
     else:
         events = pd.read_csv(path)
-        events["part_reco"] = part_reco
 
     events_dataset = dataset(generated=False, transformers=transformers)
     events_dataset.fill(events, processed=False)

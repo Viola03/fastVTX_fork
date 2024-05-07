@@ -34,24 +34,153 @@ def loss_plot(loss_list, reco_factor, kl_factor, filename="LOSSES.png"):
     plt.close("all")
 
 
+def plot_targets(filename, df_A, df_B, Nevents, df_C=None, df_D=None):
+
+    with PdfPages(f"{filename}_targets.pdf") as pdf:
+
+        plt.figure(figsize=(5 * 5, 5 * 2))
+
+        for subplot_idx, var in enumerate(rd.targets):
+
+            plt.subplot(2, 5, subplot_idx + 1)
+            hist = plt.hist(
+                [df_A[var][:Nevents], df_B[var][:Nevents]],
+                bins=35,
+                color=["tab:blue", "tab:red"],
+                histtype="step",
+                density=True,
+            )
+
+            plt.hist(
+                df_A[var][:Nevents],
+                bins=hist[1],
+                alpha=0.5,
+                color="tab:blue",
+                density=True,
+            )
+            plt.hist(
+                df_B[var][:Nevents],
+                bins=hist[1],
+                alpha=0.5,
+                color="tab:red",
+                density=True,
+            )
+
+            if df_C is not None and df_D is not None:
+                plt.hist(
+                    [df_C[var][:Nevents], df_D[var][:Nevents]],
+                    bins=hist[1],
+                    color=["tab:blue", "tab:red"],
+                    histtype="step",
+                    linestyle="dashed",
+                    density=True,
+                )
+
+            plt.xlabel(f"{var}")
+
+        pdf.savefig(bbox_inches="tight")
+        plt.close()
+
+        plt.figure(figsize=(5 * 5, 5 * 2))
+
+        for subplot_idx, var in enumerate(rd.targets):
+
+            plt.subplot(2, 5, subplot_idx + 1)
+            hist = plt.hist(
+                [df_A[var][:Nevents], df_B[var][:Nevents]],
+                bins=35,
+                color=["tab:blue", "tab:red"],
+                histtype="step",
+                density=True,
+            )
+            plt.hist(
+                df_A[var][:Nevents],
+                bins=hist[1],
+                alpha=0.5,
+                color="tab:blue",
+                density=True,
+            )
+            plt.hist(
+                df_B[var][:Nevents],
+                bins=hist[1],
+                alpha=0.5,
+                color="tab:red",
+                density=True,
+            )
+
+            if df_C is not None and df_D is not None:
+                plt.hist(
+                    [df_C[var][:Nevents], df_D[var][:Nevents]],
+                    bins=hist[1],
+                    color=["tab:blue", "tab:red"],
+                    histtype="step",
+                    linestyle="dashed",
+                    density=True,
+                )
+
+            plt.xlabel(f"{var}")
+
+            plt.yscale("log")
+
+        pdf.savefig(bbox_inches="tight")
+        plt.close()
+
+
 def plot(data, gen_data, filename, Nevents=10000):
 
     print(f"Plotting {filename}.pdf....")
 
-    data_all = data.get_branches(rd.targets + rd.conditions, processed=False)
-    data_all_pp = data.get_branches(rd.targets + rd.conditions, processed=True)
+    data_all = data.get_branches(rd.targets + rd.conditions + ["q2"], processed=False)
+    data_all_pp = data.get_branches(rd.targets + rd.conditions + ["q2"], processed=True)
     # data_physics = data.get_physics_variables()
+    data_all_pp["q2"] = data_all["q2"]
 
-    gen_data_all = gen_data.get_branches(rd.targets + rd.conditions, processed=False)
-    gen_data_all_pp = gen_data.get_branches(rd.targets + rd.conditions, processed=True)
+    gen_data_all = gen_data.get_branches(
+        rd.targets + rd.conditions + ["q2"], processed=False
+    )
+    gen_data_all_pp = gen_data.get_branches(
+        rd.targets + rd.conditions + ["q2"], processed=True
+    )
+    gen_data_all_pp["q2"] = gen_data_all["q2"]
+
     # gen_data_all, gen_data_targets, gen_data_condtions = gen_data.get_physical_data()
     # gen_data_all_pp, gen_data_targets_pp, gen_data_condtions_pp = (
     #     gen_data.get_processed_data()
     # )
     # gen_data_physics = gen_data.get_physics_variables()
 
+    # data_all_highq2 = data_all.query("q2>15")
+    # gen_data_all_highq2 = gen_data_all.query("q2>15")
+
+    # data_all_lowq2 = data_all.query("q2<6")
+    # gen_data_all_lowq2 = gen_data_all.query("q2<6")
+
+    # data_all_pp_highq2 = data_all_pp.query("q2>15")
+    # gen_data_all_pp_highq2 = gen_data_all_pp.query("q2>15")
+
+    # data_all_pp_lowq2 = data_all_pp.query("q2<6")
+    # gen_data_all_pp_lowq2 = gen_data_all_pp.query("q2<6")
+
     columns = list(data_all.keys())
     N = len(columns)
+
+    plot_targets(filename, data_all, gen_data_all, Nevents)
+    # plot_targets(
+    #     filename + "_q2",
+    #     data_all_lowq2,
+    #     data_all_highq2,
+    #     Nevents,
+    #     gen_data_all_lowq2,
+    #     gen_data_all_highq2,
+    # )
+    # plot_targets(
+    #     filename + "_q2_pp",
+    #     data_all_pp_lowq2,
+    #     data_all_pp_highq2,
+    #     Nevents,
+    #     gen_data_all_pp_lowq2,
+    #     gen_data_all_pp_highq2,
+    # )
 
     with PdfPages(f"{filename}.pdf") as pdf:
 
@@ -83,6 +212,7 @@ def plot(data, gen_data, filename, Nevents=10000):
                     ],
                     bins=75,
                     histtype="step",
+                    range=[-1, 1],
                 )
                 plt.xlabel(columns[i])
                 pdf.savefig(bbox_inches="tight")
@@ -129,54 +259,3 @@ def plot(data, gen_data, filename, Nevents=10000):
 
         #     pdf.savefig(bbox_inches="tight")
         #     plt.close()
-
-    with PdfPages(f"{filename}_targets.pdf") as pdf:
-
-        plt.figure(figsize=(5 * 5, 5 * 2))
-
-        for subplot_idx, var in enumerate(rd.targets):
-
-            plt.subplot(2, 5, subplot_idx + 1)
-            hist = plt.hist(
-                [data_all[var][:Nevents], gen_data_all[var][:Nevents]],
-                bins=35,
-                color=["tab:blue", "tab:red"],
-                histtype="step",
-            )
-
-            plt.hist(data_all[var][:Nevents], bins=hist[1], alpha=0.5, color="tab:blue")
-            plt.hist(
-                gen_data_all[var][:Nevents],
-                bins=hist[1],
-                alpha=0.5,
-                color="tab:red",
-            )
-            plt.xlabel(f"{var}")
-
-        pdf.savefig(bbox_inches="tight")
-        plt.close()
-
-        plt.figure(figsize=(5 * 5, 5 * 2))
-
-        for subplot_idx, var in enumerate(rd.targets):
-
-            plt.subplot(2, 5, subplot_idx + 1)
-            hist = plt.hist(
-                [data_all[var][:Nevents], gen_data_all[var][:Nevents]],
-                bins=35,
-                color=["tab:blue", "tab:red"],
-                histtype="step",
-            )
-            plt.hist(data_all[var][:Nevents], bins=hist[1], alpha=0.5, color="tab:blue")
-            plt.hist(
-                gen_data_all[var][:Nevents],
-                bins=hist[1],
-                alpha=0.5,
-                color="tab:red",
-            )
-            plt.xlabel(f"{var}")
-
-            plt.yscale("log")
-
-        pdf.savefig(bbox_inches="tight")
-        plt.close()

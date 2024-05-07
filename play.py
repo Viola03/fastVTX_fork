@@ -102,10 +102,10 @@ rd.conditions = [
     "m_01",
     "m_02",
     "m_12",
-    "part_reco",
+    # "part_reco",
 ]
 
-latent_dim = 6
+latent_dim = 7
 decoder = tf.keras.models.load_model("save_state/decoder.h5")
 transformers = pickle.load(open("save_state/QuantileTransformers.pkl", "rb"))
 

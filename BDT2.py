@@ -28,19 +28,19 @@ rd.targets = [
 ]
 
 rd.conditions = [
-    "B_P",
-    "B_PT",
+    # "B_P",
+    # "B_PT",
     "missing_B_P",
     "missing_B_PT",
-    "delta_0_P",
-    "delta_0_PT",
-    "delta_1_P",
-    "delta_1_PT",
-    "delta_2_P",
-    "delta_2_PT",
-    "m_01",
-    "m_02",
-    "m_12",
+    # "delta_0_P",
+    # "delta_0_PT",
+    # "delta_1_P",
+    # "delta_1_PT",
+    # "delta_2_P",
+    # "delta_2_PT",
+    # "m_01",
+    # "m_02",
+    # "m_12",
 ]
 
 decoder = tf.keras.models.load_model("save_state/decoder.h5")
@@ -51,6 +51,7 @@ event_loader_MC = data_loader.load_data(
     [
         "datasets/Kee_2018_truthed_more_vars.csv",
     ],
+    part_reco=[-1],
     transformers=transformers,
 )
 event_loader_MC.select_randomly(Nevents=50000)
@@ -60,6 +61,7 @@ event_loader_data = data_loader.load_data(
     [
         "datasets/B2Kee_2018_CommonPresel.csv",
     ],
+    part_reco=[-1],
     transformers=transformers,
 )
 event_loader_data.select_randomly(Nevents=50000)
@@ -146,6 +148,7 @@ for kFold in range(10):
         [
             "datasets/Kee_2018_truthed_more_vars.csv",
         ],
+        part_reco=[-1],
         transformers=transformers,
     )
     event_loader_gen.select_randomly(Nevents=10000)
@@ -170,6 +173,7 @@ for kFold in range(10):
         [
             "datasets/Kstee_2018_truthed_more_vars.csv",
         ],
+        part_reco=[1],
         transformers=transformers,
     )
     event_loader_prc.select_randomly(Nevents=20000)

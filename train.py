@@ -13,14 +13,14 @@ import os
 import time
 
 import fast_vertex_quality.tools.plotting as plotting
-import fast_vertex_quality.tools.data_loader as data_loader
-from fast_vertex_quality.tools.training import train_step
 
+# import fast_vertex_quality.tools.data_loader as data_loader
+from fast_vertex_quality.tools.training import train_step
 from fast_vertex_quality.models.conditional_VAE import VAE_builder
 
+import fast_vertex_quality.tools.new_data_loader as data_loader
 
 print(tf.__version__)
-
 
 rd.targets = [
     "B_plus_ENDVERTEX_CHI2",
@@ -35,46 +35,28 @@ rd.targets = [
     "e_plus_TRACK_CHI2NDOF",
 ]
 
-
-# rd.conditions = [
-#     "K_Kst_PX",
-#     "K_Kst_PY",
-#     "K_Kst_PZ",
-#     "e_minus_PX",
-#     "e_minus_PY",
-#     "e_minus_PZ",
-#     "e_plus_PX",
-#     "e_plus_PY",
-#     "e_plus_PZ",
-#     "nTracks",
-#     "nSPDHits",
-# ]
-
-# rd.conditions = [
-#     "q2",
-# ]
-
 rd.conditions = [
     "B_P",
     "B_PT",
-    "missing_B_P",
-    "missing_B_PT",
+    "angle_K_Kst",
+    "angle_e_plus",
+    "angle_e_minus",
+    "IP_B",
+    "IP_K_Kst",
+    "IP_e_plus",
+    "IP_e_minus",
+    "FD_B",
+    "DIRA_B",
     "delta_0_P",
     "delta_0_PT",
     "delta_1_P",
     "delta_1_PT",
     "delta_2_P",
     "delta_2_PT",
-    "m_01",
-    "m_02",
-    "m_12",
-    "part_reco",
 ]
 
-
 kl_factor = 1.0
-reco_factor = 3e3
-# reco_factor = 500.0
+reco_factor = 250.0
 
 batch_size = 50
 
@@ -85,10 +67,8 @@ latent_dim = 6
 cut_idx = target_dim
 
 VAE = VAE_builder(
-    # E_architecture=[50, 250, 250, 50],
-    # D_architecture=[50, 250, 250, 50],
-    E_architecture=[250, 450, 450, 250],
-    D_architecture=[250, 450, 450, 250],
+    E_architecture=[50, 250, 50],
+    D_architecture=[50, 250, 50],
     target_dim=target_dim,
     conditions_dim=conditions_dim,
     latent_dim=latent_dim,
@@ -107,30 +87,45 @@ loss_list = np.empty((0, 3))
 
 t0 = time.time()
 
-
 save_interval = 5000
-# save_interval = 250
 
 X_train_data_loader = data_loader.load_data(
     [
         "datasets/Kee_2018_truthed_more_vars.csv",
-        "datasets/Kstee_2018_truthed_more_vars.csv",
     ],
-    part_reco=[-1.0, 1.0],
     N=50000,
 )
 
+from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.pyplot as plt
+
+targets = X_train_data_loader.get_branches(rd.targets, processed=False)
+targets_pp = X_train_data_loader.get_branches(rd.targets, processed=True)
+with PdfPages(f"targets.pdf") as pdf:
+    for target in rd.targets:
+        plt.figure(figsize=(12, 6))
+        plt.subplot(1, 2, 1)
+        plt.hist(targets[target], bins=50)
+        plt.xlabel(target)
+        plt.subplot(1, 2, 2)
+        plt.hist(targets_pp[target], bins=50, range=[-1, 1])
+        plt.xlabel(target)
+        pdf.savefig(bbox_inches="tight")
+        plt.close()
+
+
 transformers = X_train_data_loader.get_transformers()
 
+current_MSE = 1.0
+
 for epoch in range(int(1e30)):
-
-    # X_train_data_loader = data_loader.load_data("datasets/Kee_2018_truthed.csv")
-
-    # X_test_data_loader.select_randomly(Nevents=int(1e5))
 
     X_train_data_all_pp = X_train_data_loader.get_branches(
         rd.targets + rd.conditions, processed=True
     )
+
+    X_train_data_all_pp = X_train_data_all_pp.sample(frac=1)
+    X_train_data_all_pp = X_train_data_all_pp[rd.targets + rd.conditions]
 
     X_train_raw = np.asarray(X_train_data_all_pp)
 
@@ -144,20 +139,21 @@ for epoch in range(int(1e30)):
 
     for samples_for_batch in train_dataset:
 
+        iteration += 1
+
         if iteration % 100 == 0:
             print("Iteration:", iteration)
 
-        iteration += 1
-
+        # toggle_kl_value = 1.0
         if iteration % 1000 == 0:  # annealing https://arxiv.org/pdf/1511.06349.pdf
             toggle_kl_value = 0.0
         elif iteration % 1000 < 500:
-            toggle_kl_value += 1 / 500
+            toggle_kl_value += 1.0 / 500.0
         else:
             toggle_kl_value = 1.0
         toggle_kl = tf.convert_to_tensor(toggle_kl_value)
 
-        kl_loss_np, reco_loss_np = train_step(
+        kl_loss_np, reco_loss_np, reco_loss_np_raw = train_step(
             samples_for_batch,
             cut_idx,
             tf.convert_to_tensor(kl_factor),
@@ -175,21 +171,14 @@ for epoch in range(int(1e30)):
 
             total = t1 - t0
 
-            plotting.loss_plot(loss_list, reco_factor, kl_factor, "LOSSES.png")
+            plotting.loss_plot(loss_list, 1.0, 1.0, "LOSSES.png")
 
             gen_noise = np.random.normal(0, 1, (10000, latent_dim))
 
-            # X_test_data_loader = data_loader.load_data("datasets/Kee_2018_truthed.csv")
-            # X_test_data_loader = data_loader.load_data(
-            #     "datasets/Kee_2018_truthed_more_vars.csv"
-            # )
             X_test_data_loader = data_loader.load_data(
                 [
                     "datasets/Kee_2018_truthed_more_vars.csv",
-                    "datasets/Kstee_2018_truthed_more_vars.csv",
                 ],
-                part_reco=[-1.0, 1.0],
-                # N=50000,
                 transformers=transformers,
             )
 
@@ -197,6 +186,7 @@ for epoch in range(int(1e30)):
             X_test_conditions = X_test_data_loader.get_branches(
                 rd.conditions, processed=True
             )
+            X_test_conditions = X_test_conditions[rd.conditions]
             X_test_conditions = np.asarray(X_test_conditions)
 
             images = np.squeeze(rd.decoder.predict([gen_noise, X_test_conditions]))
@@ -212,13 +202,10 @@ for epoch in range(int(1e30)):
 
             print("Saving complete...")
 
-            for file in glob.glob("save_state/*"):
-                os.remove(file)
-            rd.decoder.save("save_state/decoder.h5")
-            pickle.dump(
-                transformers,
-                open("save_state/QuantileTransformers.pkl", "wb"),
-            )
-
-            # if iteration > 1e4:
-            #     quit()
+            # for file in glob.glob("save_state/*"):
+            #     os.remove(file)
+            # rd.decoder.save("save_state/decoder.h5")
+            # pickle.dump(
+            #     transformers,
+            #     open("save_state/QuantileTransformers.pkl", "wb"),
+            # )
