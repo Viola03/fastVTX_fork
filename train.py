@@ -27,6 +27,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 
 now = datetime.now()
+time_now = now.strftime("%H_%M_%S")
 
 print(tf.__version__)
 
@@ -46,24 +47,24 @@ rd.targets = [
 rd.conditions = [
     "B_P",
     "B_PT",
-    "angle_K_Kst",
-    "angle_e_plus",
-    "angle_e_minus",
-    # "K_Kst_eta",
-    # "e_plus_eta",
-    # "e_minus_eta",
+    # "angle_K_Kst",
+    # "angle_e_plus",
+    # "angle_e_minus",
+    "K_Kst_eta",
+    "e_plus_eta",
+    "e_minus_eta",
     "IP_B",
     "IP_K_Kst",
     "IP_e_plus",
     "IP_e_minus",
     "FD_B",
     "DIRA_B",
-    "delta_0_P",
-    "delta_0_PT",
-    "delta_1_P",
-    "delta_1_PT",
-    "delta_2_P",
-    "delta_2_PT",
+    # "delta_0_P",
+    # "delta_0_PT",
+    # "delta_1_P",
+    # "delta_1_PT",
+    # "delta_2_P",
+    # "delta_2_PT",
     "K_Kst_TRACK_CHI2NDOF_gen",
     "e_minus_TRACK_CHI2NDOF_gen",
     "e_plus_TRACK_CHI2NDOF_gen",
@@ -81,8 +82,12 @@ latent_dim = 5
 cut_idx = target_dim
 
 VAE = VAE_builder(
-    E_architecture=[50, 150, 50],
-    D_architecture=[50, 150, 50],
+    # E_architecture=[50, 150, 50],
+    # D_architecture=[50, 150, 50],
+    E_architecture=[150, 250, 150],
+    D_architecture=[150, 250, 150],
+    # E_architecture=[150, 250, 250, 150],
+    # D_architecture=[150, 250, 250, 150],
     target_dim=target_dim,
     conditions_dim=conditions_dim,
     latent_dim=latent_dim,
@@ -101,7 +106,8 @@ loss_list = np.empty((0, 3))
 
 t0 = time.time()
 
-save_interval = 5000
+# save_interval = 10000
+save_interval = 25000
 
 transformers = pickle.load(
     open("save_state/track_chi2_QuantileTransformers_e_minus.pkl", "rb")
@@ -110,11 +116,13 @@ transformers = pickle.load(
 X_train_data_loader = data_loader.load_data(
     [
         "datasets/Kee_2018_truthed_more_vars.csv",
+        "datasets/Kstee_2018_truthed_more_vars.csv",
     ],
     N=50000,
     transformers=transformers,
 )
 
+X_train_data_loader.fill_chi2_gen()
 ##
 
 # physical = X_train_data_loader.get_physical()
@@ -137,58 +145,6 @@ X_train_data_loader = data_loader.load_data(
 # quit()
 
 ##
-
-for particle_i in ["K_Kst", "e_minus", "e_plus"]:
-
-    decoder_chi2 = tf.keras.models.load_model(
-        f"save_state/track_chi2_decoder_{particle_i}.h5"
-    )
-    latent_dim_chi2 = 1
-
-    targets_i = [
-        f"{particle_i}_TRACK_CHI2NDOF",
-    ]
-
-    conditions_i = [
-        f"{particle_i}_PX",
-        f"{particle_i}_PY",
-        f"{particle_i}_PZ",
-        f"{particle_i}_P",
-        f"{particle_i}_PT",
-        f"{particle_i}_eta",
-    ]
-
-    X_test_conditions = X_train_data_loader.get_branches(conditions_i, processed=True)
-    X_test_conditions = X_test_conditions[conditions_i]
-    X_test_conditions = np.asarray(X_test_conditions)
-
-    gen_noise = np.random.normal(
-        0, 1, (np.shape(X_test_conditions)[0], latent_dim_chi2)
-    )
-
-    images = np.squeeze(decoder_chi2.predict([gen_noise, X_test_conditions]))
-
-    X_train_data_loader.fill_new_column(
-        images,
-        f"{particle_i}_TRACK_CHI2NDOF_gen",
-        f"{particle_i}_TRACK_CHI2NDOF",
-        processed=True,
-    )
-
-    # #####
-    # plot_data = X_train_data_loader.get_branches(
-    #     [f"{particle_i}_TRACK_CHI2NDOF_gen", f"{particle_i}_TRACK_CHI2NDOF"],
-    #     processed=False,
-    # )
-
-    # plt.hist2d(
-    #     plot_data[f"{particle_i}_TRACK_CHI2NDOF_gen"],
-    #     plot_data[f"{particle_i}_TRACK_CHI2NDOF"],
-    #     bins=75,
-    #     norm=LogNorm(),
-    # )
-    # plt.savefig(f"{particle_i}_chi2_corr")
-    # plt.close("all")
 
 
 from matplotlib.backends.backend_pdf import PdfPages
@@ -284,54 +240,14 @@ for epoch in range(int(1e30)):
             X_test_data_loader = data_loader.load_data(
                 [
                     "datasets/Kee_2018_truthed_more_vars.csv",
+                    "datasets/Kstee_2018_truthed_more_vars.csv",
                 ],
                 transformers=transformers,
             )
 
             X_test_data_loader.select_randomly(Nevents=10000)
+            X_test_data_loader.fill_chi2_gen()
 
-            ##########
-            for particle_i in ["K_Kst", "e_minus", "e_plus"]:
-
-                decoder_chi2 = tf.keras.models.load_model(
-                    f"save_state/track_chi2_decoder_{particle_i}.h5"
-                )
-                latent_dim_chi2 = 1
-
-                targets_i = [
-                    f"{particle_i}_TRACK_CHI2NDOF",
-                ]
-
-                conditions_i = [
-                    f"{particle_i}_PX",
-                    f"{particle_i}_PY",
-                    f"{particle_i}_PZ",
-                    f"{particle_i}_P",
-                    f"{particle_i}_PT",
-                    f"{particle_i}_eta",
-                ]
-
-                X_test_conditions = X_test_data_loader.get_branches(
-                    conditions_i, processed=True
-                )
-                X_test_conditions = X_test_conditions[conditions_i]
-                X_test_conditions = np.asarray(X_test_conditions)
-
-                gen_noise = np.random.normal(
-                    0, 1, (np.shape(X_test_conditions)[0], latent_dim_chi2)
-                )
-
-                images = np.squeeze(
-                    decoder_chi2.predict([gen_noise, X_test_conditions])
-                )
-
-                X_test_data_loader.fill_new_column(
-                    images,
-                    f"{particle_i}_TRACK_CHI2NDOF_gen",
-                    f"{particle_i}_TRACK_CHI2NDOF",
-                    processed=True,
-                )
-            ##########
             gen_noise = np.random.normal(0, 1, (10000, latent_dim))
             X_test_conditions = X_test_data_loader.get_branches(
                 rd.conditions, processed=True
@@ -343,22 +259,18 @@ for epoch in range(int(1e30)):
 
             X_test_data_loader.fill_target(images)
 
-            time = now.strftime("%H_%M_%S")
-
             plotting.plot(
                 X_train_data_loader,
                 X_test_data_loader,
-                f"plots_{iteration}_{time}_reco{reco_factor}",
+                f"plots_{iteration}_{time_now}_reco{reco_factor}",
                 Nevents=10000,
             )
 
             print("Saving complete...")
 
-            # for file in glob.glob("save_state/*"):
-            #     os.remove(file)
-            # rd.decoder.save("save_state/decoder.h5")
-            # pickle.dump(
-            #     transformers,
-            #     open("save_state/QuantileTransformers.pkl", "wb"),
-            # )
+            rd.decoder.save("save_state/decoder.h5")
+            pickle.dump(
+                transformers,
+                open("save_state/QuantileTransformers.pkl", "wb"),
+            )
             quit()

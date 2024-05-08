@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.preprocessing import PowerTransformer, QuantileTransformer
 
 from fast_vertex_quality.tools.config import rd, read_definition
+import tensorflow as tf
 
 
 def produce_physics_variables(data):
@@ -68,6 +69,9 @@ class NoneError(Exception):
 class Transformer:
 
     def __init__(self):
+
+        self.log_columns = []
+        self.one_minus_log_columns = []
 
         self.log_columns = [
             "B_plus_FDCHI2_OWNPV",
@@ -169,6 +173,41 @@ class dataset:
         ]
 
         self.all_data["processed"] = self.pre_process(self.all_data["physical"])
+
+    def fill_chi2_gen(self):
+
+        for particle_i in ["K_Kst", "e_minus", "e_plus"]:
+
+            decoder_chi2 = tf.keras.models.load_model(
+                f"save_state/track_chi2_decoder_{particle_i}.h5"
+            )
+            latent_dim_chi2 = 1
+
+            conditions_i = [
+                f"{particle_i}_PX",
+                f"{particle_i}_PY",
+                f"{particle_i}_PZ",
+                f"{particle_i}_P",
+                f"{particle_i}_PT",
+                f"{particle_i}_eta",
+            ]
+
+            X_test_conditions = self.get_branches(conditions_i, processed=True)
+            X_test_conditions = X_test_conditions[conditions_i]
+            X_test_conditions = np.asarray(X_test_conditions)
+
+            gen_noise = np.random.normal(
+                0, 1, (np.shape(X_test_conditions)[0], latent_dim_chi2)
+            )
+
+            images = np.squeeze(decoder_chi2.predict([gen_noise, X_test_conditions]))
+
+            self.fill_new_column(
+                images,
+                f"{particle_i}_TRACK_CHI2NDOF_gen",
+                f"{particle_i}_TRACK_CHI2NDOF",
+                processed=True,
+            )
 
     def post_process(self, processed_data):
 
@@ -275,15 +314,18 @@ class dataset:
 
         for column in list(physical_data.keys()):
 
-            if fresh_transformers:
-                data_array = np.asarray(physical_data[column]).copy()
-                transformer_i = Transformer()
-                transformer_i.fit(data_array, column)
-                self.Transformers[column] = transformer_i
+            try:
+                if fresh_transformers:
+                    data_array = np.asarray(physical_data[column]).copy()
+                    transformer_i = Transformer()
+                    transformer_i.fit(data_array, column)
+                    self.Transformers[column] = transformer_i
 
-            df[column] = self.Transformers[column].process(
-                np.asarray(physical_data[column]).copy()
-            )
+                df[column] = self.Transformers[column].process(
+                    np.asarray(physical_data[column]).copy()
+                )
+            except:
+                pass
 
         return pd.DataFrame.from_dict(df)
 

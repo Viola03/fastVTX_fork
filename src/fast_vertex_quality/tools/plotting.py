@@ -133,7 +133,8 @@ def plot(data, gen_data, filename, Nevents=10000):
     data_all = data.get_branches(rd.targets + rd.conditions + ["q2"], processed=False)
     data_all_pp = data.get_branches(rd.targets + rd.conditions + ["q2"], processed=True)
     # data_physics = data.get_physics_variables()
-    data_all_pp["q2"] = data_all["q2"]
+
+    data_all_pp["q2"] = np.asarray(data_all["q2"])
 
     gen_data_all = gen_data.get_branches(
         rd.targets + rd.conditions + ["q2"], processed=False
@@ -141,7 +142,7 @@ def plot(data, gen_data, filename, Nevents=10000):
     gen_data_all_pp = gen_data.get_branches(
         rd.targets + rd.conditions + ["q2"], processed=True
     )
-    gen_data_all_pp["q2"] = gen_data_all["q2"]
+    gen_data_all_pp["q2"] = np.asarray(gen_data_all["q2"])
 
     # gen_data_all, gen_data_targets, gen_data_condtions = gen_data.get_physical_data()
     # gen_data_all_pp, gen_data_targets_pp, gen_data_condtions_pp = (
