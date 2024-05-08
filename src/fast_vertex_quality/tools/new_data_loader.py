@@ -9,15 +9,28 @@ def produce_physics_variables(data):
 
     physics_variables = {}
 
-    physics_variables["K_Kst_P"] = np.sqrt(
-        data["K_Kst_PX"] ** 2 + data["K_Kst_PY"] ** 2 + data["K_Kst_PZ"] ** 2
-    )
-    physics_variables["e_plus_P"] = np.sqrt(
-        data["e_plus_PX"] ** 2 + data["e_plus_PY"] ** 2 + data["e_plus_PZ"] ** 2
-    )
-    physics_variables["e_minus_P"] = np.sqrt(
-        data["e_minus_PX"] ** 2 + data["e_minus_PY"] ** 2 + data["e_minus_PZ"] ** 2
-    )
+    for particle_i in ["K_Kst", "e_plus", "e_minus"]:
+
+        physics_variables[f"{particle_i}_P"] = np.sqrt(
+            data[f"{particle_i}_PX"] ** 2
+            + data[f"{particle_i}_PY"] ** 2
+            + data[f"{particle_i}_PZ"] ** 2
+        )
+
+        physics_variables[f"{particle_i}_PT"] = np.sqrt(
+            data[f"{particle_i}_PX"] ** 2 + data[f"{particle_i}_PY"] ** 2
+        )
+
+        physics_variables[f"{particle_i}_eta"] = -np.log(
+            np.tan(
+                np.arcsin(
+                    physics_variables[f"{particle_i}_PT"]
+                    / physics_variables[f"{particle_i}_P"]
+                )
+                / 2.0
+            )
+        )
+
     physics_variables["kFold"] = np.random.randint(
         low=0,
         high=9,
@@ -132,9 +145,24 @@ class dataset:
 
         self.all_data["physical"] = data
         self.physics_variables = produce_physics_variables(self.all_data["physical"])
-        self.all_data["physical"] = pd.concat(
-            (self.all_data["physical"], self.physics_variables), axis=1
+        shared = list(
+            set(list(self.physics_variables.keys())).intersection(
+                set(list(self.all_data["physical"].keys()))
+            )
         )
+        difference = list(
+            set(list(self.physics_variables.keys())).difference(
+                set(list(self.all_data["physical"].keys()))
+            )
+        )
+        if len(shared) > 0:
+            for key in shared:
+                self.all_data["physical"][key] = self.physics_variables[key]
+        if len(difference) > 0:
+            self.physics_variables = self.physics_variables[difference]
+            self.all_data["physical"] = pd.concat(
+                (self.all_data["physical"], self.physics_variables), axis=1
+            )
 
         self.all_data["physical"] = self.all_data["physical"].loc[
             :, ~self.all_data["physical"].columns.str.contains("^Unnamed")
@@ -154,6 +182,31 @@ class dataset:
 
         return pd.DataFrame.from_dict(df)
 
+    def update_transformer(self, variable, new_transformer):
+        self.Transformers[variable] = new_transformer
+        self.all_data["processed"][variable] = self.Transformers[variable].process(
+            np.asarray(self.all_data["physical"][variable]).copy()
+        )
+
+    def fill_new_column(
+        self, data, new_column_name, transformer_variable, processed=True
+    ):
+
+        if processed:
+
+            self.all_data["processed"][new_column_name] = data
+
+            data_physical = self.Transformers[transformer_variable].unprocess(
+                np.asarray(data).copy()
+            )
+
+            self.all_data["physical"][new_column_name] = data_physical
+
+            self.Transformers[new_column_name] = self.Transformers[transformer_variable]
+        else:
+            print("fill_new_column, processed False not implemented quitting...")
+            quit()
+
     def fill_target(self, processed_data):
 
         df_processed = pd.DataFrame(processed_data, columns=rd.targets)
@@ -172,6 +225,9 @@ class dataset:
 
         self.all_data["processed"] = self.all_data["processed"].iloc[idx]
         self.all_data["physical"] = self.all_data["physical"].iloc[idx]
+
+    def get_physical(self):
+        return self.all_data["physical"]
 
     def get_branches(self, branches, processed=True):
 
@@ -252,6 +308,8 @@ def load_data(path, equal_sizes=True, N=-1, transformers=None):
                 events = pd.concat([events, events_i], axis=0)
     else:
         events = pd.read_csv(path)
+
+    events = events.loc[:, ~events.columns.str.contains("^Unnamed")]
 
     events_dataset = dataset(transformers=transformers)
     events_dataset.fill(events)

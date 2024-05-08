@@ -20,6 +20,14 @@ from fast_vertex_quality.models.conditional_VAE import VAE_builder
 
 import fast_vertex_quality.tools.new_data_loader as data_loader
 
+from datetime import datetime
+
+from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
+
+now = datetime.now()
+
 print(tf.__version__)
 
 rd.targets = [
@@ -28,11 +36,11 @@ rd.targets = [
     "B_plus_FDCHI2_OWNPV",
     "B_plus_DIRA_OWNPV",
     "K_Kst_IPCHI2_OWNPV",
-    "K_Kst_TRACK_CHI2NDOF",
+    # "K_Kst_TRACK_CHI2NDOF",
     "e_minus_IPCHI2_OWNPV",
-    "e_minus_TRACK_CHI2NDOF",
+    # "e_minus_TRACK_CHI2NDOF",
     "e_plus_IPCHI2_OWNPV",
-    "e_plus_TRACK_CHI2NDOF",
+    # "e_plus_TRACK_CHI2NDOF",
 ]
 
 rd.conditions = [
@@ -41,6 +49,9 @@ rd.conditions = [
     "angle_K_Kst",
     "angle_e_plus",
     "angle_e_minus",
+    # "K_Kst_eta",
+    # "e_plus_eta",
+    # "e_minus_eta",
     "IP_B",
     "IP_K_Kst",
     "IP_e_plus",
@@ -53,22 +64,25 @@ rd.conditions = [
     "delta_1_PT",
     "delta_2_P",
     "delta_2_PT",
+    "K_Kst_TRACK_CHI2NDOF_gen",
+    "e_minus_TRACK_CHI2NDOF_gen",
+    "e_plus_TRACK_CHI2NDOF_gen",
 ]
 
 kl_factor = 1.0
-reco_factor = 250.0
+reco_factor = 5000.0
 
 batch_size = 50
 
 target_dim = len(rd.targets)
 conditions_dim = len(rd.conditions)
-latent_dim = 6
+latent_dim = 5
 
 cut_idx = target_dim
 
 VAE = VAE_builder(
-    E_architecture=[50, 250, 50],
-    D_architecture=[50, 250, 50],
+    E_architecture=[50, 150, 50],
+    D_architecture=[50, 150, 50],
     target_dim=target_dim,
     conditions_dim=conditions_dim,
     latent_dim=latent_dim,
@@ -89,12 +103,93 @@ t0 = time.time()
 
 save_interval = 5000
 
+transformers = pickle.load(
+    open("save_state/track_chi2_QuantileTransformers_e_minus.pkl", "rb")
+)
+
 X_train_data_loader = data_loader.load_data(
     [
         "datasets/Kee_2018_truthed_more_vars.csv",
     ],
     N=50000,
+    transformers=transformers,
 )
+
+##
+
+# physical = X_train_data_loader.get_physical()
+
+# with PdfPages(f"e_minus.pdf") as pdf:
+
+#     for key in list(physical.keys()):
+#         if "e_minus" in key:
+#             print(key)
+
+#             plt.hist2d(
+#                 physical["e_minus_TRACK_CHI2NDOF"],
+#                 physical[key],
+#                 bins=50,
+#                 norm=LogNorm(),
+#             )
+#             plt.ylabel(key)
+#             pdf.savefig(bbox_inches="tight")
+#             plt.close()
+# quit()
+
+##
+
+for particle_i in ["K_Kst", "e_minus", "e_plus"]:
+
+    decoder_chi2 = tf.keras.models.load_model(
+        f"save_state/track_chi2_decoder_{particle_i}.h5"
+    )
+    latent_dim_chi2 = 1
+
+    targets_i = [
+        f"{particle_i}_TRACK_CHI2NDOF",
+    ]
+
+    conditions_i = [
+        f"{particle_i}_PX",
+        f"{particle_i}_PY",
+        f"{particle_i}_PZ",
+        f"{particle_i}_P",
+        f"{particle_i}_PT",
+        f"{particle_i}_eta",
+    ]
+
+    X_test_conditions = X_train_data_loader.get_branches(conditions_i, processed=True)
+    X_test_conditions = X_test_conditions[conditions_i]
+    X_test_conditions = np.asarray(X_test_conditions)
+
+    gen_noise = np.random.normal(
+        0, 1, (np.shape(X_test_conditions)[0], latent_dim_chi2)
+    )
+
+    images = np.squeeze(decoder_chi2.predict([gen_noise, X_test_conditions]))
+
+    X_train_data_loader.fill_new_column(
+        images,
+        f"{particle_i}_TRACK_CHI2NDOF_gen",
+        f"{particle_i}_TRACK_CHI2NDOF",
+        processed=True,
+    )
+
+    # #####
+    # plot_data = X_train_data_loader.get_branches(
+    #     [f"{particle_i}_TRACK_CHI2NDOF_gen", f"{particle_i}_TRACK_CHI2NDOF"],
+    #     processed=False,
+    # )
+
+    # plt.hist2d(
+    #     plot_data[f"{particle_i}_TRACK_CHI2NDOF_gen"],
+    #     plot_data[f"{particle_i}_TRACK_CHI2NDOF"],
+    #     bins=75,
+    #     norm=LogNorm(),
+    # )
+    # plt.savefig(f"{particle_i}_chi2_corr")
+    # plt.close("all")
+
 
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
@@ -113,10 +208,23 @@ with PdfPages(f"targets.pdf") as pdf:
         pdf.savefig(bbox_inches="tight")
         plt.close()
 
+# plt.hist(
+#     [
+#         targets["K_Kst_TRACK_CHI2NDOF"],
+#         targets["e_plus_TRACK_CHI2NDOF"],
+#         targets["e_minus_TRACK_CHI2NDOF"],
+#     ],
+#     bins=50,
+#     histtype="step",
+# )
+# plt.savefig("test")
+# quit()
+
 
 transformers = X_train_data_loader.get_transformers()
 
 current_MSE = 1.0
+
 
 for epoch in range(int(1e30)):
 
@@ -173,8 +281,6 @@ for epoch in range(int(1e30)):
 
             plotting.loss_plot(loss_list, 1.0, 1.0, "LOSSES.png")
 
-            gen_noise = np.random.normal(0, 1, (10000, latent_dim))
-
             X_test_data_loader = data_loader.load_data(
                 [
                     "datasets/Kee_2018_truthed_more_vars.csv",
@@ -183,6 +289,50 @@ for epoch in range(int(1e30)):
             )
 
             X_test_data_loader.select_randomly(Nevents=10000)
+
+            ##########
+            for particle_i in ["K_Kst", "e_minus", "e_plus"]:
+
+                decoder_chi2 = tf.keras.models.load_model(
+                    f"save_state/track_chi2_decoder_{particle_i}.h5"
+                )
+                latent_dim_chi2 = 1
+
+                targets_i = [
+                    f"{particle_i}_TRACK_CHI2NDOF",
+                ]
+
+                conditions_i = [
+                    f"{particle_i}_PX",
+                    f"{particle_i}_PY",
+                    f"{particle_i}_PZ",
+                    f"{particle_i}_P",
+                    f"{particle_i}_PT",
+                    f"{particle_i}_eta",
+                ]
+
+                X_test_conditions = X_test_data_loader.get_branches(
+                    conditions_i, processed=True
+                )
+                X_test_conditions = X_test_conditions[conditions_i]
+                X_test_conditions = np.asarray(X_test_conditions)
+
+                gen_noise = np.random.normal(
+                    0, 1, (np.shape(X_test_conditions)[0], latent_dim_chi2)
+                )
+
+                images = np.squeeze(
+                    decoder_chi2.predict([gen_noise, X_test_conditions])
+                )
+
+                X_test_data_loader.fill_new_column(
+                    images,
+                    f"{particle_i}_TRACK_CHI2NDOF_gen",
+                    f"{particle_i}_TRACK_CHI2NDOF",
+                    processed=True,
+                )
+            ##########
+            gen_noise = np.random.normal(0, 1, (10000, latent_dim))
             X_test_conditions = X_test_data_loader.get_branches(
                 rd.conditions, processed=True
             )
@@ -193,10 +343,12 @@ for epoch in range(int(1e30)):
 
             X_test_data_loader.fill_target(images)
 
+            time = now.strftime("%H_%M_%S")
+
             plotting.plot(
                 X_train_data_loader,
                 X_test_data_loader,
-                f"plots_{iteration}",
+                f"plots_{iteration}_{time}_reco{reco_factor}",
                 Nevents=10000,
             )
 
@@ -209,3 +361,4 @@ for epoch in range(int(1e30)):
             #     transformers,
             #     open("save_state/QuantileTransformers.pkl", "wb"),
             # )
+            quit()

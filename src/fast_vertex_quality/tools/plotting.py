@@ -184,39 +184,34 @@ def plot(data, gen_data, filename, Nevents=10000):
 
     with PdfPages(f"{filename}.pdf") as pdf:
 
-        for i in range(0, N):
+        for column in rd.targets:
 
-            # print(data_all[columns[i]][:Nevents])
-            # print(gen_data_all[columns[i]][:Nevents])
-            # quit()
-            if columns[i] in rd.targets:
-
-                plt.figure(figsize=(8, 4))
-                plt.subplot(1, 2, 1)
-                plt.hist(
-                    [
-                        data_all[columns[i]][:Nevents],
-                        np.asarray(gen_data_all[columns[i]])[:Nevents],
-                    ],
-                    bins=75,
-                    histtype="step",
-                    label=["truth", "gen"],
-                )
-                plt.xlabel(columns[i])
-                plt.legend()
-                plt.subplot(1, 2, 2)
-                plt.hist(
-                    [
-                        data_all_pp[columns[i]][:Nevents],
-                        np.asarray(gen_data_all_pp[columns[i]])[:Nevents],
-                    ],
-                    bins=75,
-                    histtype="step",
-                    range=[-1, 1],
-                )
-                plt.xlabel(columns[i])
-                pdf.savefig(bbox_inches="tight")
-                plt.close()
+            plt.figure(figsize=(8, 4))
+            plt.subplot(1, 2, 1)
+            plt.hist(
+                [
+                    data_all[column][:Nevents],
+                    np.asarray(gen_data_all[column])[:Nevents],
+                ],
+                bins=75,
+                histtype="step",
+                label=["truth", "gen"],
+            )
+            plt.xlabel(column)
+            plt.legend()
+            plt.subplot(1, 2, 2)
+            plt.hist(
+                [
+                    data_all_pp[column][:Nevents],
+                    np.asarray(gen_data_all_pp[column])[:Nevents],
+                ],
+                bins=75,
+                histtype="step",
+                range=[-1, 1],
+            )
+            plt.xlabel(column)
+            pdf.savefig(bbox_inches="tight")
+            plt.close()
 
         # for particle in ["K_Kst", "e_minus", "e_plus"]:
 
