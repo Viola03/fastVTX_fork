@@ -1,12 +1,10 @@
-# Vertex quality
+# fast_vertexing_variables
 
-add q2 and clean up data object
+## Installation
 
-add part reco data - condition on missing momenta
+To install the package
+```
+pip install --no-dependencies -e src/.
+```
 
-integrate rapid sim
-
-true branches or no?
-
-worry about the efficiency of cuts later - for this need stripping-less MC 
 
