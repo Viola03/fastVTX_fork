@@ -18,7 +18,7 @@ import fast_vertex_quality.tools.plotting as plotting
 from fast_vertex_quality.tools.training import train_step
 from fast_vertex_quality.models.conditional_VAE import VAE_builder
 
-import fast_vertex_quality.tools.new_data_loader as data_loader
+import fast_vertex_quality.tools.data_loader as data_loader
 
 from datetime import datetime
 

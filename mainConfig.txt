@@ -1,0 +1,4 @@
+[mainConfig]
+
+debug = False
+

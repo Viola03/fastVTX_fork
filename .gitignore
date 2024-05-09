@@ -1,0 +1,5 @@
+*.png
+*.pyc*
+datasets/
+results/
+save_state/
