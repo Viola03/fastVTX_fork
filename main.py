@@ -7,7 +7,7 @@ import tensorflow as tf
 from fast_vertex_quality.training_schemes.track_chi2 import trackchi2_trainer
 from fast_vertex_quality.training_schemes.vertex_quality import vertex_quality_trainer
 from fast_vertex_quality.testing_schemes.BDT import BDT_tester
-import fast_vertex_quality.tools.data_loader as data_loader
+import fast_vertex_quality.tools.new_data_loader as data_loader
 
 import pickle
 import numpy as np
@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
 transformers = pickle.load(
-    open(f"save_state/track_chi2_QuantileTransformers_e_plus.pkl", "rb")
+    open("save_state/track_chi2_QuantileTransformers_e_minus.pkl", "rb")
 )
 
 print(f"Loading data...")
@@ -39,7 +39,7 @@ trackchi2_trainer_obj = trackchi2_trainer(training_data_loader)
 
 # trackchi2_trainer_obj.save_state(tag="networks/chi2")
 trackchi2_trainer_obj.load_state(tag="networks/chi2")
-# quit()
+
 
 training_data_loader = data_loader.load_data(
     [
@@ -92,17 +92,16 @@ prc_gen = BDT_tester_obj.get_sample(
 )
 
 
-# with PdfPages(f"check.pdf") as pdf:
-#     for i in range(10):
-#         results = []
-#         labels = ["sig - gen", "prc - MC", "prc - gen"]
-#         for sample in [signal_gen, prc_MC, prc_gen]:
-#             results.append(sample[:, i])
+with PdfPages(f"check.pdf") as pdf:
+    for i in range(10):
+        results = []
+        labels = ["sig - gen", "prc - MC", "prc - gen"]
+        for sample in [signal_gen, prc_MC, prc_gen]:
+            results.append(sample[:, i])
 
-#         plt.hist(results, label=labels, bins=50, histtype="step")
-#         pdf.savefig(bbox_inches="tight")
-#         plt.close()
-# quit()
+        plt.hist(results, label=labels, bins=50, histtype="step")
+        pdf.savefig(bbox_inches="tight")
+        plt.close()
 
 BDT_tester_obj.query_and_plot_samples(
     [signal_gen, prc_MC, prc_gen], ["sig - gen", "prc - MC", "prc - gen"]
