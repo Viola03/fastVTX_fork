@@ -152,6 +152,10 @@ class BDT_tester:
 
             self.BDTs = pickle.load(open(f"{tag}.pkl", "rb"))
 
+    def get_BDT(self):
+
+        return self.BDTs[0]["BDT"]
+
     def get_sample(
         self,
         sample_loc,

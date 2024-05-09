@@ -15,13 +15,13 @@ def kl_loss(z_mean, z_log_var):
 
 
 @tf.function
-def train_step(images, cut_idx, kl_factor, reco_factor, toggle_kl):
+def train_step(vae, optimizer, images, cut_idx, kl_factor, reco_factor, toggle_kl):
 
     sample_targets, sample_conditions = images[:, 0, :cut_idx], images[:, 0, cut_idx:]
 
     with tf.GradientTape() as tape:
 
-        vae_out, vae_z_mean, vae_z_log_var = rd.vae([sample_targets, sample_conditions])
+        vae_out, vae_z_mean, vae_z_log_var = vae([sample_targets, sample_conditions])
 
         vae_reco_loss = reco_loss(sample_targets, vae_out)
         vae_reco_loss_raw = tf.math.reduce_mean(vae_reco_loss)
@@ -31,9 +31,9 @@ def train_step(images, cut_idx, kl_factor, reco_factor, toggle_kl):
 
         vae_loss = vae_kl_loss + vae_reco_loss
 
-    grad_vae = tape.gradient(vae_loss, rd.vae.trainable_variables)
+    grad_vae = tape.gradient(vae_loss, vae.trainable_variables)
 
-    rd.optimizer.apply_gradients(zip(grad_vae, rd.vae.trainable_variables))
+    optimizer.apply_gradients(zip(grad_vae, vae.trainable_variables))
 
     return vae_kl_loss, vae_reco_loss, vae_reco_loss_raw
 

@@ -14,9 +14,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-transformers = pickle.load(
-    open("save_state/track_chi2_QuantileTransformers_e_minus.pkl", "rb")
-)
+# transformers = pickle.load(
+#     open("save_state/track_chi2_QuantileTransformers_e_minus.pkl", "rb")
+# )
 
 print(f"Loading data...")
 training_data_loader = data_loader.load_data(
@@ -24,7 +24,7 @@ training_data_loader = data_loader.load_data(
         "datasets/Kee_2018_truthed_more_vars.csv",
     ],
     N=50000,
-    transformers=transformers,
+    # transformers=transformers,
 )
 transformers = training_data_loader.get_transformers()
 
@@ -39,7 +39,7 @@ trackchi2_trainer_obj = trackchi2_trainer(training_data_loader)
 
 # trackchi2_trainer_obj.save_state(tag="networks/chi2")
 trackchi2_trainer_obj.load_state(tag="networks/chi2")
-
+# quit()
 
 training_data_loader = data_loader.load_data(
     [
@@ -59,7 +59,6 @@ vertex_quality_trainer_obj = vertex_quality_trainer(
 # vertex_quality_trainer_obj.make_plots()
 # vertex_quality_trainer_obj.save_state(tag="networks/vertex")
 vertex_quality_trainer_obj.load_state(tag="networks/vertex")
-
 
 print(f"Initialising BDT tester...")
 BDT_tester_obj = BDT_tester(
@@ -92,16 +91,16 @@ prc_gen = BDT_tester_obj.get_sample(
 )
 
 
-with PdfPages(f"check.pdf") as pdf:
-    for i in range(10):
-        results = []
-        labels = ["sig - gen", "prc - MC", "prc - gen"]
-        for sample in [signal_gen, prc_MC, prc_gen]:
-            results.append(sample[:, i])
+# with PdfPages(f"check.pdf") as pdf:
+#     for i in range(10):
+#         results = []
+#         labels = ["sig - gen", "prc - MC", "prc - gen"]
+#         for sample in [signal_gen, prc_MC, prc_gen]:
+#             results.append(sample[:, i])
 
-        plt.hist(results, label=labels, bins=50, histtype="step")
-        pdf.savefig(bbox_inches="tight")
-        plt.close()
+#         plt.hist(results, label=labels, bins=50, histtype="step")
+#         pdf.savefig(bbox_inches="tight")
+#         plt.close()
 
 BDT_tester_obj.query_and_plot_samples(
     [signal_gen, prc_MC, prc_gen], ["sig - gen", "prc - MC", "prc - gen"]

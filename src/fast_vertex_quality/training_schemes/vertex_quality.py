@@ -74,6 +74,9 @@ class vertex_quality_trainer:
 
         self.trained_weights = {}
 
+    def get_decoder(self):
+        return self.decoder
+
     def get_weights(self):
 
         weights = {}
@@ -91,13 +94,13 @@ class vertex_quality_trainer:
 
     def set_trained_weights(self):
 
-        # self.vae.set_weights(self.trained_weights["vae"])
-        # self.decoder.set_weights(self.trained_weights["decoder"])
-        # self.encoder.set_weights(self.trained_weights["encoder"])
+        self.vae.set_weights(self.trained_weights["vae"])
+        self.decoder.set_weights(self.trained_weights["decoder"])
+        self.encoder.set_weights(self.trained_weights["encoder"])
 
-        decoder = tf.keras.models.load_model("save_state/decoder.h5")
-        self.trained_weights = decoder.get_weights()
-        self.decoder.set_weights(self.trained_weights)
+        # decoder = tf.keras.models.load_model("save_state/decoder.h5")
+        # self.trained_weights = decoder.get_weights()
+        # self.decoder.set_weights(self.trained_weights)
 
     def build_VAE(self):
 
@@ -227,11 +230,11 @@ class vertex_quality_trainer:
 
     def load_state(self, tag):
 
-        # self.transformers = pickle.load(open(f"{tag}_transfomers.pkl", "rb"))
-        # self.trained_weights = pickle.load(open(f"{tag}_trained_weights.pkl", "rb"))
+        self.transformers = pickle.load(open(f"{tag}_transfomers.pkl", "rb"))
+        self.trained_weights = pickle.load(open(f"{tag}_trained_weights.pkl", "rb"))
 
-        decoder = tf.keras.models.load_model("save_state/decoder.h5")
-        self.trained_weights = decoder.get_weights()
+        # decoder = tf.keras.models.load_model("save_state/decoder.h5")
+        # self.trained_weights = decoder.get_weights()
 
     def predict(self, inputs):
 
