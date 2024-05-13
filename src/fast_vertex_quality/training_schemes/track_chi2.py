@@ -6,7 +6,7 @@ import numpy as np
 from fast_vertex_quality.tools.training import train_step
 import fast_vertex_quality.tools.plotting as plotting
 import pickle
-import fast_vertex_quality.tools.new_data_loader as data_loader
+import fast_vertex_quality.tools.data_loader as data_loader
 
 
 class trackchi2_trainer:

@@ -3,64 +3,78 @@ from fast_vertex_quality.tools.config import read_definition, rd
 from fast_vertex_quality.models.conditional_VAE import VAE_builder
 import tensorflow as tf
 import numpy as np
-from fast_vertex_quality.tools.training import train_step
+from fast_vertex_quality.tools.training import train_step_vertexing as train_step
 import fast_vertex_quality.tools.plotting as plotting
 import pickle
-import fast_vertex_quality.tools.new_data_loader as data_loader
+import fast_vertex_quality.tools.data_loader as data_loader
+import matplotlib.pyplot as plt
 
 
 class vertex_quality_trainer:
 
-    def __init__(self, data_loader_obj, trackchi2_trainer):
+    def __init__(
+        self, data_loader_obj, trackchi2_trainer, targets=None, conditions=None
+    ):
 
         self.trackchi2_trainer = trackchi2_trainer
 
-        self.targets = [
-            "B_plus_ENDVERTEX_CHI2",
-            "B_plus_IPCHI2_OWNPV",
-            "B_plus_FDCHI2_OWNPV",
-            "B_plus_DIRA_OWNPV",
-            "K_Kst_IPCHI2_OWNPV",
-            # "K_Kst_TRACK_CHI2NDOF",
-            "e_minus_IPCHI2_OWNPV",
-            # "e_minus_TRACK_CHI2NDOF",
-            "e_plus_IPCHI2_OWNPV",
-            # "e_plus_TRACK_CHI2NDOF",
-        ]
+        if targets == None:
+            self.targets = [
+                "B_plus_ENDVERTEX_CHI2",
+                "B_plus_IPCHI2_OWNPV",
+                "B_plus_FDCHI2_OWNPV",
+                "B_plus_DIRA_OWNPV",
+                "K_Kst_IPCHI2_OWNPV",
+                # "K_Kst_TRACK_CHI2NDOF",
+                "e_minus_IPCHI2_OWNPV",
+                # "e_minus_TRACK_CHI2NDOF",
+                "e_plus_IPCHI2_OWNPV",
+                # "e_plus_TRACK_CHI2NDOF",
+            ]
+        else:
+            self.targets = targets
 
-        self.conditions = [
-            "B_P",
-            "B_PT",
-            # "angle_K_Kst",
-            # "angle_e_plus",
-            # "angle_e_minus",
-            "K_Kst_eta",
-            "e_plus_eta",
-            "e_minus_eta",
-            "IP_B",
-            "IP_K_Kst",
-            "IP_e_plus",
-            "IP_e_minus",
-            "FD_B",
-            "DIRA_B",
-            # "delta_0_P",
-            # "delta_0_PT",
-            # "delta_1_P",
-            # "delta_1_PT",
-            # "delta_2_P",
-            # "delta_2_PT",
-            "K_Kst_TRACK_CHI2NDOF_gen",
-            "e_minus_TRACK_CHI2NDOF_gen",
-            "e_plus_TRACK_CHI2NDOF_gen",
-        ]
+        if conditions == None:
+            # self.conditions = [
+            #     "B_P",
+            #     "B_PT",
+            #     # "angle_K_Kst",
+            #     # "angle_e_plus",
+            #     # "angle_e_minus",
+            #     "K_Kst_eta",
+            #     "e_plus_eta",
+            #     "e_minus_eta",
+            #     "IP_B",
+            #     "IP_K_Kst",
+            #     "IP_e_plus",
+            #     "IP_e_minus",
+            #     "FD_B",
+            #     "DIRA_B",
+            #     # "delta_0_P",
+            #     # "delta_0_PT",
+            #     # "delta_1_P",
+            #     # "delta_1_PT",
+            #     # "delta_2_P",
+            #     # "delta_2_PT",
+            #     "K_Kst_TRACK_CHI2NDOF_gen",
+            #     "e_minus_TRACK_CHI2NDOF_gen",
+            #     "e_plus_TRACK_CHI2NDOF_gen",
+            # ]
+
+            self.conditions = [
+                "IP_B",
+                "DIRA_B",
+            ]
+        else:
+            self.conditions = conditions
 
         self.kl_factor = 1.0
-        self.reco_factor = 5000.0
+        self.reco_factor = 1000.0
         self.batch_size = 50
 
         self.target_dim = len(self.targets)
         self.conditions_dim = len(self.conditions)
-        self.latent_dim = 5
+        self.latent_dim = 4
         self.cut_idx = self.target_dim
 
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.0005)
@@ -107,17 +121,19 @@ class vertex_quality_trainer:
         VAE = VAE_builder(
             E_architecture=[150, 250, 150],
             D_architecture=[150, 250, 150],
+            # E_architecture=[75, 150, 75],
+            # D_architecture=[75, 150, 75],
+            # E_architecture=[150, 250, 250, 150],
+            # D_architecture=[150, 250, 250, 150],
             target_dim=self.target_dim,
             conditions_dim=self.conditions_dim,
             latent_dim=self.latent_dim,
         )
         return VAE.encoder, VAE.decoder, VAE.vae
 
-    def train(self, steps=10000):
+    def train_more_steps(self, steps=10000):
 
-        self.set_initialised_weights()
-
-        iteration = -1
+        private_iteration = -1
 
         break_option = False
         for epoch in range(int(1e30)):
@@ -141,20 +157,21 @@ class vertex_quality_trainer:
 
             for samples_for_batch in train_dataset:
 
-                iteration += 1
+                self.iteration += 1
+                private_iteration += 1
 
-                if iteration % 100 == 0:
-                    print("Iteration:", iteration)
+                if self.iteration % 100 == 0:
+                    print("Iteration:", self.iteration)
 
                 if (
-                    iteration % 1000 == 0
+                    self.iteration % 1000 == 0
                 ):  # annealing https://arxiv.org/pdf/1511.06349.pdf
-                    toggle_kl_value = 0.0
-                elif iteration % 1000 < 500:
-                    toggle_kl_value += 1.0 / 500.0
+                    self.toggle_kl_value = 0.0
+                elif self.iteration % 1000 < 500:
+                    self.toggle_kl_value += 1.0 / 500.0
                 else:
-                    toggle_kl_value = 1.0
-                toggle_kl = tf.convert_to_tensor(toggle_kl_value)
+                    self.toggle_kl_value = 1.0
+                toggle_kl = tf.convert_to_tensor(self.toggle_kl_value)
 
                 kl_loss_np, reco_loss_np, reco_loss_np_raw = train_step(
                     self.vae,
@@ -166,7 +183,13 @@ class vertex_quality_trainer:
                     toggle_kl,
                 )
 
-                if iteration > steps:
+                self.loss_list = np.append(
+                    self.loss_list,
+                    [[self.iteration, kl_loss_np, reco_loss_np, reco_loss_np_raw]],
+                    axis=0,
+                )
+
+                if private_iteration > steps:
                     break_option = True
                     break
 
@@ -174,6 +197,94 @@ class vertex_quality_trainer:
                 break
 
         self.trained_weights = self.get_weights()
+
+        plt.subplot(1, 3, 1)
+        plt.plot(self.loss_list[:, 0], self.loss_list[:, 1])
+        plt.subplot(1, 3, 2)
+        plt.plot(self.loss_list[:, 0], self.loss_list[:, 2])
+        plt.subplot(1, 3, 3)
+        plt.plot(self.loss_list[:, 0], self.loss_list[:, 3])
+        plt.savefig("Losses.png")
+        plt.close("all")
+
+    def train(self, steps=10000):
+
+        self.set_initialised_weights()
+
+        self.iteration = -1
+
+        self.loss_list = np.empty((0, 4))
+
+        break_option = False
+        for epoch in range(int(1e30)):
+
+            X_train_data_all_pp = self.data_loader_obj.get_branches(
+                self.targets + self.conditions, processed=True
+            )
+
+            X_train_data_all_pp = X_train_data_all_pp.sample(frac=1)
+            X_train_data_all_pp = X_train_data_all_pp[self.targets + self.conditions]
+
+            X_train_raw = np.asarray(X_train_data_all_pp)
+
+            X_train = np.expand_dims(X_train_raw, 1).astype("float32")
+
+            train_dataset = (
+                tf.data.Dataset.from_tensor_slices(X_train)
+                .batch(self.batch_size, drop_remainder=True)
+                .repeat(1)
+            )
+
+            for samples_for_batch in train_dataset:
+
+                self.iteration += 1
+
+                if self.iteration % 100 == 0:
+                    print("Iteration:", self.iteration)
+
+                if (
+                    self.iteration % 1000 == 0
+                ):  # annealing https://arxiv.org/pdf/1511.06349.pdf
+                    self.toggle_kl_value = 0.0
+                elif self.iteration % 1000 < 500:
+                    self.toggle_kl_value += 1.0 / 500.0
+                else:
+                    self.toggle_kl_value = 1.0
+                toggle_kl = tf.convert_to_tensor(self.toggle_kl_value)
+
+                kl_loss_np, reco_loss_np, reco_loss_np_raw = train_step(
+                    self.vae,
+                    self.optimizer,
+                    samples_for_batch,
+                    self.cut_idx,
+                    tf.convert_to_tensor(self.kl_factor),
+                    tf.convert_to_tensor(self.reco_factor),
+                    toggle_kl,
+                )
+
+                self.loss_list = np.append(
+                    self.loss_list,
+                    [[self.iteration, kl_loss_np, reco_loss_np, reco_loss_np_raw]],
+                    axis=0,
+                )
+
+                if self.iteration > steps:
+                    break_option = True
+                    break
+
+            if break_option:
+                break
+
+        self.trained_weights = self.get_weights()
+
+        plt.subplot(1, 3, 1)
+        plt.plot(self.loss_list[:, 0], self.loss_list[:, 1])
+        plt.subplot(1, 3, 2)
+        plt.plot(self.loss_list[:, 0], self.loss_list[:, 2])
+        plt.subplot(1, 3, 3)
+        plt.plot(self.loss_list[:, 0], self.loss_list[:, 3])
+        plt.savefig("Losses.png")
+        plt.close("all")
 
     def make_plots(self, N=10000):
 

@@ -15,6 +15,32 @@ def kl_loss(z_mean, z_log_var):
 
 
 @tf.function
+def train_step_vertexing(
+    vae, optimizer, images, cut_idx, kl_factor, reco_factor, toggle_kl
+):
+
+    sample_targets, sample_conditions = images[:, 0, :cut_idx], images[:, 0, cut_idx:]
+
+    with tf.GradientTape() as tape:
+
+        vae_out, vae_z_mean, vae_z_log_var = vae([sample_targets, sample_conditions])
+
+        vae_reco_loss = reco_loss(sample_targets, vae_out)
+        vae_reco_loss_raw = tf.math.reduce_mean(vae_reco_loss)
+        vae_reco_loss = vae_reco_loss_raw * reco_factor
+        vae_kl_loss = kl_loss(vae_z_mean, vae_z_log_var)
+        vae_kl_loss = tf.math.reduce_mean(vae_kl_loss) * toggle_kl * kl_factor
+
+        vae_loss = vae_kl_loss + vae_reco_loss
+
+    grad_vae = tape.gradient(vae_loss, vae.trainable_variables)
+
+    optimizer.apply_gradients(zip(grad_vae, vae.trainable_variables))
+
+    return vae_kl_loss, vae_reco_loss, vae_reco_loss_raw
+
+
+@tf.function  # function repeated because tf compiles this, if shape of network changes it aint happy
 def train_step(vae, optimizer, images, cut_idx, kl_factor, reco_factor, toggle_kl):
 
     sample_targets, sample_conditions = images[:, 0, :cut_idx], images[:, 0, cut_idx:]

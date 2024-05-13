@@ -6,7 +6,7 @@ import numpy as np
 from fast_vertex_quality.tools.training import train_step
 import fast_vertex_quality.tools.plotting as plotting
 import pickle
-import fast_vertex_quality.tools.new_data_loader as data_loader
+import fast_vertex_quality.tools.data_loader as data_loader
 from sklearn.ensemble import GradientBoostingClassifier
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
@@ -21,7 +21,12 @@ class BDT_tester:
         train=True,
         signal="datasets/Kee_2018_truthed_more_vars.csv",
         background="datasets/B2Kee_2018_CommonPresel.csv",
+        signal_label="Train - sig",
+        background_label="Train - comb",
     ):
+
+        self.signal_label = signal_label
+        self.background_label = background_label
 
         self.BDT_vars = [
             "B_plus_ENDVERTEX_CHI2",
@@ -189,11 +194,39 @@ class BDT_tester:
 
         return query
 
+    def make_BDT_plot(self, vertex_quality_trainer_obj, filename):
+        signal_gen = self.get_sample(
+            "datasets/Kee_2018_truthed_more_vars.csv",
+            vertex_quality_trainer_obj,
+            generate=True,
+            N=10000,
+        )
+
+        prc_MC = self.get_sample(
+            "datasets/Kstee_2018_truthed_more_vars.csv",
+            None,
+            generate=False,
+            N=10000,
+        )
+
+        prc_gen = self.get_sample(
+            "datasets/Kstee_2018_truthed_more_vars.csv",
+            vertex_quality_trainer_obj,
+            generate=True,
+            N=10000,
+        )
+
+        self.query_and_plot_samples(
+            [signal_gen, prc_MC, prc_gen],
+            ["sig - gen", "prc - MC", "prc - gen"],
+            filename=filename,
+        )
+
     def query_and_plot_samples(self, samples, labels, filename="BDT.pdf", kFold=0):
 
         sample_values = {}
-        sample_values["Training - sig"] = self.BDTs[kFold]["values_sig"]
-        sample_values["Training - bkg"] = self.BDTs[kFold]["values_bkg"]
+        sample_values[self.signal_label] = self.BDTs[kFold]["values_sig"]
+        sample_values[self.background_label] = self.BDTs[kFold]["values_bkg"]
 
         clf = self.BDTs[kFold]["BDT"]
 
@@ -203,10 +236,10 @@ class BDT_tester:
         colours = ["tab:blue", "tab:red", "tab:green", "tab:purple", "k"]
         with PdfPages(f"{filename}") as pdf:
 
-            plt.figure(figsize=(10, 5))
-            plt.subplot(1, 2, 1)
+            plt.figure(figsize=(10, 10))
+            plt.subplot(2, 2, 1)
 
-            plt.hist(
+            hist = plt.hist(
                 sample_values.values(),
                 bins=50,
                 color=colours,
@@ -227,7 +260,7 @@ class BDT_tester:
             # plt.legend(loc="upper left")
             plt.xlabel(f"BDT output")
             plt.yscale("log")
-            plt.subplot(1, 2, 2)
+            plt.subplot(2, 2, 2)
             plt.hist(
                 sample_values.values(),
                 bins=50,
@@ -248,5 +281,78 @@ class BDT_tester:
             )
             plt.legend(loc="upper left")
             plt.xlabel(f"BDT output")
+
+            plt.subplot(2, 2, 3)
+
+            hist = plt.hist(
+                sample_values.values(),
+                bins=15,
+                color=colours,
+                alpha=0.25,
+                label=list(sample_values.keys()),
+                density=True,
+                histtype="stepfilled",
+                range=[0, 1],
+            )
+            plt.hist(
+                sample_values.values(),
+                bins=15,
+                color=colours,
+                density=True,
+                histtype="step",
+                range=[0, 1],
+            )
+            # plt.legend(loc="upper left")
+            plt.xlabel(f"BDT output")
+            plt.yscale("log")
+
+            plt.subplot(2, 2, 4)
+
+            plt.scatter(
+                hist[1][:-1] + (hist[1][1] - hist[1][0]) / 2.0,
+                hist[0][0] / hist[0][3],
+                label="MC",
+                color="tab:blue",
+            )
+
+            plt.scatter(
+                hist[1][:-1] + (hist[1][1] - hist[1][0]) / 2.0,
+                hist[0][2] / hist[0][4],
+                label="gen",
+                color="tab:red",
+            )
+
+            plt.ylabel("Signal/prc")
+            plt.xlabel(f"BDT output")
+
+            # y = hist[0][0] / hist[0][3]
+            # y_err = y * np.sqrt(
+            #     (np.sqrt(hist[0][0]) / hist[0][0]) ** 2
+            #     + (np.sqrt(hist[0][3]) / hist[0][3]) ** 2
+            # )
+            # plt.errorbar(
+            #     hist[1][:-1] + (hist[1][1] - hist[1][0]) / 2.0,
+            #     y,
+            #     yerr=y_err,
+            #     label="MC",
+            #     color="tab:blue",
+            # )
+
+            # y = hist[0][2] / hist[0][4]
+            # y_err = y * np.sqrt(
+            #     (np.sqrt(hist[0][2]) / hist[0][2]) ** 2
+            #     + (np.sqrt(hist[0][4]) / hist[0][4]) ** 2
+            # )
+            # plt.errorbar(
+            #     hist[1][:-1] + (hist[1][1] - hist[1][0]) / 2.0,
+            #     y,
+            #     yerr=y_err,
+            #     label="gen",
+            #     color="tab:red",
+            # )
+
+            plt.legend()
+            plt.axhline(y=1, c="k")
+
             pdf.savefig(bbox_inches="tight")
             plt.close()

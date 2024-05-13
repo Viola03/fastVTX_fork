@@ -83,9 +83,10 @@ class Transformer:
             "e_plus_PZ",
             "B_plus_ENDVERTEX_CHI2",
             "B_plus_IPCHI2_OWNPV",
+            "IP_B",
         ]
 
-        self.one_minus_log_columns = ["B_plus_DIRA_OWNPV"]
+        self.one_minus_log_columns = ["B_plus_DIRA_OWNPV", "DIRA_B"]
 
     def fit(self, data_raw, column):
 
@@ -174,7 +175,7 @@ class dataset:
 
         self.all_data["processed"] = self.pre_process(self.all_data["physical"])
 
-    def fill_chi2_gen(self):
+    def fill_chi2_gen(self, trackchi2_trainer_obj):
 
         for particle_i in ["K_Kst", "e_minus", "e_plus"]:
 
@@ -215,9 +216,12 @@ class dataset:
 
         for column in list(processed_data.keys()):
 
-            df[column] = self.Transformers[column].unprocess(
-                np.asarray(processed_data[column]).copy()
-            )
+            if column == "file":
+                df[column] = processed_data[column]
+            else:
+                df[column] = self.Transformers[column].unprocess(
+                    np.asarray(processed_data[column]).copy()
+                )
 
         return pd.DataFrame.from_dict(df)
 
@@ -246,13 +250,16 @@ class dataset:
             print("fill_new_column, processed False not implemented quitting...")
             quit()
 
-    def fill_target(self, processed_data):
+    def fill_target(self, processed_data, targets=None):
 
-        df_processed = pd.DataFrame(processed_data, columns=rd.targets)
+        if targets == None:
+            targets = rd.targets
+
+        df_processed = pd.DataFrame(processed_data, columns=targets)
 
         df_physical = self.post_process(df_processed)
 
-        for column in rd.targets:
+        for column in targets:
             self.all_data["processed"][column] = np.asarray(df_processed[column])
             self.all_data["physical"][column] = np.asarray(df_physical[column])
 
@@ -314,18 +321,21 @@ class dataset:
 
         for column in list(physical_data.keys()):
 
-            try:
-                if fresh_transformers:
-                    data_array = np.asarray(physical_data[column]).copy()
-                    transformer_i = Transformer()
-                    transformer_i.fit(data_array, column)
-                    self.Transformers[column] = transformer_i
+            if column == "file":
+                df[column] = physical_data[column]
+            else:
+                try:
+                    if fresh_transformers:
+                        data_array = np.asarray(physical_data[column]).copy()
+                        transformer_i = Transformer()
+                        transformer_i.fit(data_array, column)
+                        self.Transformers[column] = transformer_i
 
-                df[column] = self.Transformers[column].process(
-                    np.asarray(physical_data[column]).copy()
-                )
-            except:
-                pass
+                    df[column] = self.Transformers[column].process(
+                        np.asarray(physical_data[column]).copy()
+                    )
+                except:
+                    pass
 
         return pd.DataFrame.from_dict(df)
 
@@ -339,12 +349,16 @@ def load_data(path, equal_sizes=True, N=-1, transformers=None):
         for i in range(0, len(path)):
             if i == 0:
                 events = pd.read_csv(path[i])
+                events["file"] = np.asarray(np.ones(events.shape[0]) * i).astype("int")
                 if equal_sizes and N == -1:
                     N = events.shape[0]
                 elif equal_sizes:
                     events = events.sample(n=N)
             else:
                 events_i = pd.read_csv(path[i])
+                events_i["file"] = np.asarray(np.ones(events_i.shape[0]) * i).astype(
+                    "int"
+                )
                 if equal_sizes:
                     events_i = events_i.sample(n=N)
                 events = pd.concat([events, events_i], axis=0)
