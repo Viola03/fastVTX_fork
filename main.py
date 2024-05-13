@@ -149,7 +149,7 @@ BDT_tester_obj = BDT_tester(
 vertex_quality_trainer_obj = vertex_quality_trainer(
     training_data_loader, trackchi2_trainer_obj, conditions=conditions
 )
-vertex_quality_trainer_obj.train(steps=75000)
+# vertex_quality_trainer_obj.train(steps=75000)
 # BDT_tester_obj.make_BDT_plot(vertex_quality_trainer_obj, "BDT_0.pdf")
 
 # for i in range(25):
@@ -158,8 +158,8 @@ vertex_quality_trainer_obj.train(steps=75000)
 
 
 # vertex_quality_trainer_obj.make_plots()
-vertex_quality_trainer_obj.save_state(tag="networks/vertex")
-# vertex_quality_trainer_obj.load_state(tag="networks/vertex")
+# vertex_quality_trainer_obj.save_state(tag="networks/vertex")
+vertex_quality_trainer_obj.load_state(tag="networks/vertex")
 ################################################################
 
 BDT_tester_obj.make_BDT_plot(vertex_quality_trainer_obj, "BDT.pdf")

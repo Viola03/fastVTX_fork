@@ -236,8 +236,8 @@ class BDT_tester:
         colours = ["tab:blue", "tab:red", "tab:green", "tab:purple", "k"]
         with PdfPages(f"{filename}") as pdf:
 
-            plt.figure(figsize=(10, 10))
-            plt.subplot(2, 2, 1)
+            plt.figure(figsize=(15, 10))
+            plt.subplot(2, 3, 1)
 
             hist = plt.hist(
                 sample_values.values(),
@@ -260,7 +260,7 @@ class BDT_tester:
             # plt.legend(loc="upper left")
             plt.xlabel(f"BDT output")
             plt.yscale("log")
-            plt.subplot(2, 2, 2)
+            plt.subplot(2, 3, 2)
             plt.hist(
                 sample_values.values(),
                 bins=50,
@@ -282,7 +282,7 @@ class BDT_tester:
             plt.legend(loc="upper left")
             plt.xlabel(f"BDT output")
 
-            plt.subplot(2, 2, 3)
+            ax = plt.subplot(2, 3, 3)
 
             hist = plt.hist(
                 sample_values.values(),
@@ -290,7 +290,7 @@ class BDT_tester:
                 color=colours,
                 alpha=0.25,
                 label=list(sample_values.keys()),
-                density=True,
+                density=False,
                 histtype="stepfilled",
                 range=[0, 1],
             )
@@ -298,61 +298,89 @@ class BDT_tester:
                 sample_values.values(),
                 bins=15,
                 color=colours,
-                density=True,
+                density=False,
                 histtype="step",
                 range=[0, 1],
             )
+            # plt.title("Samples may not be correctly scaled") # set_visible(False)
             # plt.legend(loc="upper left")
             plt.xlabel(f"BDT output")
             plt.yscale("log")
+            ax.set_visible(False)
 
-            plt.subplot(2, 2, 4)
-
-            plt.scatter(
-                hist[1][:-1] + (hist[1][1] - hist[1][0]) / 2.0,
-                hist[0][0] / hist[0][3],
+            plt.subplot(2, 3, 4)
+            x = hist[1][:-1] + (hist[1][1] - hist[1][0]) / 2.0
+            y = hist[0][0] / hist[0][3]
+            yerr = y * np.sqrt(
+                (np.sqrt(hist[0][0]) / hist[0][0]) ** 2
+                + (np.sqrt(hist[0][3]) / hist[0][3]) ** 2
+            )
+            y *= np.sum(hist[0][3]) / np.sum(hist[0][0])
+            plt.errorbar(
+                x,
+                y,
+                yerr=yerr,
                 label="MC",
                 color="tab:blue",
+                marker="o",
+                fmt=" ",
+                capsize=2,
+                linewidth=1.75,
             )
 
-            plt.scatter(
-                hist[1][:-1] + (hist[1][1] - hist[1][0]) / 2.0,
-                hist[0][2] / hist[0][4],
+            x = hist[1][:-1] + (hist[1][1] - hist[1][0]) / 2.0
+            y = hist[0][2] / hist[0][4]
+            yerr = y * np.sqrt(
+                (np.sqrt(hist[0][2]) / hist[0][2]) ** 2
+                + (np.sqrt(hist[0][4]) / hist[0][4]) ** 2
+            )
+            y *= np.sum(hist[0][4]) / np.sum(hist[0][2])
+            plt.errorbar(
+                x,
+                y,
+                yerr=yerr,
                 label="gen",
                 color="tab:red",
+                marker="o",
+                fmt=" ",
+                capsize=2,
+                linewidth=1.75,
             )
 
             plt.ylabel("Signal/prc")
             plt.xlabel(f"BDT output")
-
-            # y = hist[0][0] / hist[0][3]
-            # y_err = y * np.sqrt(
-            #     (np.sqrt(hist[0][0]) / hist[0][0]) ** 2
-            #     + (np.sqrt(hist[0][3]) / hist[0][3]) ** 2
-            # )
-            # plt.errorbar(
-            #     hist[1][:-1] + (hist[1][1] - hist[1][0]) / 2.0,
-            #     y,
-            #     yerr=y_err,
-            #     label="MC",
-            #     color="tab:blue",
-            # )
-
-            # y = hist[0][2] / hist[0][4]
-            # y_err = y * np.sqrt(
-            #     (np.sqrt(hist[0][2]) / hist[0][2]) ** 2
-            #     + (np.sqrt(hist[0][4]) / hist[0][4]) ** 2
-            # )
-            # plt.errorbar(
-            #     hist[1][:-1] + (hist[1][1] - hist[1][0]) / 2.0,
-            #     y,
-            #     yerr=y_err,
-            #     label="gen",
-            #     color="tab:red",
-            # )
-
             plt.legend()
             plt.axhline(y=1, c="k")
+
+            plt.subplot(2, 3, 5)
+
+            effs = {}
+            x = np.linspace(0, 0.99, 50)
+            for sample in [self.signal_label, "sig - gen", "prc - MC", "prc - gen"]:
+
+                eff = np.empty(0)
+                for cut in x:
+
+                    values = sample_values[sample]
+
+                    pass_i = np.shape(np.where(values > cut))[1]
+                    eff = np.append(eff, pass_i / np.shape(values)[0])
+                effs[sample] = eff
+
+                if "sig" in sample or sample == self.signal_label:
+                    color = "tab:blue"
+                else:
+                    color = "tab:red"
+                if "gen" in sample:
+                    style = "--"
+                else:
+                    style = "-"
+                plt.plot(x, effs[sample], label=sample, color=color, linestyle=style)
+            plt.legend()
+            plt.ylabel(f"Selection efficiency")
+            plt.xlabel(f"BDT cut")
+
+            # quit()
 
             pdf.savefig(bbox_inches="tight")
             plt.close()
