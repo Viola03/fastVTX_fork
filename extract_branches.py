@@ -51,18 +51,6 @@ targets = [
 ]
 
 extras = [
-    "B_plus_TRUEP_X",
-    "B_plus_TRUEP_Y",
-    "B_plus_TRUEP_Z",
-    "e_minus_TRUEP_X",
-    "e_minus_TRUEP_Y",
-    "e_minus_TRUEP_Z",
-    "e_plus_TRUEP_X",
-    "e_plus_TRUEP_Y",
-    "e_plus_TRUEP_Z",
-    "K_Kst_TRUEP_X",
-    "K_Kst_TRUEP_Y",
-    "K_Kst_TRUEP_Z",
     "e_minus_PX",
     "e_minus_PY",
     "e_minus_PZ",
@@ -92,28 +80,46 @@ extras = [
     "e_minus_TRACK_CHI2NDOF",
 ]
 
+extras_truth = [
+    "B_plus_TRUEP_X",
+    "B_plus_TRUEP_Y",
+    "B_plus_TRUEP_Z",
+    "e_minus_TRUEP_X",
+    "e_minus_TRUEP_Y",
+    "e_minus_TRUEP_Z",
+    "e_plus_TRUEP_X",
+    "e_plus_TRUEP_Y",
+    "e_plus_TRUEP_Z",
+    "K_Kst_TRUEP_X",
+    "K_Kst_TRUEP_Y",
+    "K_Kst_TRUEP_Z",
+]
 
-print("A")
+
+# print("A")
+# file = uproot.open(
+#     "/eos/lhcb/wg/RD/RK-highq2/data/tuples/2018/Kee/MC/truthed/Kee_2018_truthed.root"
+# )["DecayTree"]
+# branches = list(np.unique(conditions + targets + conditions_TRUTH + extras + extras_truth))
+# events = file.arrays(branches, library="pd")  # [0]
+# # events.to_pickle('Kee_2018_truthed.pickle')
+# events.to_csv("Kee_2018_truthed.csv")
+
+# print("B")
+# file = uproot.open(
+#     "/eos/lhcb/wg/RD/RK-highq2/data/tuples/2018/Kee/MC/truthed/Kstee_2018_truthed.root"
+# )["DecayTree"]
+# branches = list(np.unique(conditions + targets + conditions_TRUTH + extras + extras_truth))
+# events = file.arrays(branches, library="pd")  # [0]
+# # # events.to_pickle('Kstee_2018_truthed.pickle')
+# events.to_csv("Kstee_2018_truthed.csv")
+
+print("C")
 file = uproot.open(
-    "/eos/lhcb/wg/RD/RK-highq2/data/tuples/2018/Kee/MC/truthed/Kee_2018_truthed.root"
+    "/eos/lhcb/wg/RD/RK-highq2/data/tuples/2018/Kee/data/presel/B2Kee_2018_CommonPresel.root"
 )["DecayTree"]
-branches = list(np.unique(conditions + targets + conditions_TRUTH + extras))
+branches = list(np.unique(conditions + targets + ["B_plus_M"] + extras))
 events = file.arrays(branches, library="pd")  # [0]
-# events.to_pickle('Kee_2018_truthed.pickle')
-events.to_csv("Kee_2018_truthed.csv")
-
-print("B")
-file = uproot.open(
-    "/eos/lhcb/wg/RD/RK-highq2/data/tuples/2018/Kee/MC/truthed/Kstee_2018_truthed.root"
-)["DecayTree"]
-branches = list(np.unique(conditions + targets + conditions_TRUTH + extras))
-events = file.arrays(branches, library="pd")  # [0]
-# # events.to_pickle('Kstee_2018_truthed.pickle')
-events.to_csv("Kstee_2018_truthed.csv")
-
-# file = uproot.open("/eos/lhcb/wg/RD/RK-highq2/data/tuples/2018/Kee/data/presel/B2Kee_2018_CommonPresel.root")['DecayTree']
-# branches = list(conditions+targets+['B_plus_M'])
-# events = file.arrays(branches, library="pd")#[0]
-# # # events.to_pickle('Kstee_2018_truthed.pickle'
-# events = events.query('B_plus_M>5600')
-# events.to_csv('B2Kee_2018_CommonPresel.csv')
+# # events.to_pickle('Kstee_2018_truthed.pickle'
+events = events.query("B_plus_M>5600")
+events.to_csv("B2Kee_2018_CommonPresel.csv")
