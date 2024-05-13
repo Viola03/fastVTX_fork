@@ -194,7 +194,9 @@ class BDT_tester:
 
         return query
 
-    def make_BDT_plot(self, vertex_quality_trainer_obj, filename):
+    def make_BDT_plot(
+        self, vertex_quality_trainer_obj, filename, include_combinatorial=False
+    ):
         signal_gen = self.get_sample(
             "datasets/Kee_2018_truthed_more_vars.csv",
             vertex_quality_trainer_obj,
@@ -216,13 +218,49 @@ class BDT_tester:
             N=10000,
         )
 
-        self.query_and_plot_samples(
-            [signal_gen, prc_MC, prc_gen],
-            ["sig - gen", "prc - MC", "prc - gen"],
-            filename=filename,
-        )
+        if include_combinatorial:
 
-    def query_and_plot_samples(self, samples, labels, filename="BDT.pdf", kFold=0):
+            combi_gen = self.get_sample(
+                "datasets/B2Kee_2018_CommonPresel_more_vars.csv",
+                vertex_quality_trainer_obj,
+                generate=True,
+                N=10000,
+            )
+
+            self.query_and_plot_samples(
+                [signal_gen, prc_MC, prc_gen, combi_gen],
+                ["sig - gen", "prc - MC", "prc - gen", "combi - gen"],
+                colours=[
+                    "tab:blue",
+                    "tab:red",
+                    "tab:green",
+                    "tab:purple",
+                    "k",
+                    "tab:orange",
+                ],
+                filename=filename,
+                include_combinatorial=include_combinatorial,
+            )
+
+        else:
+
+            self.query_and_plot_samples(
+                [signal_gen, prc_MC, prc_gen],
+                ["sig - gen", "prc - MC", "prc - gen"],
+                colours=["tab:blue", "tab:red", "tab:green", "tab:purple", "k"],
+                filename=filename,
+                include_combinatorial=include_combinatorial,
+            )
+
+    def query_and_plot_samples(
+        self,
+        samples,
+        labels,
+        colours=["tab:blue", "tab:red", "tab:green", "tab:purple", "k"],
+        filename="BDT.pdf",
+        kFold=0,
+        include_combinatorial=False,
+    ):
 
         sample_values = {}
         sample_values[self.signal_label] = self.BDTs[kFold]["values_sig"]
@@ -233,7 +271,6 @@ class BDT_tester:
         for idx, sample in enumerate(samples):
             sample_values[labels[idx]] = clf.predict_proba(sample)[:, 1]
 
-        colours = ["tab:blue", "tab:red", "tab:green", "tab:purple", "k"]
         with PdfPages(f"{filename}") as pdf:
 
             plt.figure(figsize=(15, 10))
@@ -356,7 +393,20 @@ class BDT_tester:
 
             effs = {}
             x = np.linspace(0, 0.99, 50)
-            for sample in [self.signal_label, "sig - gen", "prc - MC", "prc - gen"]:
+
+            if include_combinatorial:
+                sample_list = [
+                    self.signal_label,
+                    "sig - gen",
+                    "prc - MC",
+                    "prc - gen",
+                    self.background_label,
+                    "combi - gen",
+                ]
+            else:
+                sample_list = [self.signal_label, "sig - gen", "prc - MC", "prc - gen"]
+
+            for sample in sample_list:
 
                 eff = np.empty(0)
                 for cut in x:
@@ -375,6 +425,10 @@ class BDT_tester:
                     style = "--"
                 else:
                     style = "-"
+
+                if "combi" in sample or sample == self.background_label:
+                    color = "tab:orange"
+
                 plt.plot(x, effs[sample], label=sample, color=color, linestyle=style)
             plt.legend()
             plt.ylabel(f"Selection efficiency")

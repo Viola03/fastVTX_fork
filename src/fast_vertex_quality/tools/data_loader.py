@@ -179,9 +179,9 @@ class dataset:
 
         for particle_i in ["K_Kst", "e_minus", "e_plus"]:
 
-            decoder_chi2 = tf.keras.models.load_model(
-                f"save_state/track_chi2_decoder_{particle_i}.h5"
-            )
+            # decoder_chi2 = tf.keras.models.load_model(
+            #     f"save_state/track_chi2_decoder_{particle_i}.h5"
+            # )
             latent_dim_chi2 = 1
 
             conditions_i = [
@@ -201,7 +201,11 @@ class dataset:
                 0, 1, (np.shape(X_test_conditions)[0], latent_dim_chi2)
             )
 
-            images = np.squeeze(decoder_chi2.predict([gen_noise, X_test_conditions]))
+            images = np.squeeze(
+                trackchi2_trainer_obj.predict(
+                    particle_i, [gen_noise, X_test_conditions]
+                )
+            )
 
             self.fill_new_column(
                 images,
