@@ -1,0 +1,495 @@
+# ,K_Kst_PX,K_Kst_PY,K_Kst_PZ,e_minus_PX,e_minus_PY,e_minus_PZ,e_plus_PX,e_plus_PY,e_plus_PZ,nTracks,nSPDHits,B_plus_ENDVERTEX_CHI2,B_plus_IPCHI2_OWNPV,B_plus_FDCHI2_OWNPV,B_plus_DIRA_OWNPV,K_Kst_IPCHI2_OWNPV,K_Kst_TRACK_CHI2NDOF,e_minus_IPCHI2_OWNPV,e_minus_TRACK_CHI2NDOF,e_plus_IPCHI2_OWNPV,e_plus_TRACK_CHI2NDOF,K_Kst_TRUEP_X,K_Kst_TRUEP_Y,K_Kst_TRUEP_Z,e_minus_TRUEP_X,e_minus_TRUEP_Y,e_minus_TRUEP_Z,e_plus_TRUEP_X,e_plus_TRUEP_Y,e_plus_TRUEP_Z,B_plus_TRUEP_X,B_plus_TRUEP_Y,B_plus_TRUEP_Z
+from fast_vertex_quality.tools.config import read_definition, rd
+
+import fast_vertex_quality.tools.data_loader as data_loader
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
+import vector
+
+
+def compute_mass(df, i, j, mass_i, mass_j, true_vars=True):
+
+    if true_vars:
+        PE = np.sqrt(
+            mass_i**2
+            + df[f"{i}_TRUEP_X"] ** 2
+            + df[f"{i}_TRUEP_Y"] ** 2
+            + df[f"{i}_TRUEP_Z"] ** 2
+        ) + np.sqrt(
+            mass_j**2
+            + df[f"{j}_TRUEP_X"] ** 2
+            + df[f"{j}_TRUEP_Y"] ** 2
+            + df[f"{j}_TRUEP_Z"] ** 2
+        )
+        PX = df[f"{i}_TRUEP_X"] + df[f"{j}_TRUEP_X"]
+        PY = df[f"{i}_TRUEP_Y"] + df[f"{j}_TRUEP_Y"]
+        PZ = df[f"{i}_TRUEP_Z"] + df[f"{j}_TRUEP_Z"]
+    else:
+        PE = np.sqrt(
+            mass_i**2 + df[f"{i}_PX"] ** 2 + df[f"{i}_PY"] ** 2 + df[f"{i}_PZ"] ** 2
+        ) + np.sqrt(
+            mass_j**2 + df[f"{j}_PX"] ** 2 + df[f"{j}_PY"] ** 2 + df[f"{j}_PZ"] ** 2
+        )
+        PX = df[f"{i}_PX"] + df[f"{j}_PX"]
+        PY = df[f"{i}_PY"] + df[f"{j}_PY"]
+        PZ = df[f"{i}_PZ"] + df[f"{j}_PZ"]
+
+    mass = np.sqrt((PE**2 - PX**2 - PY**2 - PZ**2) * 1e-6)
+
+    return mass, (PE**2 - PX**2 - PY**2 - PZ**2)
+
+
+def compute_Bmass(df, masses, true_vars=True):
+
+    if true_vars:
+        PE = (
+            np.sqrt(
+                masses["K_Kst"] ** 2
+                + df[f"K_Kst_TRUEP_X"] ** 2
+                + df[f"K_Kst_TRUEP_Y"] ** 2
+                + df[f"K_Kst_TRUEP_Z"] ** 2
+            )
+            + np.sqrt(
+                masses["e_plus"] ** 2
+                + df[f"e_plus_TRUEP_X"] ** 2
+                + df[f"e_plus_TRUEP_Y"] ** 2
+                + df[f"e_plus_TRUEP_Z"] ** 2
+            )
+            + np.sqrt(
+                masses["e_minus"] ** 2
+                + df[f"e_minus_TRUEP_X"] ** 2
+                + df[f"e_minus_TRUEP_Y"] ** 2
+                + df[f"e_minus_TRUEP_Z"] ** 2
+            )
+        )
+        PX = df[f"K_Kst_TRUEP_X"] + df[f"e_plus_TRUEP_X"] + df[f"e_minus_TRUEP_X"]
+        PY = df[f"K_Kst_TRUEP_Y"] + df[f"e_plus_TRUEP_Y"] + df[f"e_minus_TRUEP_Y"]
+        PZ = df[f"K_Kst_TRUEP_Z"] + df[f"e_plus_TRUEP_Z"] + df[f"e_minus_TRUEP_Z"]
+    else:
+        PE = (
+            np.sqrt(
+                masses["K_Kst"] ** 2
+                + df[f"K_Kst_PX"] ** 2
+                + df[f"K_Kst_PY"] ** 2
+                + df[f"K_Kst_PZ"] ** 2
+            )
+            + np.sqrt(
+                masses["e_plus"] ** 2
+                + df[f"e_plus_PX"] ** 2
+                + df[f"e_plus_PY"] ** 2
+                + df[f"e_plus_PZ"] ** 2
+            )
+            + np.sqrt(
+                masses["e_minus"] ** 2
+                + df[f"e_minus_PX"] ** 2
+                + df[f"e_minus_PY"] ** 2
+                + df[f"e_minus_PZ"] ** 2
+            )
+        )
+        PX = df[f"K_Kst_PX"] + df[f"e_plus_PX"] + df[f"e_minus_PX"]
+        PY = df[f"K_Kst_PY"] + df[f"e_plus_PY"] + df[f"e_minus_PY"]
+        PZ = df[f"K_Kst_PZ"] + df[f"e_plus_PZ"] + df[f"e_minus_PZ"]
+
+    mass = np.sqrt((PE**2 - PX**2 - PY**2 - PZ**2) * 1e-6)
+
+    return mass
+
+
+def compute_B_mom(df, true_vars=True):
+
+    if true_vars:
+        PX = df[f"B_plus_TRUEP_X"]
+        PY = df[f"B_plus_TRUEP_Y"]
+        PZ = df[f"B_plus_TRUEP_Z"]
+    else:
+        PX = df[f"B_plus_PX"]
+        PY = df[f"B_plus_PY"]
+        PZ = df[f"B_plus_PZ"]
+
+    return np.sqrt((PX**2 + PY**2 + PZ**2)) * 1e-3, np.sqrt((PX**2 + PY**2)) * 1e-3
+
+
+def compute_miss_mom(df, particles, true_vars=True):
+
+    if true_vars:
+        PX = df[f"B_plus_TRUEP_X"]
+        PY = df[f"B_plus_TRUEP_Y"]
+        PZ = df[f"B_plus_TRUEP_Z"]
+
+        for particle in particles:
+            PX += -1.0 * df[f"{particle}_TRUEP_X"]
+            PY += -1.0 * df[f"{particle}_TRUEP_Y"]
+            PZ += -1.0 * df[f"{particle}_TRUEP_Z"]
+    else:
+        PX = df[f"B_plus_PX"]
+        PY = df[f"B_plus_PY"]
+        PZ = df[f"B_plus_PZ"]
+
+        for particle in particles:
+            PX += -1.0 * df[f"{particle}_PX"]
+            PY += -1.0 * df[f"{particle}_PY"]
+            PZ += -1.0 * df[f"{particle}_PZ"]
+
+    return np.sqrt((PX**2 + PY**2 + PZ**2)) * 1e-3, np.sqrt((PX**2 + PY**2)) * 1e-3
+
+
+def compute_delta_mom(df, particle):
+
+    PX = df[f"{particle}_PX"] - df[f"{particle}_TRUEP_X"]
+    PY = df[f"{particle}_PY"] - df[f"{particle}_TRUEP_Y"]
+    PZ = df[f"{particle}_PZ"] - df[f"{particle}_TRUEP_Z"]
+
+    return np.sqrt((PX**2 + PY**2 + PZ**2)) * 1e-3, np.sqrt((PX**2 + PY**2)) * 1e-3
+
+
+def compute_impactParameter(df, true_vars=True):
+
+    if true_vars:
+        momenta = vector.obj(
+            px=df.K_Kst_TRUEP_X + df.e_minus_TRUEP_X + df.e_plus_TRUEP_X,
+            py=df.K_Kst_TRUEP_Y + df.e_minus_TRUEP_Y + df.e_plus_TRUEP_Y,
+            pz=df.K_Kst_TRUEP_Z + df.e_minus_TRUEP_Z + df.e_plus_TRUEP_Z,
+        )
+    else:
+        momenta = vector.obj(
+            px=df.K_Kst_PX + df.e_minus_PX + df.e_plus_PX,
+            py=df.K_Kst_PY + df.e_minus_PY + df.e_plus_PY,
+            pz=df.K_Kst_PZ + df.e_minus_PZ + df.e_plus_PZ,
+        )
+    end_vertex = np.asarray(
+        [df.B_plus_ENDVERTEX_X, df.B_plus_ENDVERTEX_Y, df.B_plus_ENDVERTEX_Z]
+    )
+    primary_vertex = np.asarray(
+        [df.B_plus_OWNPV_X, df.B_plus_OWNPV_Y, df.B_plus_OWNPV_Z]
+    )
+    # primary_vertex = np.asarray([np.zeros(np.shape(df.B_plus_OWNPV_X)), np.zeros(np.shape(df.B_plus_OWNPV_X)), np.zeros(np.shape(df.B_plus_OWNPV_X))])
+
+    momenta_array = np.asarray([momenta.px, momenta.py, momenta.pz])
+    P = momenta.mag
+    t = 0
+    for i in range(3):
+        t += momenta_array[i] / P * (primary_vertex[i] - end_vertex[i])
+    dist = 0
+    for i in range(3):
+        dist += (primary_vertex[i] - end_vertex[i] - t * momenta_array[i] / P) ** 2
+    dist = np.sqrt(dist)
+
+    return dist
+
+
+def compute_impactParameter_i(df, particle, true_vars=True):
+
+    if true_vars:
+        momenta = vector.obj(
+            px=df[f"{particle}_TRUEP_X"],
+            py=df[f"{particle}_TRUEP_Y"],
+            pz=df[f"{particle}_TRUEP_Z"],
+        )
+    else:
+        momenta = vector.obj(
+            px=df[f"{particle}_PX"],
+            py=df[f"{particle}_PY"],
+            pz=df[f"{particle}_PZ"],
+        )
+    end_vertex = np.asarray(
+        [df.B_plus_ENDVERTEX_X, df.B_plus_ENDVERTEX_Y, df.B_plus_ENDVERTEX_Z]
+    )
+    primary_vertex = np.asarray(
+        [df.B_plus_OWNPV_X, df.B_plus_OWNPV_Y, df.B_plus_OWNPV_Z]
+    )
+
+    momenta_array = np.asarray([momenta.px, momenta.py, momenta.pz])
+    P = momenta.mag
+    t = 0
+    for i in range(3):
+        t += momenta_array[i] / P * (primary_vertex[i] - end_vertex[i])
+    dist = 0
+    for i in range(3):
+        dist += (primary_vertex[i] - end_vertex[i] - t * momenta_array[i] / P) ** 2
+    dist = np.sqrt(dist)
+
+    return dist
+
+
+def compute_angle(df, particle, true_vars=True):
+
+    if true_vars:
+        momenta_B = np.asarray(
+            [df.B_plus_TRUEP_X, df.B_plus_TRUEP_Y, df.B_plus_TRUEP_Z]
+        )
+        momenta_i = np.asarray(
+            [
+                df[f"{particle}_TRUEP_X"],
+                df[f"{particle}_TRUEP_Y"],
+                df[f"{particle}_TRUEP_Z"],
+            ]
+        )
+    else:
+        momenta_B = np.asarray([df.B_plus_PX, df.B_plus_PY, df.B_plus_PZ])
+        momenta_i = np.asarray(
+            [
+                df[f"{particle}_PX"],
+                df[f"{particle}_PY"],
+                df[f"{particle}_PZ"],
+            ]
+        )
+
+    dot_prod = np.arccos(dot(momenta_B, momenta_i) / (mag(momenta_B) * mag(momenta_i)))
+
+    dot_prod[np.where(np.isnan(dot_prod))] = 1e-6
+    dot_prod[np.where(dot_prod == 0)] = 1e-6
+    # print(np.where(np.isnan(dot_prod)))
+    # print(np.where(np.isinf(dot_prod)))
+    # print(np.amin(dot_prod), np.amax(dot_prod))
+    return dot_prod
+
+
+def compute_flightDistance(df, true_vars=True):
+
+    if true_vars:
+        momenta = vector.obj(
+            px=df.K_Kst_TRUEP_X + df.e_minus_TRUEP_X + df.e_plus_TRUEP_X,
+            py=df.K_Kst_TRUEP_Y + df.e_minus_TRUEP_Y + df.e_plus_TRUEP_Y,
+            pz=df.K_Kst_TRUEP_Z + df.e_minus_TRUEP_Z + df.e_plus_TRUEP_Z,
+        )
+    else:
+        momenta = vector.obj(
+            px=df.K_Kst_PX + df.e_minus_PX + df.e_plus_PX,
+            py=df.K_Kst_PY + df.e_minus_PY + df.e_plus_PY,
+            pz=df.K_Kst_PZ + df.e_minus_PZ + df.e_plus_PZ,
+        )
+    end_vertex = np.asarray(
+        [df.B_plus_ENDVERTEX_X, df.B_plus_ENDVERTEX_Y, df.B_plus_ENDVERTEX_Z]
+    )
+    primary_vertex = np.asarray(
+        [df.B_plus_OWNPV_X, df.B_plus_OWNPV_Y, df.B_plus_OWNPV_Z]
+    )
+
+    momenta_array = np.asarray([momenta.px, momenta.py, momenta.pz])
+    P = momenta.mag
+    t = 0
+    for i in range(3):
+        t += momenta_array[i] / P * (primary_vertex[i] - end_vertex[i])
+    dist = 0
+    for i in range(3):
+        dist += (t * momenta_array[i] / P) ** 2
+    dist = np.sqrt(dist)
+
+    return dist
+
+
+def compute_flightDistance2(df):
+
+    end_vertex = np.asarray(
+        [df.B_plus_ENDVERTEX_X, df.B_plus_ENDVERTEX_Y, df.B_plus_ENDVERTEX_Z]
+    )
+    primary_vertex = np.asarray(
+        [df.B_plus_OWNPV_X, df.B_plus_OWNPV_Y, df.B_plus_OWNPV_Z]
+    )
+    dist = 0
+    for i in range(3):
+        dist += (end_vertex[i] - primary_vertex[i]) ** 2
+    dist = np.sqrt(dist)
+
+    return dist
+
+
+def mag(vec):
+    sum_sqs = 0
+    for component in vec:
+        sum_sqs += component**2
+    mag = np.sqrt(sum_sqs)
+    return mag
+
+
+def norm(vec):
+    mag_vec = mag(vec)
+    for component_idx in range(np.shape(vec)[0]):
+        vec[component_idx] *= 1.0 / mag_vec
+    return vec
+
+
+def dot(vec1, vec2):
+    dot = 0
+    for component_idx in range(np.shape(vec1)[0]):
+        dot += vec1[component_idx] * vec2[component_idx]
+    return dot
+
+
+def compute_DIRA(df, true_vars=True):
+
+    if true_vars:
+        A = norm(
+            np.asarray(
+                [
+                    df.K_Kst_TRUEP_X + df.e_minus_TRUEP_X + df.e_plus_TRUEP_X,
+                    df.K_Kst_TRUEP_Y + df.e_minus_TRUEP_Y + df.e_plus_TRUEP_Y,
+                    df.K_Kst_TRUEP_Z + df.e_minus_TRUEP_Z + df.e_plus_TRUEP_Z,
+                ]
+            )
+        )
+    else:
+        A = norm(
+            np.asarray(
+                [
+                    df.K_Kst_PX + df.e_minus_PX + df.e_plus_PX,
+                    df.K_Kst_PY + df.e_minus_PY + df.e_plus_PY,
+                    df.K_Kst_PZ + df.e_minus_PZ + df.e_plus_PZ,
+                ]
+            )
+        )
+
+    # A = norm(np.asarray([
+    #     df.K_Kst_PX+df.e_minus_PX+df.e_plus_PX,
+    #     df.K_Kst_PY+df.e_minus_PY+df.e_plus_PY,
+    #     df.K_Kst_PZ+df.e_minus_PZ+df.e_plus_PZ]))
+
+    B = norm(
+        np.asarray(
+            [
+                df.B_plus_ENDVERTEX_X - df.B_plus_OWNPV_X,
+                df.B_plus_ENDVERTEX_Y - df.B_plus_OWNPV_Y,
+                df.B_plus_ENDVERTEX_Z - df.B_plus_OWNPV_Z,
+            ]
+        )
+    )
+    dira = dot(A, B) / np.sqrt(mag(A) ** 2 * mag(B) ** 2)
+
+    return dira
+
+
+masses = {}
+masses["K_Kst"] = 493.677
+masses["e_plus"] = 0.51099895000 * 1e-3
+masses["e_minus"] = 0.51099895000 * 1e-3
+
+events = pd.read_csv(f"datasets/Kee_2018_truthed.csv")
+
+
+B_branches = [
+    "B_plus_ENDVERTEX_X",
+    "B_plus_ENDVERTEX_Y",
+    "B_plus_ENDVERTEX_Z",
+    "B_plus_OWNPV_X",
+    "B_plus_OWNPV_Y",
+    "B_plus_OWNPV_Z",
+]
+K_branches = [
+    "K_Kst_TRUEP_X",
+    "K_Kst_TRUEP_Y",
+    "K_Kst_TRUEP_Z",
+]
+e_m_branches = [
+    "e_minus_TRUEP_X",
+    "e_minus_TRUEP_Y",
+    "e_minus_TRUEP_Z",
+]
+e_p_branches = [
+    "e_plus_TRUEP_X",
+    "e_plus_TRUEP_Y",
+    "e_plus_TRUEP_Z",
+]
+B_events = events[B_branches]
+K_events = events[K_branches]
+e_m_events = events[e_m_branches]
+e_p_events = events[e_p_branches]
+
+B_events_sampled = B_events.sample(n=25000, replace=True).reset_index(drop=True)
+K_events_sampled = K_events.sample(n=25000, replace=True).reset_index(drop=True)
+e_m_events_sampled = e_m_events.sample(n=25000, replace=True).reset_index(drop=True)
+e_p_events_sampled = e_p_events.sample(n=25000, replace=True).reset_index(drop=True)
+
+mixed_events = pd.concat(
+    (B_events_sampled, K_events_sampled, e_m_events_sampled, e_p_events_sampled), axis=1
+)
+
+mixed_events["B_plus_M"] = compute_Bmass(
+    mixed_events,
+    masses,
+    true_vars=True,
+)
+
+events["B_plus_M"] = compute_Bmass(
+    events,
+    masses,
+    true_vars=True,
+)
+
+print(mixed_events["B_plus_M"])
+print(events["B_plus_M"])
+
+plt.hist(
+    # [mixed_events["B_plus_M"], events["B_plus_M"]],
+    [mixed_events["B_plus_M"]],
+    density=True,
+    bins=50,
+    range=[4.800, 5.600],
+    histtype="step",
+)
+plt.savefig("combi")
+quit()
+print(np.asarray(B_events_sampled))
+print(np.shape(np.asarray(B_events_sampled)))
+
+print(events)
+
+# drop_branches = ["nSPDHits", "nTracks", "B_plus_M"]
+# for branch in list(events.keys()):
+#     if "TRACK_CHI2NDOF" in branch or "IPCHI2_OWNPV" in branch:
+#         drop_branches.append(branch)
+# events = events.drop(drop_branches, axis=1)
+# print("\n")
+for branch in list(events.keys()):
+    print(branch)
+
+quit()
+
+
+particles = ["K_Kst", "e_plus", "e_minus"]
+
+for particle_i in range(0, len(particles)):
+    for particle_j in range(particle_i + 1, len(particles)):
+        print(particle_i, particle_j)
+
+        (
+            events[f"m_{particle_i}{particle_j}"],
+            events[f"m_{particle_i}{particle_j}_inside"],
+        ) = compute_mass(
+            events,
+            particles[particle_i],
+            particles[particle_j],
+            masses[particles[particle_i]],
+            masses[particles[particle_j]],
+            true_vars=False,
+        )
+
+events[f"B_P"], events[f"B_PT"] = compute_B_mom(events, true_vars=False)
+events[f"missing_B_P"], events[f"missing_B_PT"] = compute_miss_mom(
+    events, particles, true_vars=False
+)
+
+# for particle_i in range(0, len(particles)):
+#     (
+#         events[f"delta_{particle_i}_P"],
+#         events[f"delta_{particle_i}_PT"],
+#     ) = compute_delta_mom(events, particles[particle_i])
+
+for m in ["m_01", "m_02", "m_12"]:
+    events[m] = events[m].fillna(0)
+
+################################################################################
+
+for particle in ["K_Kst", "e_plus", "e_minus"]:
+    events[f"angle_{particle}"] = compute_angle(events, f"{particle}", true_vars=False)
+
+events["IP_B"] = compute_impactParameter(events, true_vars=False)
+for particle in ["K_Kst", "e_plus", "e_minus"]:
+    events[f"IP_{particle}"] = compute_impactParameter_i(
+        events, f"{particle}", true_vars=False
+    )
+events["FD_B"] = compute_flightDistance(events, true_vars=False)
+events["DIRA_B"] = compute_DIRA(events, true_vars=False)
+
+events.to_csv(f"datasets/mixing_more_vars.csv")

@@ -269,6 +269,7 @@ class BDT_tester:
         clf = self.BDTs[kFold]["BDT"]
 
         for idx, sample in enumerate(samples):
+            # print(idx, sample, np.where(np.isinf(sample)), np.where(np.isnan(sample)))
             sample_values[labels[idx]] = clf.predict_proba(sample)[:, 1]
 
         with PdfPages(f"{filename}") as pdf:

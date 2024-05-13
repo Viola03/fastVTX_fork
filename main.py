@@ -35,7 +35,7 @@ trackchi2_trainer_obj = trackchi2_trainer(training_data_loader)
 if train_chi2:
     for particle in ["K_Kst", "e_minus", "e_plus"]:
         print(f"Training chi2 network {particle}...")
-        trackchi2_trainer_obj.train(particle, steps=10000)
+        trackchi2_trainer_obj.train(particle, steps=2500)
         trackchi2_trainer_obj.make_plots(particle)
 
     trackchi2_trainer_obj.save_state(tag="networks/chi2")
@@ -150,7 +150,7 @@ BDT_tester_obj = BDT_tester(
 vertex_quality_trainer_obj = vertex_quality_trainer(
     training_data_loader, trackchi2_trainer_obj, conditions=conditions
 )
-vertex_quality_trainer_obj.train(steps=75000)
+vertex_quality_trainer_obj.train(steps=10000)
 # BDT_tester_obj.make_BDT_plot(vertex_quality_trainer_obj, "BDT_0.pdf")
 
 # for i in range(25):
