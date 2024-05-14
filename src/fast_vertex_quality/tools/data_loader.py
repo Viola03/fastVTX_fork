@@ -357,14 +357,14 @@ def load_data(path, equal_sizes=True, N=-1, transformers=None):
                 if equal_sizes and N == -1:
                     N = events.shape[0]
                 elif equal_sizes:
-                    events = events.sample(n=N)
+                    events = events.head(N)
             else:
                 events_i = pd.read_csv(path[i])
                 events_i["file"] = np.asarray(np.ones(events_i.shape[0]) * i).astype(
                     "int"
                 )
                 if equal_sizes:
-                    events_i = events_i.sample(n=N)
+                    events_i = events_i.head(N)
                 events = pd.concat([events, events_i], axis=0)
     else:
         events = pd.read_csv(path)

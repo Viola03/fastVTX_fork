@@ -50,13 +50,13 @@ class VAE_builder:
         )
 
         H = Dense(int(self.E_architecture[0]))(encoder_network_input)
-        H = BatchNormalization()(H)
+        # H = BatchNormalization()(H)
         H = LeakyReLU()(H)
         H = Concatenate(axis=-1)([H, momentum_conditions])
 
         for layer in self.E_architecture[1:]:
             H = Dense(int(layer))(H)
-            H = BatchNormalization()(H)
+            # H = BatchNormalization()(H)
             H = LeakyReLU()(H)
             H = Concatenate(axis=-1)([H, momentum_conditions])
 
@@ -80,13 +80,13 @@ class VAE_builder:
         decoder_network_input = Concatenate()([input_latent, momentum_conditions])
 
         H = Dense(int(self.D_architecture[0]))(decoder_network_input)
-        H = BatchNormalization()(H)
+        # H = BatchNormalization()(H)
         H = LeakyReLU()(H)
         H = Concatenate(axis=-1)([H, momentum_conditions])
 
         for layer in self.D_architecture[1:]:
             H = Dense(int(layer))(H)
-            H = BatchNormalization()(H)
+            # H = BatchNormalization()(H)
             H = LeakyReLU()(H)
             H = Concatenate(axis=-1)([H, momentum_conditions])
 

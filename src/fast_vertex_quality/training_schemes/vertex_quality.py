@@ -13,7 +13,15 @@ import matplotlib.pyplot as plt
 class vertex_quality_trainer:
 
     def __init__(
-        self, data_loader_obj, trackchi2_trainer, targets=None, conditions=None
+        self,
+        data_loader_obj,
+        trackchi2_trainer=None,
+        targets=None,
+        conditions=None,
+        beta=1000.0,
+        latent_dim=4,
+        E_architecture=[150, 250, 150],
+        D_architecture=[150, 250, 150],
     ):
 
         self.trackchi2_trainer = trackchi2_trainer
@@ -35,32 +43,6 @@ class vertex_quality_trainer:
             self.targets = targets
 
         if conditions == None:
-            # self.conditions = [
-            #     "B_P",
-            #     "B_PT",
-            #     # "angle_K_Kst",
-            #     # "angle_e_plus",
-            #     # "angle_e_minus",
-            #     "K_Kst_eta",
-            #     "e_plus_eta",
-            #     "e_minus_eta",
-            #     "IP_B",
-            #     "IP_K_Kst",
-            #     "IP_e_plus",
-            #     "IP_e_minus",
-            #     "FD_B",
-            #     "DIRA_B",
-            #     # "delta_0_P",
-            #     # "delta_0_PT",
-            #     # "delta_1_P",
-            #     # "delta_1_PT",
-            #     # "delta_2_P",
-            #     # "delta_2_PT",
-            #     "K_Kst_TRACK_CHI2NDOF_gen",
-            #     "e_minus_TRACK_CHI2NDOF_gen",
-            #     "e_plus_TRACK_CHI2NDOF_gen",
-            # ]
-
             self.conditions = [
                 "IP_B",
                 "DIRA_B",
@@ -69,12 +51,15 @@ class vertex_quality_trainer:
             self.conditions = conditions
 
         self.kl_factor = 1.0
-        self.reco_factor = 1000.0
+        self.reco_factor = beta
         self.batch_size = 50
+
+        self.E_architecture = E_architecture
+        self.D_architecture = D_architecture
 
         self.target_dim = len(self.targets)
         self.conditions_dim = len(self.conditions)
-        self.latent_dim = 4
+        self.latent_dim = latent_dim
         self.cut_idx = self.target_dim
 
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.0005)
@@ -119,8 +104,8 @@ class vertex_quality_trainer:
     def build_VAE(self):
 
         VAE = VAE_builder(
-            E_architecture=[150, 250, 150],
-            D_architecture=[150, 250, 150],
+            E_architecture=self.E_architecture,
+            D_architecture=self.D_architecture,
             # E_architecture=[75, 150, 75],
             # D_architecture=[75, 150, 75],
             # E_architecture=[150, 250, 250, 150],
@@ -239,9 +224,6 @@ class vertex_quality_trainer:
 
                 self.iteration += 1
 
-                if self.iteration % 100 == 0:
-                    print("Iteration:", self.iteration)
-
                 if (
                     self.iteration % 1000 == 0
                 ):  # annealing https://arxiv.org/pdf/1511.06349.pdf
@@ -267,6 +249,14 @@ class vertex_quality_trainer:
                     [[self.iteration, kl_loss_np, reco_loss_np, reco_loss_np_raw]],
                     axis=0,
                 )
+
+                if self.iteration % 100 == 0:
+                    print("Iteration:", self.iteration)
+                if np.isnan(self.loss_list[-1]).any():
+                    print(
+                        f"NaNs present in loss_list, quitting on iteration {self.iteration}..."
+                    )
+                    quit()
 
                 if self.iteration > steps:
                     break_option = True
@@ -301,7 +291,8 @@ class vertex_quality_trainer:
 
         X_test_data_loader.select_randomly(Nevents=N)
 
-        X_test_data_loader.fill_chi2_gen(self.trackchi2_trainer)
+        if self.trackchi2_trainer is not None:
+            X_test_data_loader.fill_chi2_gen(self.trackchi2_trainer)
 
         X_test_conditions = X_test_data_loader.get_branches(
             self.conditions, processed=True
@@ -357,7 +348,8 @@ class vertex_quality_trainer:
 
         self.set_trained_weights()
 
-        data_loader_obj.fill_chi2_gen(self.trackchi2_trainer)
+        if self.trackchi2_trainer is not None:
+            data_loader_obj.fill_chi2_gen(self.trackchi2_trainer)
 
         events_gen = data_loader_obj.get_branches(self.conditions, processed=True)
 

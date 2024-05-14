@@ -23,6 +23,7 @@ class BDT_tester:
         background="datasets/B2Kee_2018_CommonPresel.csv",
         signal_label="Train - sig",
         background_label="Train - comb",
+        gen_track_chi2=True,
     ):
 
         self.signal_label = signal_label
@@ -41,9 +42,12 @@ class BDT_tester:
             "e_plus_TRACK_CHI2NDOF",
         ]
 
-        self.BDT_vars_gen = [
-            x.replace("CHI2NDOF", "CHI2NDOF_gen") for x in self.BDT_vars
-        ]
+        if gen_track_chi2:
+            self.BDT_vars_gen = [
+                x.replace("CHI2NDOF", "CHI2NDOF_gen") for x in self.BDT_vars
+            ]
+        else:
+            self.BDT_vars_gen = self.BDT_vars
 
         self.transformers = transformers
 
@@ -227,7 +231,7 @@ class BDT_tester:
                 N=10000,
             )
 
-            self.query_and_plot_samples(
+            scores = self.query_and_plot_samples(
                 [signal_gen, prc_MC, prc_gen, combi_gen],
                 ["sig - gen", "prc - MC", "prc - gen", "combi - gen"],
                 colours=[
@@ -244,13 +248,15 @@ class BDT_tester:
 
         else:
 
-            self.query_and_plot_samples(
+            scores = self.query_and_plot_samples(
                 [signal_gen, prc_MC, prc_gen],
                 ["sig - gen", "prc - MC", "prc - gen"],
                 colours=["tab:blue", "tab:red", "tab:green", "tab:purple", "k"],
                 filename=filename,
                 include_combinatorial=include_combinatorial,
             )
+
+        return scores
 
     def query_and_plot_samples(
         self,
@@ -392,8 +398,10 @@ class BDT_tester:
 
             plt.subplot(2, 3, 5)
 
+            n_points = 50
+
             effs = {}
-            x = np.linspace(0, 0.99, 50)
+            x = np.linspace(0, 0.99, n_points)
 
             if include_combinatorial:
                 sample_list = [
@@ -431,6 +439,20 @@ class BDT_tester:
                     color = "tab:orange"
 
                 plt.plot(x, effs[sample], label=sample, color=color, linestyle=style)
+
+            pairs = [[0, 1], [2, 3]]
+            if include_combinatorial:
+                pairs.append([4, 5])
+
+            scores = []
+
+            colors = ["tab:blue", "tab:red", "tab:orange"]
+            for idx, pair in enumerate(pairs):
+                true = effs[list(effs.keys())[pair[0]]]
+                false = effs[list(effs.keys())[pair[1]]]
+                plt.fill_between(x, true, false, color=colors[idx], alpha=0.1)
+                scores.append(np.sum(np.abs(true - false)) / n_points)
+
             plt.legend()
             plt.ylabel(f"Selection efficiency")
             plt.xlabel(f"BDT cut")
@@ -439,3 +461,5 @@ class BDT_tester:
 
             pdf.savefig(bbox_inches="tight")
             plt.close()
+
+        return scores

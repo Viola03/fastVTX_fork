@@ -7,7 +7,10 @@ fast_vertex_quality.egg-info/SOURCES.txt
 fast_vertex_quality.egg-info/dependency_links.txt
 fast_vertex_quality.egg-info/top_level.txt
 fast_vertex_quality/models/conditional_VAE.py
+fast_vertex_quality/testing_schemes/BDT.py
 fast_vertex_quality/tools/config.py
 fast_vertex_quality/tools/data_loader.py
 fast_vertex_quality/tools/plotting.py
 fast_vertex_quality/tools/training.py
+fast_vertex_quality/training_schemes/track_chi2.py
+fast_vertex_quality/training_schemes/vertex_quality.py
