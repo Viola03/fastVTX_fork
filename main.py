@@ -14,7 +14,22 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-# transformers = pickle.load(open("networks/vertex_transfomers.pkl", "rb"))
+if rd.optimise:
+
+    # rd.beta = np.linspace(rd.min_value, rd.max_value, rd.steps)[int(rd.jobID)]
+    rd.beta = np.logspace(np.log10(rd.min_value), np.log10(rd.max_value), rd.steps)[
+        int(rd.jobID)
+    ]
+
+print("rd.beta", rd.beta)
+# print(rd.optimise)
+# print(rd.min_value)
+# print(rd.max_value)
+# print(rd.jobID)
+# print(rd.steps)
+# quit()
+
+transformers = pickle.load(open("networks/chi2_transfomers.pkl", "rb"))
 
 print(f"Loading data...")
 training_data_loader = data_loader.load_data(
@@ -24,24 +39,25 @@ training_data_loader = data_loader.load_data(
         "datasets/B2Kee_2018_CommonPresel_more_vars.csv",
     ],
     N=150000,
-    # transformers=transformers,
+    transformers=transformers,
 )
 transformers = training_data_loader.get_transformers()
 
 ################################################################
-train_chi2 = True
+train_chi2 = False
 print(f"Creating track chi2 network trainer...")
 trackchi2_trainer_obj = trackchi2_trainer(training_data_loader)
 if train_chi2:
     for particle in ["K_Kst", "e_minus", "e_plus"]:
         print(f"Training chi2 network {particle}...")
-        trackchi2_trainer_obj.train(particle, steps=2500)
+        trackchi2_trainer_obj.train(particle, steps=7500)
         trackchi2_trainer_obj.make_plots(particle)
 
     trackchi2_trainer_obj.save_state(tag="networks/chi2")
 else:
     trackchi2_trainer_obj.load_state(tag="networks/chi2")
 ################################################################
+# quit()
 
 ################################################################
 training_data_loader.fill_chi2_gen(trackchi2_trainer_obj)
@@ -77,7 +93,7 @@ print(f"Initialising BDT tester...")
 BDT_tester_obj = BDT_tester(
     transformers=transformers,
     tag="networks/BDT_sig_comb",
-    train=True,
+    train=False,
     signal="datasets/Kee_2018_truthed_more_vars.csv",
     background="datasets/B2Kee_2018_CommonPresel.csv",
     signal_label="Train - sig",
@@ -86,34 +102,50 @@ BDT_tester_obj = BDT_tester(
 
 
 vertex_quality_trainer_obj = vertex_quality_trainer(
-    training_data_loader, trackchi2_trainer_obj, conditions=conditions
+    training_data_loader,
+    trackchi2_trainer_obj,
+    conditions=conditions,
+    beta=float(rd.beta),
+    latent_dim=rd.latent,
+    E_architecture=[125, 125, 250, 125],
+    D_architecture=[125, 250, 125, 125],
 )
-vertex_quality_trainer_obj.train(steps=10000)
-# BDT_tester_obj.make_BDT_plot(vertex_quality_trainer_obj, "BDT_0.pdf")
+vertex_quality_trainer_obj.train(steps=15000)
+# BDT_tester_obj.make_BDT_plot(
+#     vertex_quality_trainer_obj, "BDT_0.pdf", include_combinatorial=True
+# )
 
 # for i in range(25):
-#     vertex_quality_trainer_obj.train_more_steps(steps=5000)
-#     BDT_tester_obj.make_BDT_plot(vertex_quality_trainer_obj, f"BDT_{i+1}.pdf")
+#     vertex_quality_trainer_obj.train_more_steps(steps=2500)
+#     BDT_tester_obj.make_BDT_plot(
+#         vertex_quality_trainer_obj, f"BDT_{i+1}.pdf", include_combinatorial=True
+#     )
 
 # vertex_quality_trainer_obj.make_plots()
-vertex_quality_trainer_obj.save_state(tag="networks/vertex")
+# vertex_quality_trainer_obj.save_state(tag=f"networks/vertex_job_{rd.jobID}")
 # vertex_quality_trainer_obj.load_state(tag="networks/vertex")
 ################################################################
 
 scores = BDT_tester_obj.make_BDT_plot(
-    vertex_quality_trainer_obj, "BDT.pdf", include_combinatorial=True
+    vertex_quality_trainer_obj, f"BDT_job_{rd.jobID}.pdf", include_combinatorial=True
 )
 
+print(float(rd.beta), scores)
 
-print(f"Initialising BDT tester...")
-BDT_tester_obj_prc = BDT_tester(
-    transformers=transformers,
-    tag="networks/BDT_sig_prc",
-    train=True,
-    signal="datasets/Kee_2018_truthed_more_vars.csv",
-    background="datasets/Kstee_2018_truthed_more_vars.csv",
-    signal_label="Train - sig",
-    background_label="Train - prc",
-)
+f = open("logging.txt", "a")
+f.write(f"{float(rd.beta)}, {rd.latent}, {scores[0]}, {scores[1]}, {scores[2]}\n")
+f.close()
 
-BDT_tester_obj_prc.make_BDT_plot(vertex_quality_trainer_obj, "BDT_prc.pdf")
+
+# print(f"Initialising BDT tester...")
+# BDT_tester_obj_prc = BDT_tester(
+#     transformers=transformers,
+#     tag="networks/BDT_sig_prc",
+#     train=True,
+#     signal="datasets/Kee_2018_truthed_more_vars.csv",
+#     background="datasets/Kstee_2018_truthed_more_vars.csv",
+#     signal_label="Train - sig",
+#     background_label="Train - prc",
+# )
+
+# BDT_tester_obj_prc.make_BDT_plot(vertex_quality_trainer_obj, "BDT_prc.pdf")

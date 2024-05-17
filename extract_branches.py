@@ -131,6 +131,7 @@ extras_truth = [
 
 print("D")
 
+
 branches = [
     "B_plus_TRUEP_X",
     "B_plus_TRUEP_Y",
@@ -149,25 +150,17 @@ branches = [
     "e_minus_TRUEID",
 ]
 
-targets = [
-    "B_plus_ENDVERTEX_CHI2",
-    "B_plus_IPCHI2_OWNPV",
-    "B_plus_FDCHI2_OWNPV",
-    "B_plus_DIRA_OWNPV",
-    "K_Kst_IPCHI2_OWNPV",
-    "K_Kst_TRACK_CHI2NDOF",
-    "e_minus_IPCHI2_OWNPV",
-    "e_minus_TRACK_CHI2NDOF",
-    "e_plus_IPCHI2_OWNPV",
-    "e_plus_TRACK_CHI2NDOF",
-]
 
 file = uproot.open(
     "/eos/lhcb/wg/RD/RK-highq2/data/tuples/2018/Kee/MC/truthed/Bu2JPsiX_2018_KisK.root"
 )["DecayTree"]
-branches = list(np.unique(branches + targets))
-events = file.arrays(branches, library="pd", entry_stop=25000)
-# events = file.arrays(branches, library="pd")
+branches = list(
+    np.unique(
+        branches + conditions + targets + conditions_TRUTH + extras + extras_truth
+    )
+)
+# events = file.arrays(branches, library="pd", entry_stop=25000)
+events = file.arrays(branches, library="pd")
 events = events.query("K_Kst_TRUEID == [-321, 321]")
 events = events.query("e_plus_TRUEID == [-11, 11]")
 events = events.query("e_minus_TRUEID == [-11, 11]")
@@ -301,6 +294,10 @@ events["pX_x"], events["pX_y"], events["pX_z"] = compute_X_momenta(events)
 events["lost_mass"] = compute_lost_mass(events, masses)
 
 events = events.dropna()
+
+events.to_csv("JPSIX_2018_truthed.csv")
+
+
 # print(mB)
 
 # plt.hist(mB, bins=50)
@@ -314,19 +311,19 @@ plt.yscale("log")
 plt.savefig("mB_lost.png")
 plt.close("all")
 
-with PdfPages(f"targets.pdf") as pdf:
+# with PdfPages(f"targets.pdf") as pdf:
 
-    for target in targets:
+#     for target in targets:
 
-        print(target)
+#         print(target)
 
-        plt.scatter(
-            np.asarray(events["lost_mass"]),
-            np.asarray(events[target]),
-            # bins=75,
-            # norm=LogNorm(),
-        )
-        plt.xlabel("lost_mass")
-        plt.ylabel(target)
-        pdf.savefig(bbox_inches="tight")
-        plt.close()
+#         plt.scatter(
+#             np.asarray(events["lost_mass"]),
+#             np.asarray(events[target]),
+#             # bins=75,
+#             # norm=LogNorm(),
+#         )
+#         plt.xlabel("lost_mass")
+#         plt.ylabel(target)
+#         pdf.savefig(bbox_inches="tight")
+#         plt.close()

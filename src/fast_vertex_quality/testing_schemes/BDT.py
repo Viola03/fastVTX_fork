@@ -198,8 +198,75 @@ class BDT_tester:
 
         return query
 
+    def get_jpsiX_samples(
+        self,
+        sample_loc,
+        vertex_quality_trainer_obj,
+        generate,
+        N=10000,
+    ):
+
+        event_loader = data_loader.load_data(
+            [
+                sample_loc,
+            ],
+            transformers=self.transformers,
+        )
+
+        lost_mass_cuts = [125, 250, 750, 1250]
+
+        event_loader.select_randomly(Nevents=N * (len(lost_mass_cuts) + 1))
+        if generate:
+
+            event_loader = vertex_quality_trainer_obj.predict_from_data_loader(
+                event_loader
+            )
+
+            query = event_loader.get_branches(
+                self.BDT_vars_gen + ["lost_mass"], processed=False
+            )
+
+            queries = []
+            for idx in range(len(lost_mass_cuts) + 1):
+                if idx == 0:
+                    query_i = query.query(f"lost_mass<{lost_mass_cuts[idx]}")
+                elif idx < len(lost_mass_cuts):
+                    query_i = query.query(
+                        f"lost_mass<{lost_mass_cuts[idx]} and lost_mass>{lost_mass_cuts[idx-1]}"
+                    )
+                else:
+                    query_i = query.query(f"lost_mass>{lost_mass_cuts[idx-1]}")
+
+                query_i = np.squeeze(np.asarray(query_i[self.BDT_vars_gen]))
+                queries.append(query_i)
+
+        else:
+            query = event_loader.get_branches(
+                self.BDT_vars + ["lost_mass"], processed=False
+            )
+
+            queries = []
+            for idx in range(len(lost_mass_cuts) + 1):
+                if idx == 0:
+                    query_i = query.query(f"lost_mass<{lost_mass_cuts[idx]}")
+                elif idx < len(lost_mass_cuts):
+                    query_i = query.query(
+                        f"lost_mass<{lost_mass_cuts[idx]} and lost_mass>{lost_mass_cuts[idx-1]}"
+                    )
+                else:
+                    query_i = query.query(f"lost_mass>{lost_mass_cuts[idx-1]}")
+
+                query_i = np.squeeze(np.asarray(query_i[self.BDT_vars]))
+                queries.append(query_i)
+
+        return queries
+
     def make_BDT_plot(
-        self, vertex_quality_trainer_obj, filename, include_combinatorial=False
+        self,
+        vertex_quality_trainer_obj,
+        filename,
+        include_combinatorial=False,
+        include_jpsiX=False,
     ):
         signal_gen = self.get_sample(
             "datasets/Kee_2018_truthed_more_vars.csv",
@@ -222,6 +289,10 @@ class BDT_tester:
             N=10000,
         )
 
+        samples = [signal_gen, prc_MC, prc_gen]
+        labels = ["sig - gen", "prc - MC", "prc - gen"]
+        colours = ["tab:blue", "tab:red", "tab:green", "tab:purple", "k"]
+
         if include_combinatorial:
 
             combi_gen = self.get_sample(
@@ -231,31 +302,282 @@ class BDT_tester:
                 N=10000,
             )
 
-            scores = self.query_and_plot_samples(
-                [signal_gen, prc_MC, prc_gen, combi_gen],
-                ["sig - gen", "prc - MC", "prc - gen", "combi - gen"],
-                colours=[
-                    "tab:blue",
-                    "tab:red",
-                    "tab:green",
-                    "tab:purple",
-                    "k",
-                    "tab:orange",
-                ],
-                filename=filename,
-                include_combinatorial=include_combinatorial,
+            colours.append("tab:orange")
+            samples.append(combi_gen)
+            labels.append("combi - gen")
+
+        if include_jpsiX:
+
+            jpsix_MC = self.get_jpsiX_samples(
+                "datasets/JPSIX_2018_truthed_more_vars.csv",
+                None,
+                generate=False,
+                N=50000,
+            )
+            jpsix_gen = self.get_jpsiX_samples(
+                "datasets/JPSIX_2018_truthed_more_vars.csv",
+                vertex_quality_trainer_obj,
+                generate=True,
+                N=50000,
             )
 
-        else:
-
-            scores = self.query_and_plot_samples(
-                [signal_gen, prc_MC, prc_gen],
-                ["sig - gen", "prc - MC", "prc - gen"],
-                colours=["tab:blue", "tab:red", "tab:green", "tab:purple", "k"],
-                filename=filename,
-                include_combinatorial=include_combinatorial,
+            scores = self.query_and_plot_samples_jpsiX(
+                jpsix_MC,
+                jpsix_gen,
+                filename=filename.replace(".pdf", "") + "_jpsiX.pdf",
+                include_combinatorial=False,
             )
 
+            # colours.append("tab:orange")
+            # samples.append(combi_gen)
+            # labels.append("combi - gen")
+
+        scores = self.query_and_plot_samples(
+            samples,
+            labels,
+            colours=colours,
+            filename=filename,
+            include_combinatorial=include_combinatorial,
+        )
+
+        return scores
+
+    def query_and_plot_samples_jpsiX(
+        self,
+        samples_MC,
+        samples_gen,
+        filename="BDT.pdf",
+        kFold=0,
+        include_combinatorial=False,
+    ):
+
+        sample_values_MC = {}
+        sample_values_gen = {}
+
+        clf = self.BDTs[kFold]["BDT"]
+
+        for i in range(len(samples_MC)):
+            sample_values_MC[f"MC_{i}"] = clf.predict_proba(samples_MC[i])[:, 1]
+        for i in range(len(samples_gen)):
+            sample_values_gen[f"gen_{i}"] = clf.predict_proba(samples_gen[i])[:, 1]
+        colours = [
+            "tab:blue",
+            "tab:red",
+            "tab:orange",
+            "tab:green",
+            "tab:purple",
+        ]
+        with PdfPages(f"{filename}") as pdf:
+
+            plt.figure(figsize=(8, 8))
+
+            n_points = 75
+
+            x = np.linspace(0, 0.99, n_points)
+
+            for ii in range(5):
+
+                colour = colours[ii]
+
+                eff_true = np.empty(0)
+                eff_fake = np.empty(0)
+
+                for cut in x:
+
+                    values = sample_values_MC[f"MC_{ii}"]
+                    pass_i = np.shape(np.where(values > cut))[1]
+                    eff_true = np.append(eff_true, pass_i / np.shape(values)[0])
+
+                    values = sample_values_gen[f"gen_{ii}"]
+                    pass_i = np.shape(np.where(values > cut))[1]
+                    eff_fake = np.append(eff_fake, pass_i / np.shape(values)[0])
+
+                plt.plot(x, eff_true, color=colour, linestyle="-")
+                plt.plot(x, eff_fake, color=colour, linestyle="--")
+                plt.fill_between(x, eff_true, eff_fake, color=colour, alpha=0.1)
+
+            pdf.savefig(bbox_inches="tight")
+            plt.close()
+
+            plt.figure(figsize=(15, 10))
+            plt.subplot(2, 3, 1)
+
+            hist = plt.hist(
+                sample_values_MC.values(),
+                bins=25,
+                color=colours,
+                density=True,
+                label=list(sample_values_MC.keys()),
+                histtype="step",
+                range=[0, 1],
+                alpha=1.0,
+            )
+            hist = plt.hist(
+                sample_values_gen.values(),
+                bins=25,
+                color=colours,
+                density=True,
+                label=list(sample_values_gen.keys()),
+                histtype="step",
+                range=[0, 1],
+                alpha=0.5,
+            )
+            plt.xlabel(f"BDT output")
+            plt.yscale("log")
+            plt.subplot(2, 3, 2)
+            hist = plt.hist(
+                sample_values_MC.values(),
+                bins=25,
+                color=colours,
+                density=True,
+                label=list(sample_values_MC.keys()),
+                histtype="step",
+                range=[0, 1],
+                alpha=1.0,
+            )
+            hist = plt.hist(
+                sample_values_gen.values(),
+                bins=25,
+                color=colours,
+                density=True,
+                label=list(sample_values_gen.keys()),
+                histtype="step",
+                range=[0, 1],
+                alpha=0.5,
+            )
+            plt.legend(loc="upper left")
+            plt.xlabel(f"BDT output")
+
+            pdf.savefig(bbox_inches="tight")
+            plt.close()
+
+            plt.figure(figsize=(15, 10))
+            plt.subplot(2, 3, 1)
+            plt.title("MC")
+
+            hist = plt.hist(
+                sample_values_MC.values(),
+                bins=25,
+                color=colours,
+                density=True,
+                label=list(sample_values_MC.keys()),
+                histtype="step",
+                range=[0, 1],
+                alpha=1.0,
+            )
+            plt.ylim(0.05, 16)
+            plt.xlabel(f"BDT output")
+            plt.yscale("log")
+            plt.subplot(2, 3, 2)
+            plt.title("MC")
+            hist = plt.hist(
+                sample_values_MC.values(),
+                bins=25,
+                color=colours,
+                density=True,
+                label=list(sample_values_MC.keys()),
+                histtype="step",
+                range=[0, 1],
+                alpha=1.0,
+            )
+            plt.ylim(0.05, 16)
+            plt.legend(loc="upper left")
+            plt.xlabel(f"BDT output")
+
+            pdf.savefig(bbox_inches="tight")
+            plt.close()
+
+            plt.figure(figsize=(15, 10))
+            plt.subplot(2, 3, 1)
+            plt.title("GEN")
+
+            hist = plt.hist(
+                sample_values_gen.values(),
+                bins=25,
+                color=colours,
+                density=True,
+                label=list(sample_values_gen.keys()),
+                histtype="step",
+                range=[0, 1],
+                alpha=1.0,
+            )
+            plt.ylim(0.05, 16)
+            plt.xlabel(f"BDT output")
+            plt.yscale("log")
+            plt.subplot(2, 3, 2)
+            plt.title("GEN")
+            hist = plt.hist(
+                sample_values_gen.values(),
+                bins=25,
+                color=colours,
+                density=True,
+                label=list(sample_values_gen.keys()),
+                histtype="step",
+                range=[0, 1],
+                alpha=1.0,
+            )
+            plt.ylim(0.05, 16)
+            plt.legend(loc="upper left")
+            plt.xlabel(f"BDT output")
+
+            pdf.savefig(bbox_inches="tight")
+            plt.close()
+
+            for ii in range(5):
+
+                plt.figure(figsize=(15, 10))
+                plt.subplot(2, 3, 1)
+
+                hist = plt.hist(
+                    sample_values_MC[f"MC_{ii}"],
+                    bins=25,
+                    color=colours[ii],
+                    density=True,
+                    label=f"MC_{ii}",
+                    histtype="step",
+                    range=[0, 1],
+                    alpha=1.0,
+                )
+                hist = plt.hist(
+                    sample_values_gen[f"gen_{ii}"],
+                    bins=25,
+                    color=colours[ii],
+                    density=True,
+                    label=f"gen_{ii}",
+                    histtype="step",
+                    range=[0, 1],
+                    alpha=0.5,
+                )
+                plt.xlabel(f"BDT output")
+                plt.yscale("log")
+                plt.subplot(2, 3, 2)
+                hist = plt.hist(
+                    sample_values_MC[f"MC_{ii}"],
+                    bins=25,
+                    color=colours[ii],
+                    density=True,
+                    label=f"MC_{ii}",
+                    histtype="step",
+                    range=[0, 1],
+                    alpha=1.0,
+                )
+                hist = plt.hist(
+                    sample_values_gen[f"gen_{ii}"],
+                    bins=25,
+                    color=colours[ii],
+                    density=True,
+                    label=f"gen_{ii}",
+                    histtype="step",
+                    range=[0, 1],
+                    alpha=0.5,
+                )
+                plt.legend(loc="upper left")
+                plt.xlabel(f"BDT output")
+
+                pdf.savefig(bbox_inches="tight")
+                plt.close()
+
+        scores = None
         return scores
 
     def query_and_plot_samples(

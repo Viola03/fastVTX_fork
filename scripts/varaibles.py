@@ -285,7 +285,6 @@ def compute_DIRA(df, true_vars=True):
             )
         )
 
-
     # A = norm(np.asarray([
     #     df.K_Kst_PX+df.e_minus_PX+df.e_plus_PX,
     #     df.K_Kst_PY+df.e_minus_PY+df.e_plus_PY,
@@ -305,117 +304,119 @@ def compute_DIRA(df, true_vars=True):
     return dira
 
 
-masses = {}
-masses["K_Kst"] = 493.677
-masses["e_plus"] = 0.51099895000 * 1e-3
-masses["e_minus"] = 0.51099895000 * 1e-3
-
-events = pd.read_csv(f"datasets/B2Kee_2018_CommonPresel.csv")
-
-print(events)
-
-particles = ["K_Kst", "e_plus", "e_minus"]
-
-for particle_i in range(0, len(particles)):
-    for particle_j in range(particle_i + 1, len(particles)):
-        print(particle_i, particle_j)
-
-        (
-            events[f"m_{particle_i}{particle_j}"],
-            events[f"m_{particle_i}{particle_j}_inside"],
-        ) = compute_mass(
-            events,
-            particles[particle_i],
-            particles[particle_j],
-            masses[particles[particle_i]],
-            masses[particles[particle_j]],
-            true_vars=False,
-        )
-
-events[f"B_P"], events[f"B_PT"] = compute_B_mom(events, true_vars=False)
-events[f"missing_B_P"], events[f"missing_B_PT"] = compute_miss_mom(
-    events, particles, true_vars=False
-)
-
-# for particle_i in range(0, len(particles)):
-#     (
-#         events[f"delta_{particle_i}_P"],
-#         events[f"delta_{particle_i}_PT"],
-#     ) = compute_delta_mom(events, particles[particle_i])
-
-for m in ["m_01", "m_02", "m_12"]:
-    events[m] = events[m].fillna(0)
-
-################################################################################
-
-for particle in ["K_Kst", "e_plus", "e_minus"]:
-    events[f"angle_{particle}"] = compute_angle(events, f"{particle}", true_vars=False)
-
-events["IP_B"] = compute_impactParameter(events, true_vars=False)
-for particle in ["K_Kst", "e_plus", "e_minus"]:
-    events[f"IP_{particle}"] = compute_impactParameter_i(
-        events, f"{particle}", true_vars=False
-    )
-events["FD_B"] = compute_flightDistance(events, true_vars=False)
-events["DIRA_B"] = compute_DIRA(events, true_vars=False)
-
-events.to_csv(f"datasets/B2Kee_2018_CommonPresel_more_vars.csv")
-
-
 # masses = {}
 # masses["K_Kst"] = 493.677
 # masses["e_plus"] = 0.51099895000 * 1e-3
 # masses["e_minus"] = 0.51099895000 * 1e-3
 
-# for channel in ["Kee", "Kstee"]:
+# events = pd.read_csv(f"datasets/B2Kee_2018_CommonPresel.csv")
 
-#     print(channel)
+# print(events)
 
-#     # events = pd.read_csv(f"datasets/{channel}_2018_truthed_head.csv")
-#     events = pd.read_csv(f"datasets/{channel}_2018_truthed.csv")
+# particles = ["K_Kst", "e_plus", "e_minus"]
 
-#     print(events)
+# for particle_i in range(0, len(particles)):
+#     for particle_j in range(particle_i + 1, len(particles)):
+#         print(particle_i, particle_j)
 
-#     particles = ["K_Kst", "e_plus", "e_minus"]
-
-#     for particle_i in range(0, len(particles)):
-#         for particle_j in range(particle_i + 1, len(particles)):
-#             print(particle_i, particle_j)
-
-#             (
-#                 events[f"m_{particle_i}{particle_j}"],
-#                 events[f"m_{particle_i}{particle_j}_inside"],
-#             ) = compute_mass(
-#                 events,
-#                 particles[particle_i],
-#                 particles[particle_j],
-#                 masses[particles[particle_i]],
-#                 masses[particles[particle_j]],
-#             )
-
-#     events[f"B_P"], events[f"B_PT"] = compute_B_mom(events)
-#     events[f"missing_B_P"], events[f"missing_B_PT"] = compute_miss_mom(
-#         events, particles
-#     )
-
-#     for particle_i in range(0, len(particles)):
 #         (
-#             events[f"delta_{particle_i}_P"],
-#             events[f"delta_{particle_i}_PT"],
-#         ) = compute_delta_mom(events, particles[particle_i])
+#             events[f"m_{particle_i}{particle_j}"],
+#             events[f"m_{particle_i}{particle_j}_inside"],
+#         ) = compute_mass(
+#             events,
+#             particles[particle_i],
+#             particles[particle_j],
+#             masses[particles[particle_i]],
+#             masses[particles[particle_j]],
+#             true_vars=False,
+#         )
 
-#     for m in ["m_01", "m_02", "m_12"]:
-#         events[m] = events[m].fillna(0)
+# events[f"B_P"], events[f"B_PT"] = compute_B_mom(events, true_vars=False)
+# events[f"missing_B_P"], events[f"missing_B_PT"] = compute_miss_mom(
+#     events, particles, true_vars=False
+# )
 
-#     ################################################################################
+# # for particle_i in range(0, len(particles)):
+# #     (
+# #         events[f"delta_{particle_i}_P"],
+# #         events[f"delta_{particle_i}_PT"],
+# #     ) = compute_delta_mom(events, particles[particle_i])
 
-#     for particle in ["K_Kst", "e_plus", "e_minus"]:
-#         events[f"angle_{particle}"] = compute_angle(events, f"{particle}")
+# for m in ["m_01", "m_02", "m_12"]:
+#     events[m] = events[m].fillna(0)
 
-#     events["IP_B"] = compute_impactParameter(events)
-#     for particle in ["K_Kst", "e_plus", "e_minus"]:
-#         events[f"IP_{particle}"] = compute_impactParameter_i(events, f"{particle}")
-#     events["FD_B"] = compute_flightDistance(events)
-#     events["DIRA_B"] = compute_DIRA(events)
+# ################################################################################
 
-#     events.to_csv(f"datasets/{channel}_2018_truthed_more_vars.csv")
+# for particle in ["K_Kst", "e_plus", "e_minus"]:
+#     events[f"angle_{particle}"] = compute_angle(events, f"{particle}", true_vars=False)
+
+# events["IP_B"] = compute_impactParameter(events, true_vars=False)
+# for particle in ["K_Kst", "e_plus", "e_minus"]:
+#     events[f"IP_{particle}"] = compute_impactParameter_i(
+#         events, f"{particle}", true_vars=False
+#     )
+# events["FD_B"] = compute_flightDistance(events, true_vars=False)
+# events["DIRA_B"] = compute_DIRA(events, true_vars=False)
+
+# events.to_csv(f"datasets/B2Kee_2018_CommonPresel_more_vars.csv")
+
+
+masses = {}
+masses["K_Kst"] = 493.677
+masses["e_plus"] = 0.51099895000 * 1e-3
+masses["e_minus"] = 0.51099895000 * 1e-3
+
+for channel in ["Kee", "Kstee"]:
+
+    print(channel)
+    channel = "JPSIX"
+    # events = pd.read_csv(f"datasets/{channel}_2018_truthed_head.csv")
+    # events = pd.read_csv(f"datasets/{channel}_2018_truthed.csv")
+    events = pd.read_csv(f"datasets/JPSIX_2018_truthed.csv")
+
+    print(events)
+
+    particles = ["K_Kst", "e_plus", "e_minus"]
+
+    for particle_i in range(0, len(particles)):
+        for particle_j in range(particle_i + 1, len(particles)):
+            print(particle_i, particle_j)
+
+            (
+                events[f"m_{particle_i}{particle_j}"],
+                events[f"m_{particle_i}{particle_j}_inside"],
+            ) = compute_mass(
+                events,
+                particles[particle_i],
+                particles[particle_j],
+                masses[particles[particle_i]],
+                masses[particles[particle_j]],
+            )
+
+    events[f"B_P"], events[f"B_PT"] = compute_B_mom(events)
+    events[f"missing_B_P"], events[f"missing_B_PT"] = compute_miss_mom(
+        events, particles
+    )
+
+    for particle_i in range(0, len(particles)):
+        (
+            events[f"delta_{particle_i}_P"],
+            events[f"delta_{particle_i}_PT"],
+        ) = compute_delta_mom(events, particles[particle_i])
+
+    for m in ["m_01", "m_02", "m_12"]:
+        events[m] = events[m].fillna(0)
+
+    ################################################################################
+
+    for particle in ["K_Kst", "e_plus", "e_minus"]:
+        events[f"angle_{particle}"] = compute_angle(events, f"{particle}")
+
+    events["IP_B"] = compute_impactParameter(events)
+    for particle in ["K_Kst", "e_plus", "e_minus"]:
+        events[f"IP_{particle}"] = compute_impactParameter_i(events, f"{particle}")
+    events["FD_B"] = compute_flightDistance(events)
+    events["DIRA_B"] = compute_DIRA(events)
+
+    events.to_csv(f"datasets/{channel}_2018_truthed_more_vars.csv")
+    quit()

@@ -355,7 +355,7 @@ class vertex_quality_trainer:
 
         events_gen = np.asarray(events_gen[self.conditions])
 
-        gen_noise = np.random.normal(0, 1, (10000, self.latent_dim))
+        gen_noise = np.random.normal(0, 1, (np.shape(events_gen)[0], self.latent_dim))
         images = np.squeeze(self.decoder.predict([gen_noise, events_gen]))
 
         data_loader_obj.fill_target(images, self.targets)
