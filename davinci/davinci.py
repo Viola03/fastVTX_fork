@@ -58,7 +58,10 @@ default_config = {
     "NAME": "Bu2LLK",
     "BUILDERTYPE": "Bu2LLKConf",
     "CONFIG": {
-        "DaughterPT": 250,
+        "DaughterPT": 250.0,
+        "KaonPT": 250.0,
+        "DiHadronMass": 9999.0,
+        "KaonIPCHI2": 0.0,
     },
     "WGs": ["RD"],
     "STREAMS": ["Leptonic"],
@@ -86,7 +89,12 @@ class Bu2LLKConf(LineBuilder):
     """
 
     # now just define keys. Default values are fixed later
-    __configuration_keys__ = ("DaughterPT",)
+    __configuration_keys__ = (
+        "DaughterPT",
+        "KaonPT",
+        "DiHadronMass",
+        "KaonIPCHI2",
+    )
 
     def __init__(self, name, config):
         LineBuilder.__init__(self, name, config)
@@ -102,13 +110,13 @@ class Bu2LLKConf(LineBuilder):
 
         # 1 : Make K, Ks, K*, K1, Phi and Lambdas
 
-        # SelElectrons = self._filterDaughter(
-        #     name="ElectronsFor" + self._name, sel=Electrons, params=config
-        # )
+        SelElectrons = self._filterDaughter(
+            name="ElectronsFor" + self._name, sel=Electrons, params=config
+        )
 
-        # SelMuons = self._filterDaughter(
-        #     name="MuonsFor" + self._name, sel=Muons, params=config
-        # )
+        SelMuons = self._filterDaughter(
+            name="MuonsFor" + self._name, sel=Muons, params=config
+        )
 
         SelPions = self._filterDaughter(
             name="PionsFor" + self._name, sel=Pions, params=config
@@ -121,8 +129,8 @@ class Bu2LLKConf(LineBuilder):
         SelB2eeXFromTracks = self._makeB2LLX(
             eeXLine_name + "2",
             daughters=[
-                # SelElectrons,
-                # SelMuons,
+                SelElectrons,
+                SelMuons,
                 SelPions,
                 SelKaons,
             ],
@@ -146,7 +154,14 @@ class Bu2LLKConf(LineBuilder):
         Filter for all hadronic final states
         """
 
-        _Code = "(PT > %(DaughterPT)s *MeV)" % params
+        # _Code = "(PT > %(DaughterPT)s *MeV)" % params
+        _Code = (
+            "(PT > %(KaonPT)s *MeV) & "
+            "(M < %(DiHadronMass)s*MeV) & "
+            "((ISBASIC & (MIPCHI2DV(PRIMARY) > %(KaonIPCHI2)s)) | "
+            "(NDAUGHTERS == NINTREE(ISBASIC & (MIPCHI2DV(PRIMARY) > %(KaonIPCHI2)s))))"
+            % params
+        )
 
         _Filter = FilterDesktop(Code=_Code)
 
