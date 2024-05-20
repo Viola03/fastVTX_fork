@@ -1,74 +1,31 @@
-# Basem khanji,basem.khanji@cern.ch: ganga script to submit tagging tuples for RunI, RunII data (both DIMUON & BHADRON streams) in one go !
-
-# lb-run Ganga v602r3 ganga gangaSubmit.py
-
-#
 import os, re
 
-# os.getcwd()
-# sys.path.append(os.getcwd())
+year = ["18"]
+energy = ["6500"]
+strip_v = ["34"]
+Reco_v = ["18"]
+polarity = ["Down"]
+streams = ["ALLSTREAMS.DST"]
 
-# running conditions
-# RunI
-"""
-year         = [   '12'    ]#'11'     ]#,  '15'     , '16'  ]
-energy       = [  '4000'   ]#'3500'   ]#,  '6500'   , '6500']
-strip_v      = [   '21'    ]#'21r1'   ]#,  '24'     , '26'  ]
-Reco_v       = [   '14'    ]#  '14'   ]#,  '15a'    , '16'  ]
-polarity     = [   'Up'    ]#,    'Down'   ]
-streams      = [ 'BHADRON.MDST']# 
-#RunII
-"""
-year = ["18"]  # [ '17'     ]#, ] '16'   ]  '15'
-energy = ["6500"]  # [ '6500'   ]#, ] '6500' ]  '6500'
-strip_v = ["34"]  # [ '29r2'   ]#, ] '28r1' ]  '24r1'
-Reco_v = ["18"]  # [ '17'     ]#, ] '16'   ]  '15a'
-# polarity     = [ 'Up'   , 'Down' ]
-polarity = ["Up"]
-streams = ["BHADRONCOMPLETEEVENT.DST"]  # 'DIMUON'
-
-# make the paths list
 job_setting = {}
 List_Of_Paths = []
-
-for stm in streams:
-    for pol in polarity:
-        for i in range(len(year)):
-            PATH_name = (
-                "/LHCb/Collision"
-                + year[i]
-                + "/Beam"
-                + energy[i]
-                + "GeV-VeloClosed-Mag"
-                + pol
-                + "/Real Data/Reco"
-                + Reco_v[i]
-                + "/Stripping"
-                + strip_v[i]
-                + "/90000000/"
-                + stm
-            )
-            print(PATH_name)
-            job_name = (
-                "20"
-                + year[i]
-                + "_Reco"
-                + Reco_v[i]
-                + "Strip"
-                + strip_v[i]
-                + "_"
-                + pol
-                + "_"
-                + stm
-            )
-            job_setting[job_name] = PATH_name
-            List_Of_Paths.append(PATH_name)
-
-print("========================================")
-print("Filled the list of PATHS for ganga jobs")
-print("========================================")
-print(job_setting)
-
+i = 0
+PATH_name = "/MC/2018/Beam6500GeV-2018-MagDown-Nu1.6-25ns-Pythia8/Sim09k/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/10000023/ALLSTREAMS.DST"
+print(PATH_name)
+job_name = (
+    "20"
+    + year[i]
+    + "_Reco"
+    + Reco_v[i]
+    + "Strip"
+    + strip_v[i]
+    + "_"
+    + polarity[i]
+    + "_"
+    + streams[i]
+)
+job_setting[job_name] = PATH_name
+List_Of_Paths.append(PATH_name)
 
 for job_name, path_dict in job_setting.items():
     print("======================================")
@@ -84,23 +41,17 @@ for job_name, path_dict in job_setting.items():
         myApp = GaudiExec()
         myApp.directory = "./DaVinciDev_v44r3"
 
-    # myApp.directory = '/afs/cern.ch/work/b/bkhanji/DaVinciDev_v44r3'
-    # myApp.directory = '/afs/cern.ch/work/b/bkhanji/DaVinciDev_v42r3'
     myApp.platform = "x86_64-slc6-gcc62-opt"
-    # myApp.platform = 'x86_64-slc6-gcc49-opt'
-    myApp.options = ["./Data/B2DD_TupleMaker_Data.py"]
-    # myApp.options = ['./Data/B2DD_TupleMaker_Data_RunI.py' ]
-    # Choose PBS backend and specify walltime
-    bck = Dirac()
-    # bck = Local()
+    myApp.options = ["./three_body.py"]
+
+    # bck = Dirac()
+    bck = Local()
     # bck = Interactive()
 
-    # Split into subjobs, defining maximum number of input files to analyse
-    # and number of input files per subjob
     splitter = SplitByFiles()
     splitter.ignoremissing = True
     splitter.maxFiles = -1
-    splitter.filesPerJob = 5
+    splitter.filesPerJob = 1
 
     job = Job(name=job_name, comment=job_name, backend=bck, splitter=splitter)
     Year = (
@@ -131,9 +82,9 @@ for job_name, path_dict in job_setting.items():
 
     print("Create job for thee jobs: ", job.name)
     # job.inputdata  = dataset
-    # job.inputdata  = [dataset[0]]
-    job.inputdata = dataset[:50]
-    # job.outputfiles= [LocalFile(namePattern='*.root') ] # keep my Tuples on grid element (retrive manually)
+    job.inputdata = [dataset[0]]
+    # job.inputdata = dataset[:50]
+
     # This throws the files on the grid personall space
     job.outputfiles = [
         DiracFile(namePattern="*.root"),
@@ -145,4 +96,5 @@ for job_name, path_dict in job_setting.items():
     print("======================================")
     print("job: ", job.name + " submitted")
     print("======================================")
+
 print(" Jobs submitted .... bye ")
