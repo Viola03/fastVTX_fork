@@ -286,7 +286,7 @@ class Bu2LLKConf(LineBuilder):
         # )
 
         # DiElectronID = "(2 == NINTREE((ABSID==11)&(PIDe > %(PIDe)s)))" % config
-        DiElectronID = ""
+        DiElectronID = "(1==1)"
         # DiMuonID = "(2 == NINTREE((ABSID==13)&(HASMUON)&(ISMUON)))"
 
         # SelDiElectron = self._filterDiLepton(
@@ -597,7 +597,7 @@ class Bu2LLKConf(LineBuilder):
         # "(NDAUGHTERS == NINTREE(ISBASIC & (MIPCHI2DV(PRIMARY) > %(KaonIPCHI2)s))))"
         # % params
         # )
-        _Code = ""
+        _Code = "(1==1)"
 
         _Filter = FilterDesktop(Code=_Code)
 
@@ -618,7 +618,7 @@ class Bu2LLKConf(LineBuilder):
         # "(VFASPF(VCHI2/VDOF) < 9) & (BPVVDCHI2 > %(DiLeptonFDCHI2)s) & "
         # "(MIPCHI2DV(PRIMARY) > %(DiLeptonIPCHI2)s)" % params
         # )
-        _Code = ""
+        _Code = "(1==1)"
 
         # add additional cut on PID if requested
         if idcut:
@@ -643,7 +643,7 @@ class Bu2LLKConf(LineBuilder):
         # "(VFASPF(VCHI2/VDOF) < %(TauVCHI2DOF)s) & (BPVVDCHI2 > %(DiLeptonFDCHI2)s) & "
         # "(MIPCHI2DV(PRIMARY) > %(DiLeptonIPCHI2)s)" % params
         # )
-        _Code = ""
+        _Code = "(1==1)"
 
         # add additional cut on PID if requested
         if idcut:
@@ -660,7 +660,7 @@ class Bu2LLKConf(LineBuilder):
         """
 
         # _Code = "(PT > 1000*MeV) & (HASVERTEX) & (VFASPF(VCHI2/VDOF) < 9)"
-        _Code = ""
+        _Code = "(1==1)"
 
         _Filter = FilterDesktop(Code=_Code)
 
@@ -679,7 +679,7 @@ class Bu2LLKConf(LineBuilder):
         #     "(ADAMASS('K*(892)+') < %(KstarPMassWindow)s *MeV) & "
         #     "(ADOCACHI2CUT( %(KstarPADOCACHI2)s  , ''))" % params
         # )
-        _CombinationCut = ""
+        _CombinationCut = "(1==1)"
 
         _MotherCut = "(VFASPF(VCHI2) < %(KstarPVertexCHI2)s)" % params
 
@@ -689,14 +689,14 @@ class Bu2LLKConf(LineBuilder):
         #     "(NDAUGHTERS == NINTREE(ISBASIC & (MIPCHI2DV(PRIMARY) > %(KaonIPCHI2)s)))"
         #     % params
         # )
-        _KshortCut = ""
+        _KshortCut = "(1==1)"
 
         # _PionCut = (
         #     "(PT > %(KaonPT)s *MeV) & "
         #     "(M < %(DiHadronMass)s*MeV) & "
         #     "(ISBASIC & (MIPCHI2DV(PRIMARY) > %(KaonIPCHI2)s))" % params
         # )
-        _PionCut = ""
+        _PionCut = "(1==1)"
 
         _Combine = CombineParticles(
             DecayDescriptor=_Decays,
@@ -720,22 +720,22 @@ class Bu2LLKConf(LineBuilder):
         # _K1Comb12Cuts = (
         #     "(AM > %(K1_MassWindow_Lo)s*MeV) & (AM < %(K1_MassWindow_Hi)s*MeV)" % params
         # )
-        _K1Comb12Cuts = ""
+        _K1Comb12Cuts = "(1==1)"
         # _K1CombCuts = (
         #     "(AM > %(K1_MassWindow_Lo)s*MeV) & (AM < %(K1_MassWindow_Hi)s*MeV) & ((APT1+APT2+APT3) > %(K1_SumPTHad)s*MeV)"
         #     % params
         # )
-        _K1CombCuts = ""
+        _K1CombCuts = "(1==1)"
 
         # _K1MotherCuts = (
         #     "(VFASPF(VCHI2) < %(K1_VtxChi2)s) & (SUMTREE(MIPCHI2DV(PRIMARY),((ABSID=='K+') | (ABSID=='K-') | (ABSID=='pi+') | (ABSID=='pi-')),0.0) > %(K1_SumIPChi2Had)s)"
         #     % params
         # )
-        _K1MotherCuts = ""
+        _K1MotherCuts = "(1==1)"
         # _daughtersCuts = (
         #     "(TRCHI2DOF < %(Trk_Chi2)s) & (TRGHOSTPROB < %(Trk_GhostProb)s)" % params
         # )
-        _daughtersCuts = ""
+        _daughtersCuts = "(1==1)"
 
         _Combine = DaVinci__N3BodyDecays()
 
@@ -764,10 +764,10 @@ class Bu2LLKConf(LineBuilder):
             _DecayDescriptor = "[J/psi(1S) -> mu+ e+]cc"
 
         # _MassCut = "(AM > 100*MeV)"
-        _MassCut = ""
+        _MassCut = "(1==1)"
 
         # _MotherCut = "(VFASPF(VCHI2/VDOF) < 9)"
-        _MotherCut = ""
+        _MotherCut = "(1==1)"
 
         _DaughtersCut = (
             "(PT > %(LeptonPT)s) & " "(MIPCHI2DV(PRIMARY) > %(LeptonIPCHI2)s)" % params
@@ -863,7 +863,7 @@ class Bu2LLKConf(LineBuilder):
         #     "& (BPVDIRA > %(BDIRA)s) "
         #     "& (BPVVDCHI2 > %(BFlightCHI2)s))" % params
         # )
-        _Cut = ""
+        _Cut = "(1==1)"
 
         _Combine = CombineParticles(
             DecayDescriptors=_Decays, CombinationCut=masscut, MotherCut=_Cut
@@ -896,7 +896,7 @@ class Bu2LLKConf(LineBuilder):
         #     "& (BPVDIRA > %(BDIRA)s) "
         #     "& (BPVVDCHI2 > %(BFlightCHI2)s))" % params
         # )
-        _Cut = ""
+        _Cut = "(1==1)"
 
         _Combine = CombineParticles(
             DecayDescriptors=_Decays, CombinationCut=masscut, MotherCut=_Cut
