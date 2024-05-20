@@ -184,9 +184,19 @@ class Bu2LLKConf(LineBuilder):
         # _Decays = [
         #     "[ Beauty -> X+ X+ X- ]cc",
         # ]
-        _Decays = [
-            "[ B+ -> X+ X+ X- ]cc",
-        ]
+        # _Decays = [
+        #     "[ B+ -> K+ K+ K- ]cc",
+        # ]
+        _Decays = []
+
+        particle_list = ["e", "mu", "K", "pi"]
+        for particle_i in particle_list:
+            for particle_j in particle_list:
+                for particle_k in particle_list:
+
+                    _Decays.append(
+                        f"[ B+ -> {particle_i}+ {particle_j}+ {particle_k}- ]cc"
+                    )
 
         _Combine = CombineParticles(DecayDescriptors=_Decays)
 
