@@ -159,7 +159,7 @@ class Bu2LLKConf(LineBuilder):
         Filter for all hadronic final states
         """
 
-        _Code = "(PT > %(DaughterPT)s *MeV) & " % params
+        _Code = "(PT > %(DaughterPT)s *MeV)" % params
         _Filter = FilterDesktop(Code=_Code)
 
         return Selection(name, Algorithm=_Filter, RequiredSelections=[sel])
