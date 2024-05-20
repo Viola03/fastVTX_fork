@@ -154,19 +154,21 @@ class Bu2LLKConf(LineBuilder):
         Filter for all hadronic final states
         """
 
-        # _Code = "(PT > %(DaughterPT)s *MeV)" % params
-        _Code = "(PT > 250 *MeV)" % params
-        # _Code = (
-        #     "(PT > %(KaonPT)s *MeV) & "
-        #     "(M < %(DiHadronMass)s*MeV) & "
-        #     "((ISBASIC & (MIPCHI2DV(PRIMARY) > %(KaonIPCHI2)s)) | "
-        #     "(NDAUGHTERS == NINTREE(ISBASIC & (MIPCHI2DV(PRIMARY) > %(KaonIPCHI2)s))))"
-        #     % params
-        # )
+        return Selection(name, RequiredSelections=[sel])
 
-        _Filter = FilterDesktop(Code=_Code)
+        # # _Code = "(PT > %(DaughterPT)s *MeV)" % params
+        # _Code = "(PT > 250 *MeV)" % params
+        # # _Code = (
+        # #     "(PT > %(KaonPT)s *MeV) & "
+        # #     "(M < %(DiHadronMass)s*MeV) & "
+        # #     "((ISBASIC & (MIPCHI2DV(PRIMARY) > %(KaonIPCHI2)s)) | "
+        # #     "(NDAUGHTERS == NINTREE(ISBASIC & (MIPCHI2DV(PRIMARY) > %(KaonIPCHI2)s))))"
+        # #     % params
+        # # )
 
-        return Selection(name, Algorithm=_Filter, RequiredSelections=[sel])
+        # _Filter = FilterDesktop(Code=_Code)
+
+        # return Selection(name, Algorithm=_Filter, RequiredSelections=[sel])
 
     #####################################################
     def _makeB2LLX(self, name, daughters, params):
