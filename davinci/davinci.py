@@ -208,7 +208,10 @@ class Bu2LLKConf(LineBuilder):
         #             _Decays.append(
         #                 "[ B+ -> %s+ %s+ %s- ]cc" % (particle_i, particle_j, particle_k)
         #             )
-        _Decays = ["[ B+ -> K+ e+ e- ]cc"]
+        # _Decays = ["[ B+ -> K+ e+ e- ]cc"]
+        _Decays = [
+            "[ B+ -> J/psi(1S) K+ ]cc",
+        ]
 
         _Combine = CombineParticles(DecayDescriptors=_Decays)
 
