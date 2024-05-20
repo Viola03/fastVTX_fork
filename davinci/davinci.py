@@ -155,7 +155,7 @@ class Bu2LLKConf(LineBuilder):
         """
 
         # _Code = "(PT > %(DaughterPT)s *MeV)" % params
-        _Code = "(PT > 250 *MeV)"
+        _Code = "(PT==PT)"
         # _Code = (
         #     "(PT > %(KaonPT)s *MeV) & "
         #     "(M < %(DiHadronMass)s*MeV) & "
