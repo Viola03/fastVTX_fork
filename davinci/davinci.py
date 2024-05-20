@@ -110,19 +110,19 @@ class Bu2LLKConf(LineBuilder):
 
         # 1 : Make K, Ks, K*, K1, Phi and Lambdas
 
-        SelElectrons = self._filterDaughter(
+        SelElectrons = self._filterHadron(
             name="ElectronsFor" + self._name, sel=Electrons, params=config
         )
 
-        SelMuons = self._filterDaughter(
+        SelMuons = self._filterHadron(
             name="MuonsFor" + self._name, sel=Muons, params=config
         )
 
-        SelPions = self._filterDaughter(
+        SelPions = self._filterHadron(
             name="PionsFor" + self._name, sel=Pions, params=config
         )
 
-        SelKaons = self._filterDaughter(
+        SelKaons = self._filterHadron(
             name="KaonsFor" + self._name, sel=Kaons, params=config
         )
 
@@ -149,7 +149,7 @@ class Bu2LLKConf(LineBuilder):
         self.registerLine(self.B2eeXFromTracksLine)
 
     #####################################################
-    def _filterDaughter(self, name, sel, params):
+    def _filterHadron(self, name, sel, params):
         """
         Filter for all hadronic final states
         """
