@@ -102,13 +102,13 @@ class Bu2LLKConf(LineBuilder):
 
         # 1 : Make K, Ks, K*, K1, Phi and Lambdas
 
-        SelElectrons = self._filterDaughter(
-            name="ElectronsFor" + self._name, sel=Electrons, params=config
-        )
+        # SelElectrons = self._filterDaughter(
+        #     name="ElectronsFor" + self._name, sel=Electrons, params=config
+        # )
 
-        SelMuons = self._filterDaughter(
-            name="MuonsFor" + self._name, sel=Muons, params=config
-        )
+        # SelMuons = self._filterDaughter(
+        #     name="MuonsFor" + self._name, sel=Muons, params=config
+        # )
 
         SelPions = self._filterDaughter(
             name="PionsFor" + self._name, sel=Pions, params=config
@@ -121,8 +121,8 @@ class Bu2LLKConf(LineBuilder):
         SelB2eeXFromTracks = self._makeB2LLX(
             eeXLine_name + "2",
             daughters=[
-                SelElectrons,
-                SelMuons,
+                # SelElectrons,
+                # SelMuons,
                 SelPions,
                 SelKaons,
             ],
