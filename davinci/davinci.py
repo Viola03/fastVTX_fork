@@ -51,19 +51,6 @@ from StrippingConf.Configuration import StrippingConf, StrippingStream
 #     default_config as stripping_config,
 # )
 
-###############################################################################
-# (c) Copyright 2000-2019 CERN for the benefit of the LHCb Collaboration      #
-#                                                                             #
-# This software is distributed under the terms of the GNU General Public      #
-# Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".   #
-#                                                                             #
-# In applying this licence, CERN does not waive the privileges and immunities #
-# granted to it by virtue of its status as an Intergovernmental Organization  #
-# or submit itself to any jurisdiction.                                       #
-###############################################################################
-__author__ = "Patrick Koppenburg, Alex Shires, Thomas Blake, Luca Pescatore, Simone Bifani, Yasmine Amhis, Paula Alvarez Cartelle, Harry Cliff, Rafael Silva Coutinho, Guido Andreassi, Mick Mulder"
-__date__ = "16/06/2014"
-__version__ = "$Revision: 3 $"
 
 __all__ = ("Bu2LLKConf", "default_config")
 
@@ -181,22 +168,16 @@ class Bu2LLKConf(LineBuilder):
         #     "[ Lambda_b0 -> J/psi(1S) Lambda0 ]cc",
         #     "[ Lambda_b0 -> J/psi(1S) Lambda(1520)0 ]cc",
         # ]
-        # _Decays = [
-        #     "[ Beauty -> X+ X+ X- ]cc",
-        # ]
-        # _Decays = [
-        #     "[ B+ -> K+ K+ K- ]cc",
-        # ]
-        _Decays = []
 
-        particle_list = ["e", "mu", "K", "pi"]
-        for particle_i in particle_list:
-            for particle_j in particle_list:
-                for particle_k in particle_list:
-
-                    _Decays.append(
-                        "[ B+ -> %s+ %s+ %s- ]cc" % (particle_i, particle_j, particle_k)
-                    )
+        # _Decays = []
+        # particle_list = ["e", "mu", "K", "pi"]
+        # for particle_i in particle_list:
+        #     for particle_j in particle_list:
+        #         for particle_k in particle_list:
+        #             _Decays.append(
+        #                 "[ B+ -> %s+ %s+ %s- ]cc" % (particle_i, particle_j, particle_k)
+        #             )
+        _Decays = ["[ B+ -> K+ e+ e- ]cc"]
 
         _Combine = CombineParticles(DecayDescriptors=_Decays)
 
@@ -353,8 +334,8 @@ from GaudiConf import IOHelper
 
 IOHelper().inputFiles(
     [
-        # '/eos/home-m/marshall/DL-Advocate2/Kee.dst'
-        "/eos/home-m/marshall/DL-Advocate2/00140982_00000034_7.AllStreams.dst"
+        "/eos/home-m/marshall/DL-Advocate2/Kee.dst"
+        # "/eos/home-m/marshall/DL-Advocate2/00140982_00000034_7.AllStreams.dst"
     ],
     clear=True,
 )
