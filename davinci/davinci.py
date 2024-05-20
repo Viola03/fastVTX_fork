@@ -59,9 +59,9 @@ default_config = {
     "BUILDERTYPE": "Bu2LLKConf",
     "CONFIG": {
         "DaughterPT": 250.0,
-        "KaonPT": 250.0,
-        "DiHadronMass": 9999.0,
-        "KaonIPCHI2": 0.0,
+        # "KaonPT": 250.0,
+        # "DiHadronMass": 9999.0,
+        # "KaonIPCHI2": 0.0,
     },
     "WGs": ["RD"],
     "STREAMS": ["Leptonic"],
@@ -91,9 +91,9 @@ class Bu2LLKConf(LineBuilder):
     # now just define keys. Default values are fixed later
     __configuration_keys__ = (
         "DaughterPT",
-        "KaonPT",
-        "DiHadronMass",
-        "KaonIPCHI2",
+        # "KaonPT",
+        # "DiHadronMass",
+        # "KaonIPCHI2",
     )
 
     def __init__(self, name, config):
@@ -155,13 +155,14 @@ class Bu2LLKConf(LineBuilder):
         """
 
         # _Code = "(PT > %(DaughterPT)s *MeV)" % params
-        _Code = (
-            "(PT > %(KaonPT)s *MeV) & "
-            "(M < %(DiHadronMass)s*MeV) & "
-            "((ISBASIC & (MIPCHI2DV(PRIMARY) > %(KaonIPCHI2)s)) | "
-            "(NDAUGHTERS == NINTREE(ISBASIC & (MIPCHI2DV(PRIMARY) > %(KaonIPCHI2)s))))"
-            % params
-        )
+        _Code = "(PT > 250 *MeV)" % params
+        # _Code = (
+        #     "(PT > %(KaonPT)s *MeV) & "
+        #     "(M < %(DiHadronMass)s*MeV) & "
+        #     "((ISBASIC & (MIPCHI2DV(PRIMARY) > %(KaonIPCHI2)s)) | "
+        #     "(NDAUGHTERS == NINTREE(ISBASIC & (MIPCHI2DV(PRIMARY) > %(KaonIPCHI2)s))))"
+        #     % params
+        # )
 
         _Filter = FilterDesktop(Code=_Code)
 
