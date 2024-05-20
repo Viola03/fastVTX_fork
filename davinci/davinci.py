@@ -59,6 +59,7 @@ default_config = {
     "BUILDERTYPE": "Bu2LLKConf",
     "CONFIG": {
         "DaughterPT": 250.0,
+        "DiLeptonPT": 250.0,
         # "KaonPT": 250.0,
         # "DiHadronMass": 9999.0,
         # "KaonIPCHI2": 0.0,
@@ -91,6 +92,7 @@ class Bu2LLKConf(LineBuilder):
     # now just define keys. Default values are fixed later
     __configuration_keys__ = (
         "DaughterPT",
+        "DiLeptonPT",
         # "KaonPT",
         # "DiHadronMass",
         # "KaonIPCHI2",
@@ -126,8 +128,17 @@ class Bu2LLKConf(LineBuilder):
             name="KaonsFor" + self._name, sel=Kaons, params=config
         )
 
+        from StandardParticles import StdDiElectronFromTracks as DiElectronsFromTracks
+
+        SelDiElectronFromTracks = self._filterDiLepton(
+            "SelDiElectronFromTracksFor" + self._name,
+            dilepton=DiElectronsFromTracks,
+            params=config,
+        )
+
         SelB2eeXFromTracks = self._makeB2LLX(
             eeXLine_name + "2",
+            dilepton=SelDiElectronFromTracks,
             daughters=[
                 SelElectrons,
                 SelMuons,
@@ -148,6 +159,17 @@ class Bu2LLKConf(LineBuilder):
 
         self.registerLine(self.B2eeXFromTracksLine)
 
+    def _filterDiLepton(self, name, dilepton, params):
+        """
+        Handy interface for dilepton filter
+        """
+
+        _Code = "(PT > %(DiLeptonPT)s *MeV) & "
+
+        _Filter = FilterDesktop(Code=_Code)
+
+        return Selection(name, Algorithm=_Filter, RequiredSelections=[dilepton])
+
     #####################################################
     def _filterHadron(self, name, sel, params):
         """
@@ -161,7 +183,7 @@ class Bu2LLKConf(LineBuilder):
         return Selection(name, Algorithm=_Filter, RequiredSelections=[sel])
 
     #####################################################
-    def _makeB2LLX(self, name, daughters, params):
+    def _makeB2LLX(self, name, dilepton, daughters, params):
         """
         CombineParticles / Selection for the B
         """
@@ -192,7 +214,9 @@ class Bu2LLKConf(LineBuilder):
 
         _Merge = MergedSelection("Merge" + name, RequiredSelections=daughters)
 
-        return Selection(name, Algorithm=_Combine, RequiredSelections=[_Merge])
+        return Selection(
+            name, Algorithm=_Combine, RequiredSelections=[dilepton, _Merge]
+        )
 
 
 #####################################################
