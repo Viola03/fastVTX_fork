@@ -205,38 +205,38 @@ stripping_config = default_config
 
 mod_stripping_config = stripping_config["CONFIG"]
 
-# remaining cuts
-mod_stripping_config["LeptonPT"] = 250.0
-mod_stripping_config["KaonPT"] = 250.0
+# # remaining cuts
+# mod_stripping_config["LeptonPT"] = 250.0
+# mod_stripping_config["KaonPT"] = 250.0
 
-# removed cuts
-mod_stripping_config["BFlightCHI2"] = 0.0
-mod_stripping_config["BDIRA"] = 0.0
-mod_stripping_config["BIPCHI2"] = 9999.0
-mod_stripping_config["BVertexCHI2"] = 9999.0
-mod_stripping_config["DiLeptonPT"] = 0.0
-mod_stripping_config["DiLeptonFDCHI2"] = 0.0
-mod_stripping_config["DiLeptonIPCHI2"] = 0.0
-# (VFASPF(VCHI2/VDOF) < 9)
-mod_stripping_config["LeptonIPCHI2"] = 0.0
-mod_stripping_config["TauPT"] = 0.0
-mod_stripping_config["TauVCHI2DOF"] = 9999.0
-mod_stripping_config["KaonIPCHI2"] = 0.0
-mod_stripping_config["KstarPVertexCHI2"] = 9999.0
-mod_stripping_config["KstarPMassWindow"] = 9999.0
-mod_stripping_config["KstarPADOCACHI2"] = 9999.0
-mod_stripping_config["DiHadronMass"] = 9999.0
-mod_stripping_config["UpperMass"] = 9999.0
-mod_stripping_config["BMassWindow"] = 9999.0
-mod_stripping_config["BMassWindowTau"] = 9999.0
-mod_stripping_config["PIDe"] = -9999.0
-mod_stripping_config["Trk_Chi2"] = 9999.0
-mod_stripping_config["Trk_GhostProb"] = 9999.0
-mod_stripping_config["K1_MassWindow_Lo"] = 0.0
-mod_stripping_config["K1_MassWindow_Hi"] = 9999.0
-mod_stripping_config["K1_VtxChi2"] = 9999.0
-mod_stripping_config["K1_SumPTHad"] = 0.0
-mod_stripping_config["K1_SumIPChi2Had"] = 0.0
+# # removed cuts
+# mod_stripping_config["BFlightCHI2"] = 0.0
+# mod_stripping_config["BDIRA"] = 0.0
+# mod_stripping_config["BIPCHI2"] = 9999.0
+# mod_stripping_config["BVertexCHI2"] = 9999.0
+# mod_stripping_config["DiLeptonPT"] = 0.0
+# mod_stripping_config["DiLeptonFDCHI2"] = 0.0
+# mod_stripping_config["DiLeptonIPCHI2"] = 0.0
+# # (VFASPF(VCHI2/VDOF) < 9)
+# mod_stripping_config["LeptonIPCHI2"] = 0.0
+# mod_stripping_config["TauPT"] = 0.0
+# mod_stripping_config["TauVCHI2DOF"] = 9999.0
+# mod_stripping_config["KaonIPCHI2"] = 0.0
+# mod_stripping_config["KstarPVertexCHI2"] = 9999.0
+# mod_stripping_config["KstarPMassWindow"] = 9999.0
+# mod_stripping_config["KstarPADOCACHI2"] = 9999.0
+# mod_stripping_config["DiHadronMass"] = 9999.0
+# mod_stripping_config["UpperMass"] = 9999.0
+# mod_stripping_config["BMassWindow"] = 9999.0
+# mod_stripping_config["BMassWindowTau"] = 9999.0
+# mod_stripping_config["PIDe"] = -9999.0
+# mod_stripping_config["Trk_Chi2"] = 9999.0
+# mod_stripping_config["Trk_GhostProb"] = 9999.0
+# mod_stripping_config["K1_MassWindow_Lo"] = 0.0
+# mod_stripping_config["K1_MassWindow_Hi"] = 9999.0
+# mod_stripping_config["K1_VtxChi2"] = 9999.0
+# mod_stripping_config["K1_SumPTHad"] = 0.0
+# mod_stripping_config["K1_SumIPChi2Had"] = 0.0
 
 builder_name = "Bu2LLK"
 
