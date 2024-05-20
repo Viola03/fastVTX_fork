@@ -147,6 +147,7 @@ class Bu2LLKConf(LineBuilder):
         """
 
         _Code = "(PT > %(DaughterPT)s *MeV)" % params
+
         _Filter = FilterDesktop(Code=_Code)
 
         return Selection(name, Algorithm=_Filter, RequiredSelections=[sel])
