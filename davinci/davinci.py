@@ -139,7 +139,7 @@ class Bu2LLKConf(LineBuilder):
 
         self.B2eeXFromTracksLine = StrippingLine(
             eeXLine_name + "Line2",
-            prescale=1.0,
+            prescale=1,
             postscale=1,
             selection=SelB2eeXFromTracks,
             RequiredRawEvents=[],
@@ -154,15 +154,7 @@ class Bu2LLKConf(LineBuilder):
         Filter for all hadronic final states
         """
 
-        # _Code = "(PT > %(DaughterPT)s *MeV)" % params
-        _Code = "(PT==PT)"
-        # _Code = (
-        #     "(PT > %(KaonPT)s *MeV) & "
-        #     "(M < %(DiHadronMass)s*MeV) & "
-        #     "((ISBASIC & (MIPCHI2DV(PRIMARY) > %(KaonIPCHI2)s)) | "
-        #     "(NDAUGHTERS == NINTREE(ISBASIC & (MIPCHI2DV(PRIMARY) > %(KaonIPCHI2)s))))"
-        #     % params
-        # )
+        _Code = "(PT > %(DaughterPT)s *MeV)" % params
 
         _Filter = FilterDesktop(Code=_Code)
 
