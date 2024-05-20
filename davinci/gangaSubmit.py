@@ -45,8 +45,8 @@ for job_name, path_dict in job_setting.items():
     myApp.options = ["./three_body.py"]
 
     # bck = Dirac()
-    bck = Local()
-    # bck = Interactive()
+    # bck = Local()
+    bck = Interactive()
 
     splitter = SplitByFiles()
     splitter.ignoremissing = True

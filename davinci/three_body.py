@@ -51,6 +51,14 @@ config_electron = {
     "stripping_line": "Bu2LLK_eeLine2",
     # 'stripping_line': 'MiniBias',
     "decayname": "B2Kee",
+    # "decay": "[B+ -> ^(J/psi(1S)->^e+ ^e-) ^K+]CC",
+    # "branches": {
+    #     "B_plus": "[ B+ -> (J/psi(1S)->e+ e-)  K+]CC",
+    #     "K_Kst": "[ B+ -> (J/psi(1S)->e+ e-) ^K+]CC",
+    #     "e_minus": "[(B+ -> (J/psi(1S)->e+ ^e-) K+), (B- -> (J/psi(1S)->^e- e+) K-)]",
+    #     "e_plus": "[(B+ -> (J/psi(1S)->^e+ e-) K+), (B- -> (J/psi(1S)->e- ^e+) K-)]",
+    #     "J_psi_1S": "[ B+ -> ^(J/psi(1S)->e+ e-) K+]CC",
+    # },
     "decay": "[B+ -> ^(J/psi(1S)->^e+ ^e-) ^K+]CC",
     "branches": {
         "B_plus": "[ B+ -> (J/psi(1S)->e+ e-)  K+]CC",
@@ -59,6 +67,13 @@ config_electron = {
         "e_plus": "[(B+ -> (J/psi(1S)->^e+ e-) K+), (B- -> (J/psi(1S)->e- ^e+) K-)]",
         "J_psi_1S": "[ B+ -> ^(J/psi(1S)->e+ e-) K+]CC",
     },
+    # "decay": "[B+ -> ^e+ ^e- ^K+]CC",
+    # "branches": {
+    #     "M": "[ B+ -> e+ e- K+]CC",
+    #     "A": "[ B+ -> e+ e- ^K+]CC",
+    #     "B": "[(B+ -> e+ ^e- K+), (B- -> ^e- e+ K-)]",
+    #     "C": "[(B+ -> ^e+ e- K+), (B- -> e- ^e+ K-)]",
+    # },
     "lepton_to_pion_subst": "e+ => pi+",
     "ISO": "VertexIsoBDTInfo",
 }
@@ -264,6 +279,7 @@ DaVinci()
 # DaVinci().EvtMax = -1
 # DaVinci().PrintFreq = 1000
 DaVinci().EvtMax = 45
+# DaVinci().EvtMax = 5
 DaVinci().PrintFreq = 1
 DaVinci().Simulation = IS_MC
 DaVinci().Lumi = not IS_MC
