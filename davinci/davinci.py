@@ -181,8 +181,11 @@ class Bu2LLKConf(LineBuilder):
         #     "[ Lambda_b0 -> J/psi(1S) Lambda0 ]cc",
         #     "[ Lambda_b0 -> J/psi(1S) Lambda(1520)0 ]cc",
         # ]
+        # _Decays = [
+        #     "[ Beauty -> X+ X+ X- ]cc",
+        # ]
         _Decays = [
-            "[ Beauty -> X+ X+ X- ]cc",
+            "[ B+ -> X+ X+ X- ]cc",
         ]
 
         _Combine = CombineParticles(DecayDescriptors=_Decays)
