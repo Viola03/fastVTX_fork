@@ -155,7 +155,7 @@ class Bu2LLKConf(LineBuilder):
         """
 
         # _Code = "(PT > %(DaughterPT)s *MeV)" % params
-        _Code = "(PT > 250 *MeV)" % params
+        _Code = "(PT > 250 *MeV)"
         # _Code = (
         #     "(PT > %(KaonPT)s *MeV) & "
         #     "(M < %(DiHadronMass)s*MeV) & "
@@ -164,8 +164,7 @@ class Bu2LLKConf(LineBuilder):
         #     % params
         # )
 
-        # _Filter = FilterDesktop(Code=_Code)
-        _Filter = FilterDesktop()
+        _Filter = FilterDesktop(Code=_Code)
 
         return Selection(name, Algorithm=_Filter, RequiredSelections=[sel])
 
