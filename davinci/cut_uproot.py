@@ -1,3 +1,5 @@
+#source /cvmfs/sft.cern.ch/lcg/views/LCG_105/x86_64-el9-gcc12-opt/setup.sh
+
 import uproot
 import awkward as ak
 import numpy as np
@@ -64,14 +66,22 @@ with uproot.open(original_file_path) as file:
             pbar.update(1)
             break
 
+# import glob
+# temp_files = glob.glob('/eos/lhcb/user/m/marshall/gangaDownload/716/*root_*')
+
 entries = 0
 for idx, file in enumerate(temp_files):
     uproot_file = uproot.open(file)['DecayTree']
     entries += uproot_file.num_entries
 
-os.system(f'hadd -fk {mode}_cut.root {" ".join(str(x) for x in temp_files)}')
+os.system(f'hadd -fk {new_file_path} {" ".join(str(x) for x in temp_files)}')
 
 print(entries)
+
+print("Removing temp files...")
+for file in temp_files:
+    os.remove(file)
+
 
 print("Process completed successfully")
 
