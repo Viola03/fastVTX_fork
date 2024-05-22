@@ -128,9 +128,7 @@ extras_truth = [
 # events = events.query("B_plus_M>5600")
 # events.to_csv("B2Kee_2018_CommonPresel.csv")
 
-
 print("D")
-
 
 branches = [
     "B_plus_TRUEP_X",
