@@ -10,7 +10,9 @@ streams = ["ALLSTREAMS.DST"]
 job_setting = {}
 List_Of_Paths = []
 i = 0
-PATH_name = "/MC/2018/Beam6500GeV-2018-MagDown-Nu1.6-25ns-Pythia8/Sim09k/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/10000023/ALLSTREAMS.DST"
+# PATH_name = "/MC/2018/Beam6500GeV-2018-MagDown-Nu1.6-25ns-Pythia8/Sim09k/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/10000023/ALLSTREAMS.DST"
+PATH_name = "/MC/2018/Beam6500GeV-2018-MagDown-Nu1.6-25ns-Pythia8/Sim09i/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/12123003/ALLSTREAMS.DST"
+# PATH_name = "/MC/2018/Beam6500GeV-2018-MagDown-Nu1.6-25ns-Pythia8/Sim09g/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/12123003/ALLSTREAMS.DST"
 print(PATH_name)
 job_name = (
     "20"
@@ -42,11 +44,12 @@ for job_name, path_dict in job_setting.items():
         myApp.directory = "./DaVinciDev_v44r3"
 
     myApp.platform = "x86_64-slc6-gcc62-opt"
-    myApp.options = ["./three_body.py"]
+    myApp.options = ["./davinci.py"]
 
-    # bck = Dirac()
+    bck = Dirac()
+    # bck = Condor()
     # bck = Local()
-    bck = Interactive()
+    # bck = Interactive()
 
     splitter = SplitByFiles()
     splitter.ignoremissing = True
@@ -71,6 +74,7 @@ for job_name, path_dict in job_setting.items():
         + job_name
         + '.root"  ; '
         + "DaVinci().EvtMax        =              -1             ; "
+        # + "DaVinci().EvtMax        =              25             ; "
         + "from Configurables import CondDB                      ; "
         + "CondDB( LatestGlobalTagByDataType = "
         + Year
@@ -81,9 +85,9 @@ for job_name, path_dict in job_setting.items():
     )
 
     print("Create job for thee jobs: ", job.name)
-    # job.inputdata  = dataset
-    job.inputdata = [dataset[0]]
-    # job.inputdata = dataset[:50]
+    job.inputdata  = dataset
+    # job.inputdata = [dataset[0]]
+    # job.inputdata = dataset[:5]
 
     # This throws the files on the grid personall space
     job.outputfiles = [
