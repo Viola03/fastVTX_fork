@@ -14,6 +14,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
+rd.daughter_particles = ["K_Kst", "e_plus", "e_minus"] # K e e
+rd.mother_particle = 'B_plus'
+
 if rd.optimise:
 
     # rd.beta = np.linspace(rd.min_value, rd.max_value, rd.steps)[int(rd.jobID)]

@@ -16,7 +16,6 @@ masses[13] = 105.66
 masses[11] = 0.51099895000 * 1e-3
 
 
-
 print("Opening file...")
 
 file = uproot.open("/users/am13743/fast_vertexing_variables/datasets/B2KEE_three_body_cut.root:DecayTree")
@@ -70,6 +69,7 @@ events[f"M_M_Kee"] = vt.compute_mass_3(events,
             masses[11],)
 
 events[f"M_P"], events[f"M_PT"] = vt.compute_reconstructed_mother_momenta(events, 'M')
+events[f"B_P"], events[f"B_PT"] = vt.compute_reconstructed_mother_momenta(events, 'M')
 events[f"missing_M_P"], events[f"missing_M_PT"] = vt.compute_missing_momentum(
     events, 'M',particles
 )
@@ -86,11 +86,11 @@ for m in ["m_01", "m_02", "m_12"]:
 ################################################################################
 
 for particle in particles:
-    events[f"angle_{particle}"] = vt.compute_angle(events, 'M', f"{particle}")
+    events[f"angle_DAUGHTER{particle}"] = vt.compute_angle(events, 'M', f"{particle}")
 
 events["IP_B"] = vt.compute_impactParameter(events,'M',particles)
 for particle in particles:
-    events[f"IP_{particle}"] = vt.compute_impactParameter_i(events,'M', f"{particle}")
+    events[f"IP_DAUGHTER{particle}"] = vt.compute_impactParameter_i(events,'M', f"{particle}")
 events["FD_B"] = vt.compute_flightDistance(events,'M',particles)
 events["DIRA_B"] = vt.compute_DIRA(events,'M',particles)
 

@@ -4,13 +4,13 @@ from sklearn.preprocessing import PowerTransformer, QuantileTransformer
 
 from fast_vertex_quality.tools.config import rd, read_definition
 import tensorflow as tf
-
+import uproot
 
 def produce_physics_variables(data):
 
     physics_variables = {}
 
-    for particle_i in ["K_Kst", "e_plus", "e_minus"]:
+    for particle_i in rd.daughter_particles:
 
         physics_variables[f"{particle_i}_P"] = np.sqrt(
             data[f"{particle_i}_PX"] ** 2
@@ -35,25 +35,25 @@ def produce_physics_variables(data):
     physics_variables["kFold"] = np.random.randint(
         low=0,
         high=9,
-        size=np.shape(data["K_Kst_PX"])[0],
+        size=np.shape(data[f"{rd.daughter_particles[0]}_PX"])[0],
     )
 
     electron_mass = 0.51099895000 * 1e-3
 
     PE = np.sqrt(
         electron_mass**2
-        + data["e_plus_PX"] ** 2
-        + data["e_plus_PY"] ** 2
-        + data["e_plus_PZ"] ** 2
+        + data[f"{rd.daughter_particles[1]}_PX"] ** 2
+        + data[f"{rd.daughter_particles[1]}_PY"] ** 2
+        + data[f"{rd.daughter_particles[1]}_PZ"] ** 2
     ) + np.sqrt(
         electron_mass**2
-        + data["e_minus_PX"] ** 2
-        + data["e_minus_PY"] ** 2
-        + data["e_minus_PZ"] ** 2
+        + data[f"{rd.daughter_particles[2]}_PX"] ** 2
+        + data[f"{rd.daughter_particles[2]}_PY"] ** 2
+        + data[f"{rd.daughter_particles[2]}_PZ"] ** 2
     )
-    PX = data["e_plus_PX"] + data["e_minus_PX"]
-    PY = data["e_plus_PY"] + data["e_minus_PY"]
-    PZ = data["e_plus_PZ"] + data["e_minus_PZ"]
+    PX = data[f"{rd.daughter_particles[1]}_PX"] + data[f"{rd.daughter_particles[2]}_PX"]
+    PY = data[f"{rd.daughter_particles[1]}_PY"] + data[f"{rd.daughter_particles[2]}_PY"]
+    PZ = data[f"{rd.daughter_particles[1]}_PZ"] + data[f"{rd.daughter_particles[2]}_PZ"]
 
     physics_variables["q2"] = (PE**2 - PX**2 - PY**2 - PZ**2) * 1e-6
 
@@ -74,19 +74,19 @@ class Transformer:
         self.one_minus_log_columns = []
 
         self.log_columns = [
-            "B_plus_FDCHI2_OWNPV",
-            "K_Kst_IPCHI2_OWNPV",
-            "e_minus_IPCHI2_OWNPV",
-            "e_plus_IPCHI2_OWNPV",
-            "K_Kst_PZ",
-            "e_minus_PZ",
-            "e_plus_PZ",
-            "B_plus_ENDVERTEX_CHI2",
-            "B_plus_IPCHI2_OWNPV",
+            f"{rd.mother_particle}_FDCHI2_OWNPV",
+            f"{rd.daughter_particles[0]}_IPCHI2_OWNPV",
+            f"{rd.daughter_particles[1]}_IPCHI2_OWNPV",
+            f"{rd.daughter_particles[2]}_IPCHI2_OWNPV",
+            f"{rd.daughter_particles[0]}_PZ",
+            f"{rd.daughter_particles[1]}_PZ",
+            f"{rd.daughter_particles[2]}_PZ",
+            f"{rd.mother_particle}_ENDVERTEX_CHI2",
+            f"{rd.mother_particle}_IPCHI2_OWNPV",
             "IP_B",
         ]
 
-        self.one_minus_log_columns = ["B_plus_DIRA_OWNPV", "DIRA_B"]
+        self.one_minus_log_columns = [f"{rd.mother_particle}_DIRA_OWNPV", "DIRA_B"]
 
     def fit(self, data_raw, column):
 
@@ -143,6 +143,10 @@ class dataset:
         self.Transformers = transformers
         self.all_data = {"processed": None, "physical": None}
 
+    def print_branches(self):
+        for key in list(self.all_data["physical"].keys()):
+            print(key)
+
     def fill(self, data):
 
         if not isinstance(data, pd.DataFrame):
@@ -177,7 +181,7 @@ class dataset:
 
     def fill_chi2_gen(self, trackchi2_trainer_obj):
 
-        for particle_i in ["K_Kst", "e_minus", "e_plus"]:
+        for particle_i in rd.daughter_particles:
 
             # decoder_chi2 = tf.keras.models.load_model(
             #     f"save_state/track_chi2_decoder_{particle_i}.h5"
@@ -346,26 +350,71 @@ class dataset:
     def get_transformers(self):
         return self.Transformers
 
+def convert_branches_to_RK_branch_names(columns, conversions):
+    new_columns = []
+    for column in columns:
+        converted = False
+        if column not in ["B_P", "B_PT"]:
+            for conversion in conversions.keys():
+                if column[:len(conversion)] == conversion:
+                    new_column = column.replace(conversion, conversions[conversion])
+                    new_columns.append(new_column)
+                    converted = True
+                    break
+                if f'_DAUGHTER{conversion[:-1]}' in column:
+                    new_column = column.replace(f'_DAUGHTER{conversion[:-1]}', f'_{conversions[conversion][:-1]}')
+                    new_columns.append(new_column)
+                    converted = True
+                    break
 
-def load_data(path, equal_sizes=True, N=-1, transformers=None):
+        if not converted:
+            new_columns.append(column)
+        
+    return new_columns
+
+def load_data(path, equal_sizes=True, N=-1, transformers=None, convert_to_RK_branch_names=False, conversions=None):
 
     if isinstance(path, list):
         for i in range(0, len(path)):
             if i == 0:
-                events = pd.read_csv(path[i])
-                events["file"] = np.asarray(np.ones(events.shape[0]) * i).astype("int")
-                if equal_sizes and N == -1:
-                    N = events.shape[0]
-                elif equal_sizes:
-                    events = events.head(N)
+                if path[i][-5:] == '.root':
+                    file = uproot.open(path[i])['DecayTree']
+                    if N != -1:
+                        events = file.arrays(library='pd', entry_stop=N)
+                    else:
+                        events = file.arrays(library='pd')
+                    if convert_to_RK_branch_names:
+                        if conversions == None:
+                            print("must declare conversions, quitting...")
+                            quit()
+                        new_columns = convert_branches_to_RK_branch_names(events.columns, conversions)
+                        events.columns = new_columns
+  
+                else:
+                    events = pd.read_csv(path[i])
+                    if equal_sizes and N == -1:
+                        N = events.shape[0]
+                    elif equal_sizes:
+                        events = events.head(N)
             else:
-                events_i = pd.read_csv(path[i])
-                events_i["file"] = np.asarray(np.ones(events_i.shape[0]) * i).astype(
-                    "int"
-                )
-                if equal_sizes:
-                    events_i = events_i.head(N)
+                if path[i][-5:] == '.root':
+                    file = uproot.open(path[i])['DecayTree']
+                    if N != -1:
+                        events_i = file.arrays(library='pd', entry_stop=N)
+                    else:
+                        events_i = file.arrays(library='pd')
+                    if convert_to_RK_branch_names:
+                        if conversions == None:
+                            print("must declare conversions, quitting...")
+                            quit()
+                        new_columns = convert_branches_to_RK_branch_names(events_i.columns, conversions)
+                        events_i.columns = new_columns
+                else:
+                    events_i = pd.read_csv(path[i])
+                    if equal_sizes:
+                        events_i = events_i.head(N)
                 events = pd.concat([events, events_i], axis=0)
+            events["file"] = np.asarray(np.ones(events.shape[0]) * i).astype("int")
     else:
         events = pd.read_csv(path)
 
