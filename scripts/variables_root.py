@@ -19,14 +19,27 @@ masses[11] = 0.51099895000 * 1e-3
 print("Opening file...")
 
 file = uproot.open("/users/am13743/fast_vertexing_variables/datasets/B2KEE_three_body_cut.root:DecayTree")
+branches = file.keys()
+# events = file.arrays(library='pd')
+print(branches)
 # events = file.arrays(library='pd', entry_stop=10000)
-events = file.arrays(library='pd')
+branches = ['MOTHER_DIRA_OWNPV', 'MOTHER_ENDVERTEX_CHI2', 'MOTHER_ENDVERTEX_X', 'MOTHER_ENDVERTEX_Y', 'MOTHER_ENDVERTEX_Z', 'MOTHER_FDCHI2_OWNPV', 'MOTHER_IPCHI2_OWNPV', 'MOTHER_OWNPV_X', 'MOTHER_OWNPV_Y', 'MOTHER_OWNPV_Z', 'MOTHER_PX', 'MOTHER_PY', 'MOTHER_PZ', 'MOTHER_TRUEP_X', 'MOTHER_TRUEP_Y', 'MOTHER_TRUEP_Z', 'MOTHER_TRUEID', 'MOTHER_BKGCAT', 'DAUGHTER1_ID', 'DAUGHTER1_IPCHI2_OWNPV', 'DAUGHTER1_PX', 'DAUGHTER1_PY', 'DAUGHTER1_PZ', 'DAUGHTER1_TRACK_CHI2NDOF', 'DAUGHTER1_TRUEID', 'DAUGHTER1_TRUEP_X', 'DAUGHTER1_TRUEP_Y', 'DAUGHTER1_TRUEP_Z', 'DAUGHTER2_ID', 'DAUGHTER2_IPCHI2_OWNPV', 'DAUGHTER2_PX', 'DAUGHTER2_PY', 'DAUGHTER2_PZ', 'DAUGHTER2_TRACK_CHI2NDOF', 'DAUGHTER2_TRUEID', 'DAUGHTER2_TRUEP_X', 'DAUGHTER2_TRUEP_Y', 'DAUGHTER2_TRUEP_Z', 'DAUGHTER3_ID', 'DAUGHTER3_IPCHI2_OWNPV', 'DAUGHTER3_PX', 'DAUGHTER3_PY', 'DAUGHTER3_PZ', 'DAUGHTER3_TRACK_CHI2NDOF', 'DAUGHTER3_TRUEID', 'DAUGHTER3_TRUEP_X', 'DAUGHTER3_TRUEP_Y', 'DAUGHTER3_TRUEP_Z', 'nSPDHits', 'nTracks']
+
+for branch in branches:
+    print('\n',branch)
+    try:
+        events = file.arrays([branch],library='pd')
+        print(events.shape)
+    except:
+         print("FAILED")
+quit()
 print("Opened file as pd array")
 print(events.shape)
 
 pid_list = [11,13,211,321]
 
-particles = ["A", "B", "C"]
+particles = ["DAUGHTER1", "DAUGHTER2", "DAUGHTER3"]
+mother = 'MOTHER'
 
 for particle in particles:
     events = events[np.abs(events[f'{particle}_TRUEID']).isin(pid_list)]
@@ -52,7 +65,7 @@ for particle_i in range(0, len(particles)):
             events[f'{particles[particle_j]}_mass'],
         )
 
-events[f"M_M"] = vt.compute_mass_3(events,
+events[f"{mother}_M"] = vt.compute_mass_3(events,
             particles[0],
             particles[1],
             particles[2],
@@ -60,7 +73,7 @@ events[f"M_M"] = vt.compute_mass_3(events,
             events[f'{particles[1]}_mass'],
             events[f'{particles[2]}_mass'],)
 
-events[f"M_M_Kee"] = vt.compute_mass_3(events,
+events[f"{mother}_M_Kee"] = vt.compute_mass_3(events,
             particles[0],
             particles[1],
             particles[2],
@@ -68,10 +81,10 @@ events[f"M_M_Kee"] = vt.compute_mass_3(events,
             masses[11],
             masses[11],)
 
-events[f"M_P"], events[f"M_PT"] = vt.compute_reconstructed_mother_momenta(events, 'M')
-events[f"B_P"], events[f"B_PT"] = vt.compute_reconstructed_mother_momenta(events, 'M')
-events[f"missing_M_P"], events[f"missing_M_PT"] = vt.compute_missing_momentum(
-    events, 'M',particles
+events[f"{mother}_P"], events[f"{mother}_PT"] = vt.compute_reconstructed_mother_momenta(events, mother)
+# events[f"B_P"], events[f"B_PT"] = vt.compute_reconstructed_mother_momenta(events, 'M')
+events[f"missing_{mother}_P"], events[f"missing_{mother}_PT"] = vt.compute_missing_momentum(
+    events, mother,particles
 )
 
 for particle_i in range(0, len(particles)):
@@ -86,13 +99,13 @@ for m in ["m_01", "m_02", "m_12"]:
 ################################################################################
 
 for particle in particles:
-    events[f"angle_DAUGHTER{particle}"] = vt.compute_angle(events, 'M', f"{particle}")
+    events[f"angle_DAUGHTER{particle}"] = vt.compute_angle(events, mother, f"{particle}")
 
-events["IP_B"] = vt.compute_impactParameter(events,'M',particles)
+events[f"IP_{mother}"] = vt.compute_impactParameter(events,mother,particles)
 for particle in particles:
-    events[f"IP_DAUGHTER{particle}"] = vt.compute_impactParameter_i(events,'M', f"{particle}")
-events["FD_B"] = vt.compute_flightDistance(events,'M',particles)
-events["DIRA_B"] = vt.compute_DIRA(events,'M',particles)
+    events[f"IP_{particle}"] = vt.compute_impactParameter_i(events,mother, f"{particle}")
+events[f"FD_{mother}"] = vt.compute_flightDistance(events,mother,particles)
+events[f"DIRA_{mother}"] = vt.compute_DIRA(events,mother,particles)
 
 print(events)
 
