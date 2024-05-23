@@ -66,33 +66,38 @@ branches_to_keep = [
 
 
 #####
-files = glob.glob(f'{localDir}/DTT_2018_Reco18Strip34_Down_ALLSTREAMS.DST_*.root')
+# files = glob.glob(f'{localDir}/DTT_2018_Reco18Strip34_Down_ALLSTREAMS.DST_*.root')
 
-# for file_idx, file in enumerate(files):
-for file_idx, file in tqdm(enumerate(files), total=len(files), desc="Processing files"):
-    # print(f'{file_idx}/{len(files)}')
-    if '_cut' in file:
-        continue
-    try:
-        with uproot.open(file) as ur_file:
-            tree = ur_file["B2Kee_Tuple/DecayTree"]
-            
-            data = tree.arrays(branches_to_keep, library="pd")
-            data = data.query(cut_condition)
+# # for file_idx, file in enumerate(files):
+# for file_idx, file in tqdm(enumerate(files), total=len(files), desc="Processing files"):
+#     # print(f'{file_idx}/{len(files)}')
+#     if '_cut' in file:
+#         continue
+#     # try:
+#     with uproot.open(file) as ur_file:
+#         tree = ur_file["B2Kee_Tuple/DecayTree"]
+        
+#         data = tree.arrays(branches_to_keep, library="pd")
+#         filtered_data = data.query(cut_condition)
 
-            write_df_to_root(data, f'{file[:-5]}_cutt.root')
-    except:
-         pass
-    # if file_idx > 50:
-    #       break
+#         with uproot.recreate(f'{file[:-5]}_cuttt.root') as temp_file:
+#             temp_file["DecayTree"] = {branch: filtered_data[branch] for branch in branches_to_keep if branch in filtered_data.columns}
+
+#         # write_df_to_root(data, f'{file[:-5]}_cutt.root')
+#     # except:
+#     #      pass
+#     if file_idx > 100:
+#           break
        
 import glob
-temp_files = glob.glob('/eos/lhcb/user/m/marshall/gangaDownload/719/*_cutt.root')
+temp_files = glob.glob('/eos/lhcb/user/m/marshall/gangaDownload/719/*_cuttt.root')
 
 entries = 0
 for idx, file in enumerate(temp_files):
     uproot_file = uproot.open(file)['DecayTree']
     entries += uproot_file.num_entries
+
+print(entries)
 
 os.system(f'hadd -fk {new_file_path} {" ".join(str(x) for x in temp_files)}')
 
