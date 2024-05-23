@@ -44,7 +44,7 @@ for job_name, path_dict in job_setting.items():
         myApp.directory = "./DaVinciDev_v44r3"
 
     myApp.platform = "x86_64-slc6-gcc62-opt"
-    myApp.options = ["./davinci.py"]
+    myApp.options = ["./davinci_intermediates.py"]
 
     bck = Dirac()
     # bck = Condor()

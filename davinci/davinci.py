@@ -23,18 +23,6 @@ from Configurables import DaVinci
 config_electron = {
     "stripping_line": "Bu2LLK_eeLine2",
     "decayname": "B2Kee",
-    # "decay": "[B+ -> ^(J/psi(1S)->^e+ ^e-) ^K+]CC",
-    # "branches": {
-    #     "B_plus": "[ B+ -> (J/psi(1S)->e+ e-)  K+]CC",
-    #     "K_Kst": "[ B+ -> (J/psi(1S)->e+ e-) ^K+]CC",
-    #     "e_minus": "[(B+ -> (J/psi(1S)->e+ ^e-) K+), (B- -> (J/psi(1S)->^e- e+) K-)]",
-    #     "e_plus": "[(B+ -> (J/psi(1S)->^e+ e-) K+), (B- -> (J/psi(1S)->e- ^e+) K-)]",
-    #     "J_psi_1S": "[ B+ -> ^(J/psi(1S)->e+ e-) K+]CC",
-    # },
-    # "decay": "[Beauty -> X+ X+ X-]CC",
-    # "branches": {
-    #     "B_plus": "[Beauty -> X+ X+ X-]CC",
-    # },
     "decay": "[B+ -> ^K+ ^e+ ^e-]CC",
     "branches": {
         "M": "[B+ -> K+ e+ e-]CC",
@@ -320,7 +308,8 @@ IOHelper().inputFiles(
     [
         # "/eos/home-m/marshall/DL-Advocate2/Kee.dst"
         # "/eos/home-m/marshall/DL-Advocate2/00140982_00000034_7.AllStreams.dst"
-        "/afs/cern.ch/work/m/marshall/fast_vertexing_variables/davinci/00113947_00000003_7.AllStreams.dst"
+        "/afs/cern.ch/work/m/marshall/fast_vertexing_variables/davinci/00140982_00000034_7.AllStreams.dst"
+        # "/afs/cern.ch/work/m/marshall/fast_vertexing_variables/davinci/00113947_00000003_7.AllStreams.dst"
     ],
     clear=True,
 )
