@@ -5,14 +5,15 @@ import numpy as np
 gangadir = '/afs/cern.ch/work/m/marshall/gangadir/'
 
 mode = 'B2KEE_three_body'
-sub_jobs = 1367 # number of subjobs
-# sub_jobs = 500 # number of subjobs
+# sub_jobs = 1367 # number of subjobs
+sub_jobs = 100 # number of subjobs
 job_ID = 719
 
-localDir = '/eos/lhcb/user/m/marshall/gangaDownload/%d/'%job_ID
+# localDir = '/eos/lhcb/user/m/marshall/gangaDownload/%d/'%job_ID
+localDir = '/eos/lhcb/user/m/marshall/gangaDownload/temp/'
 
 try:
-	os.mkdir('/eos/lhcb/user/m/marshall/gangaDownload/%d/'%job_ID)
+	os.mkdir(localDir)
 except:
 	pass
 
@@ -59,14 +60,14 @@ for i in range(1, sub_jobs):
 		print('Failure?')
 		counts[1] += 1
 	
-print('hadding...')
-hadd_cmd = f'hadd -fk -k {localDir}/{mode}.root {localDir}/{diracfile_loc_root}_*.root'
-os.system(hadd_cmd)
-# rm_cmd = f'rm {localDir}/{diracfile_loc_root}_*.root'
-# print('removing...')
-# os.system(rm_cmd)
+# print('hadding...')
+# hadd_cmd = f'hadd -fk -k {localDir}/{mode}.root {localDir}/{diracfile_loc_root}_*.root'
+# os.system(hadd_cmd)
+# # rm_cmd = f'rm {localDir}/{diracfile_loc_root}_*.root'
+# # print('removing...')
+# # os.system(rm_cmd)
 
-print(counts[0], counts[1])
+# print(counts[0], counts[1])
 
 
 

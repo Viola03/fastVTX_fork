@@ -7,6 +7,7 @@ import os
 from tqdm import tqdm
 import glob
 import uproot3 
+import pandas as pd
 
 def write_df_to_root(df, output_name):
 	branch_dict = {}
@@ -32,6 +33,7 @@ def write_df_to_root(df, output_name):
 
 mode = 'B2KEE_three_body'
 job_ID = 719
+# job_ID = 'temp'
 
 localDir = f'/eos/lhcb/user/m/marshall/gangaDownload/{job_ID}/'
 
@@ -65,41 +67,62 @@ branches_to_keep = [
 # ]
 
 
-#####
-# files = glob.glob(f'{localDir}/DTT_2018_Reco18Strip34_Down_ALLSTREAMS.DST_*.root')
+####
+files = glob.glob(f'{localDir}/DTT_2018_Reco18Strip34_Down_ALLSTREAMS.DST_*.root')
 
-# # for file_idx, file in enumerate(files):
-# for file_idx, file in tqdm(enumerate(files), total=len(files), desc="Processing files"):
-#     # print(f'{file_idx}/{len(files)}')
-#     if '_cut' in file:
-#         continue
-#     # try:
-#     with uproot.open(file) as ur_file:
-#         tree = ur_file["B2Kee_Tuple/DecayTree"]
+sucesses = 0
+# for file_idx, file in enumerate(files):
+for file_idx, file in tqdm(enumerate(files), total=len(files), desc="Processing files"):
+    # print(f'{file_idx}/{len(files)}')
+    if '_cut' in file:
+        continue
+    # try:
+    with uproot.open(file) as ur_file:
+        tree = ur_file["B2Kee_Tuple/DecayTree"]
         
-#         data = tree.arrays(branches_to_keep, library="pd")
-#         filtered_data = data.query(cut_condition)
+        data = tree.arrays(branches_to_keep, library="pd")
+        filtered_data = data.query(cut_condition)
 
-#         with uproot.recreate(f'{file[:-5]}_cuttt.root') as temp_file:
-#             temp_file["DecayTree"] = {branch: filtered_data[branch] for branch in branches_to_keep if branch in filtered_data.columns}
+        if file_idx == 0:
+            filtered_data_total = filtered_data
+        else:
+            filtered_data_total = pd.concat((filtered_data_total, filtered_data), axis=0)
+        sucesses += 1
+        # with uproot.recreate(f'{file[:-5]}_cut.root') as temp_file:
+            # temp_file["DecayTree"] = {branch: filtered_data[branch] for branch in branches_to_keep if branch in filtered_data.columns}
 
-#         # write_df_to_root(data, f'{file[:-5]}_cutt.root')
-#     # except:
-#     #      pass
-#     if file_idx > 100:
-#           break
-       
-import glob
-temp_files = glob.glob('/eos/lhcb/user/m/marshall/gangaDownload/719/*_cuttt.root')
+        # write_df_to_root(data, f'{file[:-5]}_cut.root')
+    # except:
+    #      pass
+    if sucesses > 100:
+          break
+write_df_to_root(filtered_data_total, new_file_path)
 
-entries = 0
-for idx, file in enumerate(temp_files):
-    uproot_file = uproot.open(file)['DecayTree']
-    entries += uproot_file.num_entries
 
-print(entries)
+# import glob
+# temp_files = glob.glob(f'{localDir}*_cut.root')
 
-os.system(f'hadd -fk {new_file_path} {" ".join(str(x) for x in temp_files)}')
+# entries = 0
+# for idx, file in enumerate(files):
+#     uproot_file = uproot.open(file)['DecayTree']
+#     entries += uproot_file.num_entries
+
+# print(entries)
+
+# os.system(f'hadd -f {new_file_path} {" ".join(str(x) for x in temp_files)}')
+# print(new_file_path)
+print("Opening file...")
+
+file = uproot.open(f"{new_file_path}:DecayTree")
+branches = file.keys()
+print(file.num_entries)
+
+for branch in branches:
+    # print('\n',branch)
+    # # try:
+    events = file.arrays([branch],library='pd')
+    # print(events.shape)
+
 
 
 quit()
