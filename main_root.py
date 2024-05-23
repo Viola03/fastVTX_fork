@@ -97,24 +97,13 @@ vertex_quality_trainer_obj = vertex_quality_trainer(
     E_architecture=[125, 125, 250, 125],
     D_architecture=[125, 250, 125, 125],
 )
-vertex_quality_trainer_obj.train(steps=25000)
-# BDT_tester_obj.make_BDT_plot(
-#     vertex_quality_trainer_obj, "BDT_0.pdf", include_combinatorial=True
-# )
-
-# for i in range(25):
-#     vertex_quality_trainer_obj.train_more_steps(steps=2500)
-#     BDT_tester_obj.make_BDT_plot(
-#         vertex_quality_trainer_obj, f"BDT_{i+1}.pdf", include_combinatorial=True
-#     )
-
-# vertex_quality_trainer_obj.make_plots()
-vertex_quality_trainer_obj.save_state(tag=f"networks/vertex_job_ROOT")
-# vertex_quality_trainer_obj.load_state(tag="networks/vertex_job_ROOT")
+# vertex_quality_trainer_obj.train(steps=25000)
+# vertex_quality_trainer_obj.save_state(tag=f"networks/vertex_job_ROOT")
+vertex_quality_trainer_obj.load_state(tag="networks/vertex_job_ROOT")
 ################################################################
 
 scores = BDT_tester_obj.make_BDT_plot(
-    vertex_quality_trainer_obj, f"BDT_job_ROOT.pdf", include_combinatorial=False
+    vertex_quality_trainer_obj, f"BDT_job_ROOT.pdf", include_combinatorial=False, include_jpsiX=True
 )
 
 # print(float(rd.beta), scores)
