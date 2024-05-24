@@ -20,6 +20,7 @@ class vertex_quality_trainer:
         conditions=None,
         beta=1000.0,
         latent_dim=4,
+        batch_size=50,
         E_architecture=[150, 250, 150],
         D_architecture=[150, 250, 150],
     ):
@@ -52,7 +53,7 @@ class vertex_quality_trainer:
 
         self.kl_factor = 1.0
         self.reco_factor = beta
-        self.batch_size = 50
+        self.batch_size = batch_size
 
         self.E_architecture = E_architecture
         self.D_architecture = D_architecture
@@ -311,6 +312,41 @@ class vertex_quality_trainer:
             self.targets,
             Nevents=10000,
         )
+    
+    def gen_data(self, filename, N=10000):
+
+        self.set_trained_weights()
+
+        gen_noise = np.random.normal(0, 1, (N, self.latent_dim))
+
+        X_test_data_loader = data_loader.load_data(
+            [
+                "datasets/Kee_2018_truthed_more_vars.csv",
+            ],
+            transformers=self.transformers,
+        )
+
+        X_test_data_loader.select_randomly(Nevents=N)
+
+        if self.trackchi2_trainer is not None:
+            X_test_data_loader.fill_chi2_gen(self.trackchi2_trainer)
+
+        X_test_conditions = X_test_data_loader.get_branches(
+            self.conditions, processed=True
+        )
+        X_test_conditions = X_test_conditions[self.conditions]
+        X_test_conditions = np.asarray(X_test_conditions)
+
+        images = np.squeeze(self.decoder.predict([gen_noise, X_test_conditions]))
+
+        X_test_data_loader.fill_target(images, self.targets)
+
+        X_test_data_loader.add_branch_to_physical('B_plus_ENDVERTEX_NDOF', np.ones(N)*3.)
+
+        X_test_data_loader.save_to_file(filename)
+
+
+
 
     def save_state(self, tag):
 

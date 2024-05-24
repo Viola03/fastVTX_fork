@@ -11,7 +11,11 @@ import fast_vertex_quality.tools.data_loader as data_loader
 
 class trackchi2_trainer:
 
-    def __init__(self, data_loader_obj):
+    def __init__(self, data_loader_obj,E_architecture=[25, 25],
+            D_architecture=[25, 25],):
+
+        self.E_architecture = E_architecture
+        self.D_architecture = D_architecture
 
         self.set_training_vars("PARTICLE")
 
@@ -74,8 +78,8 @@ class trackchi2_trainer:
     def build_VAE(self):
 
         VAE = VAE_builder(
-            E_architecture=[25, 25],
-            D_architecture=[25, 25],
+            E_architecture=self.E_architecture,
+            D_architecture=self.D_architecture,
             target_dim=self.target_dim,
             conditions_dim=self.conditions_dim,
             latent_dim=self.latent_dim,

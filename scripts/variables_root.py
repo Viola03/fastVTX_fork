@@ -15,28 +15,34 @@ masses[211] = 139.57039
 masses[13] = 105.66
 masses[11] = 0.51099895000 * 1e-3
 
+file_name = 'B2KEE_three_body_cut.root'
+# file_name = 'B2KEE_three_body_cut_SMALL.root'
+particles = ["DAUGHTER1", "DAUGHTER2", "DAUGHTER3"]
+mother = 'MOTHER'
+intermediate = 'INTERMEDIATE'
 
+# particles = ["K_Kst", "e_minus", "e_plus"]
+# mother = 'B_plus'
+# # file_name = 'Kee_2018_truthed.csv'
+# # file_name = 'Kstee_2018_truthed.csv'
+# file_name = 'B2Kee_2018_CommonPresel.csv'
+# # file_name = 'JPSIX_2018_truthed.csv'
+
+directory = '/users/am13743/fast_vertexing_variables/datasets/'
 print("Opening file...")
 
-file = uproot.open("/users/am13743/fast_vertexing_variables/datasets/B2KEE_three_body_cut.root:DecayTree")
-branches = file.keys()
-events = file.arrays(library='pd')
-# events = file.arrays(library='pd', entry_stop=10000)
+if file_name[-5:] == '.root':
+    file = uproot.open(f"{directory}/{file_name}:DecayTree")
+    branches = file.keys()
+    events = file.arrays(library='pd')
+else:
+    events = pd.read_csv(f"{directory}/{file_name}")
 
-# for branch in branches:
-#     print('\n',branch)
-#     # try:
-#     events = file.arrays([branch],library='pd')
-#     print(events.shape)
-
-# quit()
 print("Opened file as pd array")
 print(events.shape)
 
 pid_list = [11,13,211,321]
 
-particles = ["DAUGHTER1", "DAUGHTER2", "DAUGHTER3"]
-mother = 'MOTHER'
 
 for particle in particles:
     events = events[np.abs(events[f'{particle}_TRUEID']).isin(pid_list)]
@@ -78,7 +84,31 @@ events[f"{mother}_M_Kee"] = vt.compute_mass_3(events,
             masses[11],
             masses[11],)
 
+events[f"{mother}_M_reco"] = vt.compute_mass_3(events,
+            particles[0],
+            particles[1],
+            particles[2],
+            events[f'{particles[0]}_mass'],
+            events[f'{particles[1]}_mass'],
+            events[f'{particles[2]}_mass'], true_vars=False)
+
+events[f"{mother}_M_Kee_reco"] = vt.compute_mass_3(events,
+            particles[0],
+            particles[1],
+            particles[2],
+            masses[321],
+            masses[11],
+            masses[11], true_vars=False)
+
+
+
+for particle in particles:
+    events[f"{particle}_P"], events[f"{particle}_PT"] = vt.compute_reconstructed_mother_momenta(events, particle)
+
 events[f"{mother}_P"], events[f"{mother}_PT"] = vt.compute_reconstructed_mother_momenta(events, mother)
+
+events[f"{intermediate}_P"], events[f"{intermediate}_PT"] = vt.compute_reconstructed_intermediate_momenta(events, [particles[1], particles[2]])
+
 # events[f"B_P"], events[f"B_PT"] = vt.compute_reconstructed_mother_momenta(events, 'M')
 events[f"missing_{mother}_P"], events[f"missing_{mother}_PT"] = vt.compute_missing_momentum(
     events, mother,particles
@@ -96,7 +126,7 @@ for m in ["m_01", "m_02", "m_12"]:
 ################################################################################
 
 for particle in particles:
-    events[f"angle_DAUGHTER{particle}"] = vt.compute_angle(events, mother, f"{particle}")
+    events[f"angle_{particle}"] = vt.compute_angle(events, mother, f"{particle}")
 
 events[f"IP_{mother}"] = vt.compute_impactParameter(events,mother,particles)
 for particle in particles:
@@ -128,4 +158,7 @@ def write_df_to_root(df, output_name):
 		f["DecayTree"] = uproot3.newtree(branch_dict)
 		f["DecayTree"].extend(data_dict)
 
-write_df_to_root(events, "/users/am13743/fast_vertexing_variables/datasets/B2KEE_three_body_cut_more_vars.root")
+if file_name[-5:] == '.root':
+    write_df_to_root(events, f"{directory}{file_name[:-5]}_more_vars.root")
+else:
+    events.to_csv(f"{directory}{file_name[:-4]}_more_vars.csv")

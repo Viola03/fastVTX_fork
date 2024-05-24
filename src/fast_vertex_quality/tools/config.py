@@ -8,6 +8,15 @@ import os
 import socket
 from str2bool import str2bool
 
+import logging
+import warnings
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress all TensorFlow logging except errors
+
+import tensorflow as tf
+tf.get_logger().setLevel(logging.ERROR)
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+warnings.filterwarnings('ignore')
+
 parser = configparser.ConfigParser()
 parser.optionxform = str  # Allows variable names to be case sensitive
 

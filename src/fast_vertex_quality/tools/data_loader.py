@@ -6,6 +6,30 @@ from fast_vertex_quality.tools.config import rd, read_definition
 import tensorflow as tf
 import uproot
 
+import uproot3 
+
+def write_df_to_root(df, output_name):
+	branch_dict = {}
+	data_dict = {}
+	dtypes = df.dtypes
+	used_columns = [] # stop repeat columns, kpipi_correction was getting repeated
+	for dtype, branch in enumerate(df.keys()):
+		if branch not in used_columns:
+			if dtypes[dtype] == 'uint32': dtypes[dtype] = 'int32'
+			if dtypes[dtype] == 'uint64': dtypes[dtype] = 'int64'
+			branch_dict[branch] = dtypes[dtype]
+			# stop repeat columns, kpipi_correction was getting repeated
+			if np.shape(df[branch].shape)[0] > 1:
+				data_dict[branch] = df[branch].iloc[:, 0]
+			else:
+				data_dict[branch] = df[branch]
+		used_columns.append(branch)
+	with uproot3.recreate(output_name) as f:
+		f["DecayTree"] = uproot3.newtree(branch_dict)
+		f["DecayTree"].extend(data_dict)
+
+
+
 def produce_physics_variables(data):
 
     physics_variables = {}
@@ -83,10 +107,11 @@ class Transformer:
             f"{rd.daughter_particles[2]}_PZ",
             f"{rd.mother_particle}_ENDVERTEX_CHI2",
             f"{rd.mother_particle}_IPCHI2_OWNPV",
-            "IP_B",
+            f"IP_{rd.mother_particle}",
+            f"{rd.intermediate_particle}_FDCHI2_OWNPV"
         ]
 
-        self.one_minus_log_columns = [f"{rd.mother_particle}_DIRA_OWNPV", "DIRA_B"]
+        self.one_minus_log_columns = [f"{rd.mother_particle}_DIRA_OWNPV", f"DIRA_{rd.mother_particle}"]
 
     def fit(self, data_raw, column):
 
@@ -103,8 +128,12 @@ class Transformer:
         self.max = np.amax(data)
 
     def process(self, data_raw):
-
-        data = data_raw.copy()
+        
+        try:
+            data = data_raw.copy()
+        except:
+            # pass # value is likely a single element
+            data = np.asarray(data_raw).astype('float64')
 
         if self.column in self.log_columns:
             data = np.log10(data)
@@ -147,12 +176,16 @@ class dataset:
         for key in list(self.all_data["physical"].keys()):
             print(key)
 
-    def fill(self, data):
+    def fill(self, data, turn_off_processing=False):
+
+        self.turn_off_processing = turn_off_processing
 
         if not isinstance(data, pd.DataFrame):
             raise NoneError("Dataset must be a pd.dataframe.")
 
         self.all_data["physical"] = data
+        if self.turn_off_processing:
+            return
         self.physics_variables = produce_physics_variables(self.all_data["physical"])
         shared = list(
             set(list(self.physics_variables.keys())).intersection(
@@ -350,29 +383,107 @@ class dataset:
     def get_transformers(self):
         return self.Transformers
 
+    def shape(self):
+        return self.all_data['physical'].shape
+    
+    def getBinomialEff(self, pass_sum, tot_sum, pass_sumErr, tot_sumErr):
+        '''
+        Function for computing efficiency (and uncertainty).
+        '''
+        eff = pass_sum/tot_sum # Easy part
+
+        # Compute uncertainty taken from Eqs. (13) from LHCb-PUB-2016-021
+        x = (1 - 2*eff)*(pass_sumErr*pass_sumErr)
+        y = (eff*eff)*(tot_sumErr*tot_sumErr)
+
+        effErr = np.sqrt(abs(x + y)/(tot_sum**2))
+
+        return eff, effErr
+
+    def cut(self, cut):
+        
+        gen_tot_val = self.all_data['physical'].shape[0]
+        gen_tot_err = np.sqrt(gen_tot_val)
+        self.all_data['physical'] = self.all_data['physical'].query(cut)
+        index = self.all_data['physical'].index
+        
+        if not self.turn_off_processing:
+            self.all_data['processed'] = self.all_data['processed'].iloc[index]
+            self.all_data['processed'] = self.all_data['processed'].reset_index(drop=True)
+
+        self.all_data['physical'] = self.all_data['physical'].reset_index(drop=True)
+        pass_tot_val = self.all_data['physical'].shape[0]
+        pass_tot_err = np.sqrt(pass_tot_val)
+
+        eff, effErr = self.getBinomialEff(pass_tot_val, gen_tot_val,
+                                     pass_tot_err, gen_tot_err)
+
+
+        print(f'INFO cut(): {cut}, eff:{eff:.4f}+-{effErr:.4f}')
+
+    def getEff(self, cut):
+
+        if isinstance(cut, dict):
+            cut_string = ''
+            for cut_idx, cut_i in enumerate(list(cut.keys())):
+                if cut_idx > 0:
+                    cut_string += ' & '
+                if cut_i == 'extra_cut':
+                    cut_string += f'{cut[cut_i]}'
+                else:
+                    cut_string += f'{cut_i}{cut[cut_i]}'
+            cut = cut_string   
+
+        gen_tot_val = self.all_data['physical'].shape[0]
+        gen_tot_err = np.sqrt(gen_tot_val)
+        cut_array = self.all_data['physical'].query(cut)
+        pass_tot_val = cut_array.shape[0]
+        pass_tot_err = np.sqrt(pass_tot_val)
+
+        eff, effErr = self.getBinomialEff(pass_tot_val, gen_tot_val,
+                                     pass_tot_err, gen_tot_err)
+
+
+        print(f'INFO getEff(): {eff:.4f}+-{effErr:.4f}')
+
+        return eff, effErr
+
+    def save_to_file(self, filename):
+        
+        write_df_to_root(self.all_data["physical"], filename)
+
+    def add_branch_to_physical(self, name, values):
+
+        self.all_data["physical"][name] = values
+
+    def convert_value_to_processed(self, name, value):
+        return self.Transformers[name].process(value)
+         
+
 def convert_branches_to_RK_branch_names(columns, conversions):
     new_columns = []
     for column in columns:
         converted = False
-        if column not in ["B_P", "B_PT"]:
-            for conversion in conversions.keys():
-                if column[:len(conversion)] == conversion:
-                    new_column = column.replace(conversion, conversions[conversion])
-                    new_columns.append(new_column)
-                    converted = True
-                    break
-                if f'_DAUGHTER{conversion[:-1]}' in column:
-                    new_column = column.replace(f'_DAUGHTER{conversion[:-1]}', f'_{conversions[conversion][:-1]}')
-                    new_columns.append(new_column)
-                    converted = True
-                    break
+        # if column not in ["B_P", "B_PT"]:
+        for conversion in conversions.keys():
+            # if column[:len(conversion)] == conversion:
+            if conversion in column:
+                new_column = column.replace(conversion, conversions[conversion])
+                new_columns.append(new_column)
+                converted = True
+                break
+            # if f'_DAUGHTER{conversion[:-1]}' in column:
+            #     new_column = column.replace(f'_DAUGHTER{conversion[:-1]}', f'_{conversions[conversion][:-1]}')
+            #     new_columns.append(new_column)
+            #     converted = True
+            #     break
 
         if not converted:
             new_columns.append(column)
         
     return new_columns
 
-def load_data(path, equal_sizes=True, N=-1, transformers=None, convert_to_RK_branch_names=False, conversions=None):
+def load_data(path, equal_sizes=True, N=-1, transformers=None, convert_to_RK_branch_names=False, conversions=None, turn_off_processing=False):
 
     if isinstance(path, list):
         for i in range(0, len(path)):
@@ -421,6 +532,6 @@ def load_data(path, equal_sizes=True, N=-1, transformers=None, convert_to_RK_bra
     events = events.loc[:, ~events.columns.str.contains("^Unnamed")]
 
     events_dataset = dataset(transformers=transformers)
-    events_dataset.fill(events)
+    events_dataset.fill(events, turn_off_processing)
 
     return events_dataset

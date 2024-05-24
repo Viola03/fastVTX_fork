@@ -255,8 +255,26 @@ def compute_missing_momentum(df, mother, particles, true_vars=True):
             PY += -1.0 * df[f"{particle}_PY"]
             PZ += -1.0 * df[f"{particle}_PZ"]
 
-    return np.sqrt((PX**2 + PY**2 + PZ**2)) * 1e-3, np.sqrt((PX**2 + PY**2)) * 1e-3
+    return np.sqrt((PX**2 + PY**2 + PZ**2)) * 1e-3, np.sqrt((PX**2 + PY**2)) #* 1e-3
 
+def compute_reconstructed_intermediate_momenta(df, particles, true_vars=True):
+
+    PX = 0
+    PY = 0
+    PZ = 0
+
+    if true_vars:
+        for particle in particles:
+            PX += df[f"{particle}_TRUEP_X"]
+            PY += df[f"{particle}_TRUEP_Y"]
+            PZ += df[f"{particle}_TRUEP_Z"]
+    else:
+        for particle in particles:
+            PX += df[f"{particle}_PX"]
+            PY += df[f"{particle}_PY"]
+            PZ += df[f"{particle}_PZ"]
+
+    return np.sqrt((PX**2 + PY**2 + PZ**2)) * 1e-3, np.sqrt((PX**2 + PY**2)) #* 1e-3
 
 # def compute_B_mom(df, mother, true_vars=True):
 def compute_reconstructed_mother_momenta(df, mother, true_vars=True):
@@ -270,7 +288,7 @@ def compute_reconstructed_mother_momenta(df, mother, true_vars=True):
         PY = df[f"{mother}_PY"]
         PZ = df[f"{mother}_PZ"]
 
-    return np.sqrt((PX**2 + PY**2 + PZ**2)) * 1e-3, np.sqrt((PX**2 + PY**2)) * 1e-3
+    return np.sqrt((PX**2 + PY**2 + PZ**2)) * 1e-3, np.sqrt((PX**2 + PY**2)) #* 1e-3
 
 
 def compute_mass_3(df, i, j, k, mass_i, mass_j, mass_k, true_vars=True):
@@ -343,4 +361,4 @@ def compute_mass(df, i, j, mass_i, mass_j, true_vars=True):
 
     mass = np.sqrt((PE**2 - PX**2 - PY**2 - PZ**2) * 1e-6)
 
-    return mass, (PE**2 - PX**2 - PY**2 - PZ**2)
+    return mass, (PE**2 - PX**2 - PY**2 - PZ**2) * 1e3
