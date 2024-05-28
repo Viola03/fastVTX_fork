@@ -1,9 +1,13 @@
 from fast_vertex_quality.tools.config import read_definition, rd
 
 from fast_vertex_quality.models.conditional_VAE import VAE_builder
+from fast_vertex_quality.models.conditional_GAN import GAN_builder
+from fast_vertex_quality.models.conditional_WGAN import WGAN_builder
 import tensorflow as tf
 import numpy as np
 from fast_vertex_quality.tools.training import train_step_vertexing as train_step
+from fast_vertex_quality.tools.training import train_step_vertexing_GAN as train_step_GAN
+from fast_vertex_quality.tools.training import train_step_vertexing_WGAN as train_step_WGAN
 import fast_vertex_quality.tools.plotting as plotting
 import pickle
 import fast_vertex_quality.tools.data_loader as data_loader
@@ -23,6 +27,8 @@ class vertex_quality_trainer:
         batch_size=50,
         E_architecture=[150, 250, 150],
         D_architecture=[150, 250, 150],
+        G_architecture=None,
+        network_option='VAE',
     ):
 
         self.trackchi2_trainer = trackchi2_trainer
@@ -57,15 +63,34 @@ class vertex_quality_trainer:
 
         self.E_architecture = E_architecture
         self.D_architecture = D_architecture
+        self.G_architecture = G_architecture
 
         self.target_dim = len(self.targets)
         self.conditions_dim = len(self.conditions)
         self.latent_dim = latent_dim
         self.cut_idx = self.target_dim
 
-        self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.0005)
+        self.network_option = network_option
 
-        self.encoder, self.decoder, self.vae = self.build_VAE()
+        self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.0005)
+        if self.network_option == 'GAN':
+            self.gen_optimizer = tf.keras.optimizers.Adam(learning_rate=0.0004, beta_1=0.5, amsgrad=True)
+            self.disc_optimizer = tf.keras.optimizers.Adam(learning_rate=0.0004, beta_1=0.5, amsgrad=True)
+        elif self.network_option == 'WGAN':
+            self.gen_optimizer = tf.keras.optimizers.Adam(learning_rate=0.0002, beta_1=0.5, beta_2=0.9)
+            self.disc_optimizer = tf.keras.optimizers.Adam(learning_rate=0.0002, beta_1=0.5, beta_2=0.9)
+
+        if self.network_option == 'VAE':
+            self.encoder, self.decoder, self.vae = self.build_VAE()
+        elif self.network_option == 'GAN':
+            self.discriminator, self.generator, self.gan = self.build_GAN()
+        elif self.network_option == 'WGAN':
+            self.discriminator, self.generator, self.gan = self.build_WGAN()
+        else:
+            print('network_option not valid... quitting...')
+            quit()
+
+
 
         self.initialised_weights = self.get_weights()
 
@@ -76,27 +101,47 @@ class vertex_quality_trainer:
 
     def get_decoder(self):
         return self.decoder
+    
+    def get_generator(self):
+        return self.generator
 
     def get_weights(self):
 
         weights = {}
-        weights["vae"] = self.vae.get_weights()
-        weights["decoder"] = self.decoder.get_weights()
-        weights["encoder"] = self.encoder.get_weights()
+        if self.network_option == 'VAE':
+            weights["vae"] = self.vae.get_weights()
+            weights["decoder"] = self.decoder.get_weights()
+            weights["encoder"] = self.encoder.get_weights()
+        elif self.network_option == 'GAN' or self.network_option == 'WGAN':
+            # weights["gan"] = self.gan.get_weights()
+            weights["discriminator"] = self.discriminator.get_weights()
+            weights["generator"] = self.generator.get_weights()
 
         return weights
 
     def set_initialised_weights(self):
-
-        self.vae.set_weights(self.initialised_weights["vae"])
-        self.decoder.set_weights(self.initialised_weights["decoder"])
-        self.encoder.set_weights(self.initialised_weights["encoder"])
+        
+        if self.network_option == 'VAE':
+            self.vae.set_weights(self.initialised_weights["vae"])
+            self.decoder.set_weights(self.initialised_weights["decoder"])
+            self.encoder.set_weights(self.initialised_weights["encoder"])
+        elif self.network_option == 'GAN' or self.network_option == 'WGAN':
+            # self.gan.set_weights(self.initialised_weights["gan"])
+            self.discriminator.set_weights(self.initialised_weights["discriminator"])
+            self.generator.set_weights(self.initialised_weights["generator"])
+        
 
     def set_trained_weights(self):
 
-        self.vae.set_weights(self.trained_weights["vae"])
-        self.decoder.set_weights(self.trained_weights["decoder"])
-        self.encoder.set_weights(self.trained_weights["encoder"])
+        if self.network_option == 'VAE':
+            self.vae.set_weights(self.trained_weights["vae"])
+            self.decoder.set_weights(self.trained_weights["decoder"])
+            self.encoder.set_weights(self.trained_weights["encoder"])
+        elif self.network_option == 'GAN' or self.network_option == 'WGAN':
+            # self.gan.set_weights(self.trained_weights["gan"])
+            self.discriminator.set_weights(self.trained_weights["discriminator"])
+            self.generator.set_weights(self.trained_weights["generator"])
+
 
         # decoder = tf.keras.models.load_model("save_state/decoder.h5")
         # self.trained_weights = decoder.get_weights()
@@ -116,6 +161,79 @@ class vertex_quality_trainer:
             latent_dim=self.latent_dim,
         )
         return VAE.encoder, VAE.decoder, VAE.vae
+    
+    def build_GAN(self):
+
+        GAN = GAN_builder(
+            G_architecture=self.G_architecture,
+            D_architecture=self.D_architecture,
+            target_dim=self.target_dim,
+            conditions_dim=self.conditions_dim,
+            latent_dim=self.latent_dim,
+        )
+        return GAN.discriminator, GAN.generator, GAN.gan
+
+    def build_WGAN(self):
+
+        GAN = WGAN_builder(
+            G_architecture=self.G_architecture,
+            D_architecture=self.D_architecture,
+            target_dim=self.target_dim,
+            conditions_dim=self.conditions_dim,
+            latent_dim=self.latent_dim,
+        )
+        return GAN.discriminator, GAN.generator, GAN.gan
+
+    def step(self, samples_for_batch):
+        
+        if self.network_option == 'VAE':
+            if (
+                self.iteration % 1000 == 0
+            ):  # annealing https://arxiv.org/pdf/1511.06349.pdf
+                self.toggle_kl_value = 0.0
+            elif self.iteration % 1000 < 500:
+                self.toggle_kl_value += 1.0 / 500.0
+            else:
+                self.toggle_kl_value = 1.0
+            toggle_kl = tf.convert_to_tensor(self.toggle_kl_value)
+
+            kl_loss_np, reco_loss_np, reco_loss_np_raw = train_step(
+                self.vae,
+                self.optimizer,
+                samples_for_batch,
+                self.cut_idx,
+                tf.convert_to_tensor(self.kl_factor),
+                tf.convert_to_tensor(self.reco_factor),
+                toggle_kl,
+            )
+
+            return [self.iteration, kl_loss_np, reco_loss_np, reco_loss_np_raw]
+        
+        elif self.network_option == 'GAN':
+            disc_loss_np, gen_loss_np = train_step_GAN(
+                self.batch_size,
+                self.generator,
+                self.discriminator,
+                self.gen_optimizer,
+                self.disc_optimizer,
+                samples_for_batch,
+                self.cut_idx,
+                self.latent_dim,
+            )
+            return [self.iteration, disc_loss_np, gen_loss_np, 0.]
+
+        elif self.network_option == 'WGAN':
+            disc_loss_np, gen_loss_np = train_step_WGAN(
+                self.batch_size,
+                self.generator,
+                self.discriminator,
+                self.gen_optimizer,
+                self.disc_optimizer,
+                samples_for_batch,
+                self.cut_idx,
+                self.latent_dim,
+            )
+            return [self.iteration, disc_loss_np, gen_loss_np, 0.]
 
     def train_more_steps(self, steps=10000):
 
@@ -135,11 +253,18 @@ class vertex_quality_trainer:
 
             X_train = np.expand_dims(X_train_raw, 1).astype("float32")
 
-            train_dataset = (
-                tf.data.Dataset.from_tensor_slices(X_train)
-                .batch(self.batch_size, drop_remainder=True)
-                .repeat(1)
-            )
+            if self.network_option == 'VAE':
+                train_dataset = (
+                    tf.data.Dataset.from_tensor_slices(X_train)
+                    .batch(self.batch_size, drop_remainder=True)
+                    .repeat(1)
+                )
+            elif self.network_option == 'GAN' or self.network_option == 'WGAN':
+                train_dataset = (
+                    tf.data.Dataset.from_tensor_slices(X_train)
+                    .batch(self.batch_size*3, drop_remainder=True)
+                    .repeat(1)
+                )
 
             for samples_for_batch in train_dataset:
 
@@ -149,29 +274,11 @@ class vertex_quality_trainer:
                 if self.iteration % 100 == 0:
                     print("Iteration:", self.iteration)
 
-                if (
-                    self.iteration % 1000 == 0
-                ):  # annealing https://arxiv.org/pdf/1511.06349.pdf
-                    self.toggle_kl_value = 0.0
-                elif self.iteration % 1000 < 500:
-                    self.toggle_kl_value += 1.0 / 500.0
-                else:
-                    self.toggle_kl_value = 1.0
-                toggle_kl = tf.convert_to_tensor(self.toggle_kl_value)
-
-                kl_loss_np, reco_loss_np, reco_loss_np_raw = train_step(
-                    self.vae,
-                    self.optimizer,
-                    samples_for_batch,
-                    self.cut_idx,
-                    tf.convert_to_tensor(self.kl_factor),
-                    tf.convert_to_tensor(self.reco_factor),
-                    toggle_kl,
-                )
+                loss_list_i = self.step(samples_for_batch)
 
                 self.loss_list = np.append(
                     self.loss_list,
-                    [[self.iteration, kl_loss_np, reco_loss_np, reco_loss_np_raw]],
+                    [loss_list_i],
                     axis=0,
                 )
 
@@ -215,39 +322,28 @@ class vertex_quality_trainer:
 
             X_train = np.expand_dims(X_train_raw, 1).astype("float32")
 
-            train_dataset = (
-                tf.data.Dataset.from_tensor_slices(X_train)
-                .batch(self.batch_size, drop_remainder=True)
-                .repeat(1)
-            )
+            if self.network_option == 'VAE':
+                train_dataset = (
+                    tf.data.Dataset.from_tensor_slices(X_train)
+                    .batch(self.batch_size, drop_remainder=True)
+                    .repeat(1)
+                )
+            elif self.network_option == 'GAN' or self.network_option == 'WGAN':
+                train_dataset = (
+                    tf.data.Dataset.from_tensor_slices(X_train)
+                    .batch(self.batch_size*3, drop_remainder=True)
+                    .repeat(1)
+                )
 
             for samples_for_batch in train_dataset:
 
                 self.iteration += 1
 
-                if (
-                    self.iteration % 1000 == 0
-                ):  # annealing https://arxiv.org/pdf/1511.06349.pdf
-                    self.toggle_kl_value = 0.0
-                elif self.iteration % 1000 < 500:
-                    self.toggle_kl_value += 1.0 / 500.0
-                else:
-                    self.toggle_kl_value = 1.0
-                toggle_kl = tf.convert_to_tensor(self.toggle_kl_value)
-
-                kl_loss_np, reco_loss_np, reco_loss_np_raw = train_step(
-                    self.vae,
-                    self.optimizer,
-                    samples_for_batch,
-                    self.cut_idx,
-                    tf.convert_to_tensor(self.kl_factor),
-                    tf.convert_to_tensor(self.reco_factor),
-                    toggle_kl,
-                )
-
+                loss_list_i = self.step(samples_for_batch)
+                
                 self.loss_list = np.append(
                     self.loss_list,
-                    [[self.iteration, kl_loss_np, reco_loss_np, reco_loss_np_raw]],
+                    [loss_list_i],
                     axis=0,
                 )
 
@@ -277,7 +373,7 @@ class vertex_quality_trainer:
         plt.savefig("Losses.png")
         plt.close("all")
 
-    def make_plots(self, N=10000):
+    def make_plots(self, N=10000, filename=f"plots"):
 
         self.set_trained_weights()
 
@@ -301,14 +397,17 @@ class vertex_quality_trainer:
         X_test_conditions = X_test_conditions[self.conditions]
         X_test_conditions = np.asarray(X_test_conditions)
 
-        images = np.squeeze(self.decoder.predict([gen_noise, X_test_conditions]))
+        if self.network_option == 'VAE':
+            images = np.squeeze(self.decoder.predict([gen_noise, X_test_conditions]))
+        elif self.network_option == 'GAN' or self.network_option == 'WGAN':
+            images = np.squeeze(self.generator.predict([gen_noise, X_test_conditions]))
 
         X_test_data_loader.fill_target(images, self.targets)
 
         plotting.plot(
             self.data_loader_obj,
             X_test_data_loader,
-            f"plots",
+            filename,
             self.targets,
             Nevents=10000,
         )
