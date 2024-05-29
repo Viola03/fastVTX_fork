@@ -91,18 +91,21 @@ vertex_quality_trainer_obj = vertex_quality_trainer(
     targets=targets,
     beta=float(rd.beta),
     latent_dim=rd.latent,
-    # E_architecture=[125, 125, 250, 125],
-    D_architecture=[500,500,500],
-    G_architecture=[500,500,500],
+    batch_size=64,
+    D_architecture=[1000,2000,1000],
+    G_architecture=[1000,2000,1000],
+    # D_architecture=[250,250,250,125],
+    # G_architecture=[250,250,250,125],
     network_option='WGAN',
 )
-vertex_quality_trainer_obj.train(steps=5000)
+steps_for_plot = 5000
+vertex_quality_trainer_obj.train(steps=steps_for_plot)
 # vertex_quality_trainer_obj.save_state(tag=f"networks/vertex_job_ROOT2")
 # vertex_quality_trainer_obj.load_state(tag="networks/vertex_job_ROOT2")
 vertex_quality_trainer_obj.make_plots(filename=f'plots_0.pdf')
 
-for i in range(10):
-    vertex_quality_trainer_obj.train_more_steps(steps=5000)
+for i in range(100):
+    vertex_quality_trainer_obj.train_more_steps(steps=steps_for_plot)
     vertex_quality_trainer_obj.make_plots(filename=f'plots_{i+1}.pdf')
 
 ################################################################

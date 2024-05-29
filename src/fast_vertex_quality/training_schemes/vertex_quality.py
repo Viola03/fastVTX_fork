@@ -12,7 +12,7 @@ import fast_vertex_quality.tools.plotting as plotting
 import pickle
 import fast_vertex_quality.tools.data_loader as data_loader
 import matplotlib.pyplot as plt
-
+import tensorflow_addons as tfa
 
 class vertex_quality_trainer:
 
@@ -77,8 +77,28 @@ class vertex_quality_trainer:
             self.gen_optimizer = tf.keras.optimizers.Adam(learning_rate=0.0004, beta_1=0.5, amsgrad=True)
             self.disc_optimizer = tf.keras.optimizers.Adam(learning_rate=0.0004, beta_1=0.5, amsgrad=True)
         elif self.network_option == 'WGAN':
-            self.gen_optimizer = tf.keras.optimizers.Adam(learning_rate=0.0002, beta_1=0.5, beta_2=0.9)
-            self.disc_optimizer = tf.keras.optimizers.Adam(learning_rate=0.0002, beta_1=0.5, beta_2=0.9)
+            # self.gen_optimizer = tfa.optimizers.Yogi(learning_rate=0.00025, beta1=0.5)#tf.keras.optimizers.Adam(learning_rate=0.0002, beta_1=0.5, beta_2=0.9)
+            # self.disc_optimizer = tfa.optimizers.Yogi(learning_rate=0.00025, beta1=0.5)#tf.keras.optimizers.Adam(learning_rate=0.0002, beta_1=0.5, beta_2=0.9)
+
+            # self.gen_optimizer = tfa.optimizers.Yogi(learning_rate=0.0001, beta1=0.5)#tf.keras.optimizers.Adam(learning_rate=0.0002, beta_1=0.5, beta_2=0.9)
+            # self.disc_optimizer = tfa.optimizers.Yogi(learning_rate=0.00025, beta1=0.5)#tf.keras.optimizers.Adam(learning_rate=0.0002, beta_1=0.5, beta_2=0.9)
+
+            # self.gen_optimizer = tfa.optimizers.Yogi(learning_rate=0.00005, beta1=0.5)#tf.keras.optimizers.Adam(learning_rate=0.0002, beta_1=0.5, beta_2=0.9)
+            # self.disc_optimizer = tfa.optimizers.Yogi(learning_rate=0.0001, beta1=0.5)#tf.keras.optimizers.Adam(learning_rate=0.0002, beta_1=0.5, beta_2=0.9)
+
+            gen_lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+                    initial_learning_rate=0.00005,
+                    decay_steps=5000,
+                    decay_rate=0.9,
+                )
+            self.gen_optimizer = tfa.optimizers.Yogi(learning_rate=gen_lr_schedule, beta1=0.5)
+            disc_lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+                    initial_learning_rate=0.0001,
+                    decay_steps=5000,
+                    decay_rate=0.9,
+                )
+            self.disc_optimizer = tfa.optimizers.Yogi(learning_rate=disc_lr_schedule, beta1=0.5)
+                
 
         if self.network_option == 'VAE':
             self.encoder, self.decoder, self.vae = self.build_VAE()

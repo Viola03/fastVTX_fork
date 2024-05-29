@@ -12,6 +12,7 @@ from tensorflow.keras.layers import (
     LeakyReLU,
     ReLU,
     Reshape,
+    LayerNormalization,
 )
 from tensorflow.keras.models import Model
 
@@ -45,11 +46,13 @@ class WGAN_builder:
 
         H = Dense(int(self.G_architecture[0]))(generator_network_input)
         H = LeakyReLU()(H)
+        H = BatchNormalization()(H)
         H = Concatenate(axis=-1)([H, momentum_conditions])
 
         for layer in self.G_architecture[1:]:
             H = Dense(int(layer))(H)
             H = LeakyReLU()(H)
+            H = BatchNormalization()(H)
             H = Concatenate(axis=-1)([H, momentum_conditions])
 
         output = Dense(self.target_dim,activation='tanh')(H)
@@ -70,11 +73,15 @@ class WGAN_builder:
 
         H = Dense(int(self.D_architecture[0]))(discrim_network_input)
         H = LeakyReLU()(H)
+        H = LayerNormalization()(H)
+        H = Dropout(0.2)(H)
         H = Concatenate(axis=-1)([H, momentum_conditions])
 
         for layer in self.D_architecture[1:]:
             H = Dense(int(layer))(H)
             H = LeakyReLU()(H)
+            H = LayerNormalization()(H)
+            H = Dropout(0.2)(H)
             H = Concatenate(axis=-1)([H, momentum_conditions])
 
         discrim_out = Dense(1, activation="linear")(H)

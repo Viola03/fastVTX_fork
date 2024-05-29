@@ -1,5 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras import backend as K
+import numpy as np
 _EPSILON = K.epsilon()
 
 from fast_vertex_quality.tools.config import rd, read_definition
@@ -109,11 +110,18 @@ def WGAN_gradient_penalty(discriminator, batch_size, real_images, real_condition
 
 	grads = gp_tape.gradient(pred, [interpolated])[0]
 	norm = tf.sqrt(tf.reduce_sum(tf.square(grads), axis=[1]))
-	gp = tf.reduce_mean((norm - 1.0) ** 2)
+
+	liptschitz_penalty = False
+	if not liptschitz_penalty:
+		gp = tf.reduce_mean((norm - 1.0) ** 2)
+	else:
+		gp = tf.reduce_mean(tf.clip_by_value(norm - 1., 0., np.infty)**2)
 	return gp
 
+
 d_steps = 3 # number of steps to train D for every one generator step
-gp_weight = 10.
+# gp_weight = 10.
+gp_weight = 1.
 
 @tf.function
 def train_step_vertexing_WGAN(
@@ -143,14 +151,15 @@ def train_step_vertexing_WGAN(
 				# Calculate the discriminator loss using the fake and real image logits
 				d_cost = WGAN_discriminator_loss(real_img=real_logits, fake_img=fake_logits)
 				# Calculate the gradient penalty
+
 				gp = WGAN_gradient_penalty(discriminator, batch_size, sample_targets_train_A, sample_conditions_train_A, fake_images)
 				# Add the gradient penalty to the original discriminator loss
 				d_loss = d_cost + gp * gp_weight
 
-			# Get the gradients w.r.t the discriminator loss
-			d_gradient = tape.gradient(d_loss, discriminator.trainable_variables)
-			# Update the weights of the discriminator using the discriminator optimizer
-			disc_optimizer.apply_gradients(zip(d_gradient, discriminator.trainable_variables))
+				# Get the gradients w.r.t the discriminator loss
+				d_gradient = tape.gradient(d_loss, discriminator.trainable_variables)
+				# Update the weights of the discriminator using the discriminator optimizer
+				disc_optimizer.apply_gradients(zip(d_gradient, discriminator.trainable_variables))
 
 	# Train the generator
 	random_latent_vectors = tf.random.normal((batch_size, latent_dim), 0, 1)
@@ -162,10 +171,11 @@ def train_step_vertexing_WGAN(
 		# Calculate the generator loss
 		g_loss = WGAN_generator_loss(gen_img_logits)
 
-	# Get the gradients w.r.t the generator loss
-	gen_gradient = tape.gradient(g_loss, generator.trainable_variables)
-	# Update the weights of the generator using the generator optimizer
-	gen_optimizer.apply_gradients(zip(gen_gradient, generator.trainable_variables))
+		# Get the gradients w.r.t the generator loss
+		gen_gradient = tape.gradient(g_loss, generator.trainable_variables)
+		# Update the weights of the generator using the generator optimizer
+		gen_optimizer.apply_gradients(zip(gen_gradient, generator.trainable_variables))
+
 	return g_loss, d_loss
 
 
