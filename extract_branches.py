@@ -52,6 +52,21 @@ targets = [
     "e_minus_TRACK_CHI2NDOF",
     "e_plus_IPCHI2_OWNPV",
     "e_plus_TRACK_CHI2NDOF",
+    "J_psi_1S_FDCHI2_OWNPV",
+
+#     *Br  104 :J_psi_1S_ENDVERTEX_CHI2 : J_psi_1S_ENDVERTEX_CHI2/D                *
+# *Entries :   277100 : Total  Size=    2219140 bytes  File Size  =    2126341 *
+# *Baskets :       17 : Basket Size=     193024 bytes  Compression=   1.04     *
+# *............................................................................*
+# *Br  105 :J_psi_1S_ENDVERTEX_NDOF : J_psi_1S_ENDVERTEX_NDOF/I                *
+# *Entries :   277100 : Total  Size=    1246662 bytes  File Size  =     152224 *
+# *Baskets :     1199 : Basket Size=       1024 bytes  Compression=   8.03     *
+# *............................................................................*
+# *Br  106 :J_psi_1S_IPCHI2_OWNPV : J_psi_1S_IPCHI2_OWNPV/D                    *
+# *Entries :   277100 : Total  Size=    2219098 bytes  File Size  =    2114799 *
+# *Baskets :       17 : Basket Size=     193024 bytes  Compression=   1.05     *
+# *............................................................................*
+
 ]
 
 extras = [
@@ -100,33 +115,34 @@ extras_truth = [
 ]
 
 
-# print("A")
-# file = uproot.open(
-#     "/eos/lhcb/wg/RD/RK-highq2/data/tuples/2018/Kee/MC/truthed/Kee_2018_truthed.root"
-# )["DecayTree"]
-# branches = list(np.unique(conditions + targets + conditions_TRUTH + extras + extras_truth))
-# events = file.arrays(branches, library="pd")  # [0]
-# # events.to_pickle('Kee_2018_truthed.pickle')
-# events.to_csv("Kee_2018_truthed.csv")
+print("A")
+file = uproot.open(
+    "/eos/lhcb/wg/RD/RK-highq2/data/tuples/2018/Kee/MC/truthed/Kee_2018_truthed.root"
+)["DecayTree"]
+branches = list(np.unique(conditions + targets + conditions_TRUTH + extras + extras_truth))
+events = file.arrays(branches, library="pd")  # [0]
+# events.to_pickle('Kee_2018_truthed.pickle')
+events.to_csv("Kee_2018_truthed.csv")
 
-# print("B")
-# file = uproot.open(
-#     "/eos/lhcb/wg/RD/RK-highq2/data/tuples/2018/Kee/MC/truthed/Kstee_2018_truthed.root"
-# )["DecayTree"]
-# branches = list(np.unique(conditions + targets + conditions_TRUTH + extras + extras_truth))
-# events = file.arrays(branches, library="pd")  # [0]
-# # # events.to_pickle('Kstee_2018_truthed.pickle')
-# events.to_csv("Kstee_2018_truthed.csv")
+print("B")
+file = uproot.open(
+    "/eos/lhcb/wg/RD/RK-highq2/data/tuples/2018/Kee/MC/truthed/Kstee_2018_truthed.root"
+)["DecayTree"]
+branches = list(np.unique(conditions + targets + conditions_TRUTH + extras + extras_truth))
+events = file.arrays(branches, library="pd")  # [0]
+# # events.to_pickle('Kstee_2018_truthed.pickle')
+events.to_csv("Kstee_2018_truthed.csv")
 
-# print("C")
-# file = uproot.open(
-#     "/eos/lhcb/wg/RD/RK-highq2/data/tuples/2018/Kee/data/presel/B2Kee_2018_CommonPresel.root"
-# )["DecayTree"]
-# branches = list(np.unique(conditions + targets + ["B_plus_M"] + extras))
-# events = file.arrays(branches, library="pd")  # [0]
-# # # events.to_pickle('Kstee_2018_truthed.pickle'
-# events = events.query("B_plus_M>5600")
-# events.to_csv("B2Kee_2018_CommonPresel.csv")
+print("C")
+file = uproot.open(
+    "/eos/lhcb/wg/RD/RK-highq2/data/tuples/2018/Kee/data/presel/B2Kee_2018_CommonPresel.root"
+)["DecayTree"]
+branches = list(np.unique(conditions + targets + ["B_plus_M"] + extras))
+events = file.arrays(branches, library="pd")  # [0]
+# # events.to_pickle('Kstee_2018_truthed.pickle'
+events = events.query("B_plus_M>5600")
+events.to_csv("B2Kee_2018_CommonPresel.csv")
+
 
 print("D")
 

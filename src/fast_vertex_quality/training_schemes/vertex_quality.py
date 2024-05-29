@@ -399,12 +399,22 @@ class vertex_quality_trainer:
 
         gen_noise = np.random.normal(0, 1, (N, self.latent_dim))
 
+        # X_test_data_loader = data_loader.load_data(
+        #     [
+        #         # "datasets/Kee_2018_truthed_more_vars.csv",
+        #         "datasets/Kee_2018_truthed_more_vars.csv",
+        #     ],
+        #     transformers=self.transformers,
+        # )
         X_test_data_loader = data_loader.load_data(
-            [
-                "datasets/Kee_2018_truthed_more_vars.csv",
-            ],
-            transformers=self.transformers,
-        )
+                    [
+                        "datasets/B2KEE_three_body_cut_more_vars.root",
+                    ],
+                    transformers=self.transformers,
+                    convert_to_RK_branch_names=True,
+                    conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
+                )
+
 
         X_test_data_loader.select_randomly(Nevents=N)
 
@@ -440,9 +450,12 @@ class vertex_quality_trainer:
 
         X_test_data_loader = data_loader.load_data(
             [
-                "datasets/Kee_2018_truthed_more_vars.csv",
+                # "datasets/Kee_2018_truthed_more_vars.csv",
+                "datasets/B2KEE_three_body_cut_more_vars.root",
             ],
             transformers=self.transformers,
+            convert_to_RK_branch_names=True,
+            conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
         )
 
         X_test_data_loader.select_randomly(Nevents=N)
@@ -456,7 +469,10 @@ class vertex_quality_trainer:
         X_test_conditions = X_test_conditions[self.conditions]
         X_test_conditions = np.asarray(X_test_conditions)
 
-        images = np.squeeze(self.decoder.predict([gen_noise, X_test_conditions]))
+        if self.network_option == 'VAE':
+            images = np.squeeze(self.decoder.predict([gen_noise, X_test_conditions]))
+        elif self.network_option == 'GAN' or self.network_option == 'WGAN':
+            images = np.squeeze(self.generator.predict([gen_noise, X_test_conditions]))
 
         X_test_data_loader.fill_target(images, self.targets)
 
@@ -511,7 +527,12 @@ class vertex_quality_trainer:
         events_gen = np.asarray(events_gen[self.conditions])
 
         gen_noise = np.random.normal(0, 1, (np.shape(events_gen)[0], self.latent_dim))
-        images = np.squeeze(self.decoder.predict([gen_noise, events_gen]))
+        
+        if self.network_option == 'VAE':
+            images = np.squeeze(self.decoder.predict([gen_noise, events_gen]))
+        elif self.network_option == 'GAN' or self.network_option == 'WGAN':
+            images = np.squeeze(self.generator.predict([gen_noise, events_gen]))
+
 
         data_loader_obj.fill_target(images, self.targets)
 

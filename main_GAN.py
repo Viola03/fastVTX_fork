@@ -14,7 +14,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-# transformers = pickle.load(open("networks/chi2_ROOT2_transfomers.pkl", "rb"))
+transformers = pickle.load(open("networks/vertex_job_WGAN_transfomers.pkl", "rb"))
 
 rd.latent = 50 # noise dims
 
@@ -30,8 +30,7 @@ training_data_loader = data_loader.load_data(
         # "datasets/B2Kee_2018_CommonPresel_more_vars.csv",
         "datasets/B2KEE_three_body_cut_more_vars.root",
     ],
-    # N=5000,
-    # transformers=transformers,
+    transformers=transformers,
     convert_to_RK_branch_names=True,
     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
 )
@@ -72,18 +71,6 @@ targets = [
     "J_psi_1S_FDCHI2_OWNPV",
 ]
 
-# print(f"Initialising BDT tester...")
-# BDT_tester_obj = BDT_tester(
-#     transformers=transformers,
-#     tag="networks/BDT_sig_comb",
-#     train=True,
-#     signal="datasets/Kee_2018_truthed_more_vars.csv",
-#     background="datasets/B2Kee_2018_CommonPresel.csv",
-#     signal_label="Train - sig",
-#     background_label="Train - comb",
-#     gen_track_chi2=False
-# )
-
 vertex_quality_trainer_obj = vertex_quality_trainer(
     training_data_loader,
     trackchi2_trainer_obj,
@@ -94,42 +81,36 @@ vertex_quality_trainer_obj = vertex_quality_trainer(
     batch_size=64,
     D_architecture=[1000,2000,1000],
     G_architecture=[1000,2000,1000],
-    # D_architecture=[250,250,250,125],
-    # G_architecture=[250,250,250,125],
     network_option='WGAN',
 )
-steps_for_plot = 5000
-vertex_quality_trainer_obj.train(steps=steps_for_plot)
-# vertex_quality_trainer_obj.save_state(tag=f"networks/vertex_job_ROOT2")
-# vertex_quality_trainer_obj.load_state(tag="networks/vertex_job_ROOT2")
-vertex_quality_trainer_obj.make_plots(filename=f'plots_0.pdf')
+# steps_for_plot = 5000
+# vertex_quality_trainer_obj.train(steps=steps_for_plot)
+# vertex_quality_trainer_obj.save_state(tag=f"networks/vertex_job_WGAN")
+# # vertex_quality_trainer_obj.load_state(tag="networks/vertex_job_ROOT2")
+# vertex_quality_trainer_obj.make_plots(filename=f'plots_0.pdf')
 
-for i in range(100):
-    vertex_quality_trainer_obj.train_more_steps(steps=steps_for_plot)
-    vertex_quality_trainer_obj.make_plots(filename=f'plots_{i+1}.pdf')
+# for i in range(100):
+#     vertex_quality_trainer_obj.train_more_steps(steps=steps_for_plot)
+#     vertex_quality_trainer_obj.save_state(tag=f"networks/vertex_job_WGAN")
+#     vertex_quality_trainer_obj.make_plots(filename=f'plots_{i+1}.pdf')
 
-################################################################
+vertex_quality_trainer_obj.load_state(tag=f"networks/vertex_job_WGAN")
 
-# scores = BDT_tester_obj.make_BDT_plot(
-#     vertex_quality_trainer_obj, f"BDT_job_ROOT2.pdf", include_combinatorial=False, include_jpsiX=False
-# )
+vertex_quality_trainer_obj.gen_data('saved_output_WGAN.root')
 
-# print(float(rd.beta), scores)
+print(f"Initialising BDT tester...")
+BDT_tester_obj = BDT_tester(
+    transformers=transformers,
+    tag="networks/BDT_sig_comb",
+    train=True,
+    BDT_vars=targets[:-1],
+    signal="datasets/Kee_2018_truthed_more_vars.csv",
+    background="datasets/B2Kee_2018_CommonPresel.csv",
+    signal_label="Train - sig",
+    background_label="Train - comb",
+    gen_track_chi2=False
+)
+scores = BDT_tester_obj.make_BDT_plot(
+    vertex_quality_trainer_obj, f"BDT_job_WGAN.pdf", include_combinatorial=False, include_jpsiX=False
+)
 
-# f = open("logging.txt", "a")
-# f.write(f"{float(rd.beta)}, {rd.latent}, {scores[0]}, {scores[1]}, {scores[2]}\n")
-# f.close()
-
-
-# print(f"Initialising BDT tester...")
-# BDT_tester_obj_prc = BDT_tester(
-#     transformers=transformers,
-#     tag="networks/BDT_sig_prc",
-#     train=True,
-#     signal="datasets/Kee_2018_truthed_more_vars.csv",
-#     background="datasets/Kstee_2018_truthed_more_vars.csv",
-#     signal_label="Train - sig",
-#     background_label="Train - prc",
-# )
-
-# BDT_tester_obj_prc.make_BDT_plot(vertex_quality_trainer_obj, "BDT_prc.pdf")

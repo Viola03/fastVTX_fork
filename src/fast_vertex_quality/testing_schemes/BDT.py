@@ -19,17 +19,7 @@ class BDT_tester:
         transformers,
         tag,
         train=True,
-        signal="datasets/Kee_2018_truthed_more_vars.csv",
-        background="datasets/B2Kee_2018_CommonPresel.csv",
-        signal_label="Train - sig",
-        background_label="Train - comb",
-        gen_track_chi2=True,
-    ):
-
-        self.signal_label = signal_label
-        self.background_label = background_label
-
-        self.BDT_vars = [
+        BDT_vars=[
             "B_plus_ENDVERTEX_CHI2",
             "B_plus_IPCHI2_OWNPV",
             "B_plus_FDCHI2_OWNPV",
@@ -40,7 +30,18 @@ class BDT_tester:
             "e_minus_TRACK_CHI2NDOF",
             "e_plus_IPCHI2_OWNPV",
             "e_plus_TRACK_CHI2NDOF",
-        ]
+        ],
+        signal="datasets/Kee_2018_truthed_more_vars.csv",
+        background="datasets/B2Kee_2018_CommonPresel.csv",
+        signal_label="Train - sig",
+        background_label="Train - comb",
+        gen_track_chi2=True,
+    ):
+
+        self.signal_label = signal_label
+        self.background_label = background_label
+
+        self.BDT_vars = BDT_vars
 
         if gen_track_chi2:
             self.BDT_vars_gen = [
