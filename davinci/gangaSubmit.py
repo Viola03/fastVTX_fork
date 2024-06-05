@@ -36,7 +36,8 @@ for job_name, path_dict in job_setting.items():
 
     bk_query = BKQuery(path=path_dict)
     dataset = bk_query.getDataset()
-
+    print(dataset)
+    quit()
     try:
         myApp = prepareGaudiExec("DaVinci", "v44r3", myPath=".")
     except:

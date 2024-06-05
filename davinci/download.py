@@ -5,12 +5,12 @@ import numpy as np
 gangadir = '/afs/cern.ch/work/m/marshall/gangadir/'
 
 mode = 'B2KEE_three_body'
-# sub_jobs = 1367 # number of subjobs
-sub_jobs = 100 # number of subjobs
+sub_jobs = 1367 # number of subjobs
+# sub_jobs = 100 # number of subjobs
 job_ID = 719
 
-# localDir = '/eos/lhcb/user/m/marshall/gangaDownload/%d/'%job_ID
-localDir = '/eos/lhcb/user/m/marshall/gangaDownload/temp/'
+localDir = '/eos/lhcb/user/m/marshall/gangaDownload/%d/'%job_ID
+# localDir = '/eos/lhcb/user/m/marshall/gangaDownload/temp/'
 
 try:
 	os.mkdir(localDir)
