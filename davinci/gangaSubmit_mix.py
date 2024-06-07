@@ -1,6 +1,7 @@
 import os, re
 import numpy as np
 import time
+import pickle 
 
 class timer:
 	def __init__(self):
@@ -18,46 +19,100 @@ class timer:
 stopwatch = timer()
 stopwatch_total = timer()
 
-import pickle 
-filehandler = open('targets.pkl', 'rb') 
-all_targets = pickle.load(filehandler)
-targets = all_targets['Sim09h']['Stripping34NoPrescalingFlagged']
-np.random.shuffle(targets)
-targets = targets[:25]
+# LFNs = {}
 
-nfiles_per = 5
+# filehandler = open('targets.pkl', 'rb') 
+# all_targets = pickle.load(filehandler)
+
+# for sim in list(all_targets.keys()):
+
+# 	targets = all_targets[sim]['Stripping34NoPrescalingFlagged']
+# 	np.random.shuffle(targets)
+# 	# targets = targets[:25]
+
+# 	extend = False
+
+# 	stopwatch_total.hit_start()
+
+# 	for target_idx, target in enumerate(targets):
+		
+# 		try:
+# 			stopwatch.hit_start()
+
+# 			print('\n',target,f'{target_idx}/{len(targets)} in {stopwatch_total.hit_stop(print_time=False):.4f}s')
+			
+# 			PATH_name = f"/MC/2018/Beam6500GeV-2018-MagUp-Nu1.6-25ns-Pythia8/{sim}/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/{target}/ALLSTREAMS.DST"
+# 			bk_query = BKQuery(path=PATH_name)
+# 			dataset = bk_query.getDataset()
+
+# 			LFNs[target] = [a.lfn for a in dataset]
+
+# 			# files = []
+# 			# for n in range(nfiles_per):
+# 			# 	files.append(dataset[n].lfn)
+# 			# if extend:
+# 			# 	comp_dataset.extend(files)
+# 			# else:
+# 			# 	fileset = LHCbCompressedFileSet(files)
+# 			# 	comp_dataset = LHCbCompressedDataset(fileset)
+# 			# 	extend = True
+
+# 			stopwatch.hit_stop()
+
+# 			filehandler = open('targets_LFNs.pkl', 'wb')  
+# 			print(len(list(LFNs.keys())))
+# 			pickle.dump(LFNs, filehandler)
+
+# 		except Exception as e:
+# 			print(f"\n\nAn error occurred: {e}\n\n")
+
+
+filehandler = open('targets_LFNs.pkl', 'rb')  
+LFNs = pickle.load(filehandler)
 
 extend = False
 
-stopwatch_total.hit_start()
+nfiles_per = 25
 
-for target_idx, target in enumerate(targets):
-	
-	try:
-		stopwatch.hit_start()
+for target in list(LFNs.keys()):
 
-		print('\n',target,f'{target_idx}/{len(targets)} in {stopwatch_total.hit_stop(print_time=False):.4f}s')
-		
-		PATH_name = f"/MC/2018/Beam6500GeV-2018-MagUp-Nu1.6-25ns-Pythia8/Sim09h/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/{target}/ALLSTREAMS.DST"
-		bk_query = BKQuery(path=PATH_name)
-		dataset = bk_query.getDataset()
-
-		files = []
+	files = []
+	LFNs[target] = np.asarray(LFNs[target])
+	np.random.shuffle(LFNs[target])
+	if len(LFNs[target]) < nfiles_per:
+		files = LFNs[target]
+	else:
 		for n in range(nfiles_per):
-			files.append(dataset[n].lfn)
-		if extend:
-			comp_dataset.extend(files)
-		else:
-			fileset = LHCbCompressedFileSet(files)
-			comp_dataset = LHCbCompressedDataset(fileset)
-			extend = True
+			files.append(LFNs[target][n])
+	
+	if extend:
+		comp_dataset.extend(files)
+	else:
+		fileset = LHCbCompressedFileSet(files)
+		comp_dataset = LHCbCompressedDataset(fileset)
+		extend = True
 
-		stopwatch.hit_stop()
 
-	except Exception as e:
-		print(f"\n\nAn error occurred: {e}\n\n")
-
-job_name = 'mix'
+# job_name = 'mix'
+year = ["18"]
+energy = ["6500"]
+strip_v = ["34"]
+Reco_v = ["18"]
+polarity = ["Down"]
+streams = ["ALLSTREAMS.DST"]
+i = 0
+job_name = (
+    "20"
+    + year[i]
+    + "_Reco"
+    + Reco_v[i]
+    + "Strip"
+    + strip_v[i]
+    + "_"
+    + polarity[i]
+    + "_"
+    + streams[i]
+)
 
 try:
     myApp = prepareGaudiExec("DaVinci", "v44r3", myPath=".")
@@ -76,7 +131,7 @@ bck = Dirac()
 splitter = SplitByFiles()
 splitter.ignoremissing = True
 splitter.maxFiles = -1
-splitter.filesPerJob = 1
+splitter.filesPerJob = 4
 
 job = Job(name=job_name, comment=job_name, backend=bck, splitter=splitter)
 Year = (

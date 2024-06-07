@@ -31,8 +31,8 @@ def write_df_to_root(df, output_name):
 
 
 
-mode = 'B2KEE_three_body'
-job_ID = 719
+mode = 'cocktail_three_body'
+job_ID = 1344
 # job_ID = 'temp'
 
 localDir = f'/eos/lhcb/user/m/marshall/gangaDownload/{job_ID}/'
@@ -60,7 +60,13 @@ branches_to_keep = [
     'DAUGHTER3_PZ', 'DAUGHTER3_TRACK_CHI2NDOF', 'DAUGHTER3_TRUEID', 'DAUGHTER3_TRUEP_X', 'DAUGHTER3_TRUEP_Y', 'DAUGHTER3_TRUEP_Z', 'nSPDHits', 'nTracks',
     'INTERMEDIATE_TRUEID',
     'INTERMEDIATE_DIRA_OWNPV', 'INTERMEDIATE_ENDVERTEX_CHI2', 'INTERMEDIATE_ENDVERTEX_NDOF',
-    'INTERMEDIATE_FDCHI2_OWNPV', 'INTERMEDIATE_IPCHI2_OWNPV'
+    'INTERMEDIATE_FDCHI2_OWNPV', 'INTERMEDIATE_IPCHI2_OWNPV',
+    'MOTHER_TRUEENDVERTEX_X',
+    'MOTHER_TRUEENDVERTEX_Y',
+    'MOTHER_TRUEENDVERTEX_Z',
+    'INTERMEDIATE_TRUEENDVERTEX_X',
+    'INTERMEDIATE_TRUEENDVERTEX_Y',
+    'INTERMEDIATE_TRUEENDVERTEX_Z',
 ]
 # branches_to_keep = [
 # 'MOTHER_TRUEID', 'MOTHER_BKGCAT'
@@ -73,7 +79,9 @@ files = glob.glob(f'{localDir}/DTT_2018_Reco18Strip34_Down_ALLSTREAMS.DST_*.root
 sucesses = 0
 # for file_idx, file in enumerate(files):
 for file_idx, file in tqdm(enumerate(files), total=len(files), desc="Processing files"):
-    # print(f'{file_idx}/{len(files)}')
+
+    print(f'{file_idx}/{len(files)}')
+
     if '_cut' in file:
         continue
     # try:

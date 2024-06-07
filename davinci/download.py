@@ -5,9 +5,9 @@ import numpy as np
 gangadir = '/afs/cern.ch/work/m/marshall/gangadir/'
 
 mode = 'B2KEE_three_body'
-sub_jobs = 1367 # number of subjobs
+sub_jobs = 1105 # number of subjobs
 # sub_jobs = 100 # number of subjobs
-job_ID = 719
+job_ID = 1344
 
 localDir = '/eos/lhcb/user/m/marshall/gangaDownload/%d/'%job_ID
 # localDir = '/eos/lhcb/user/m/marshall/gangaDownload/temp/'
@@ -19,7 +19,8 @@ except:
 
 counts = np.zeros(2)
 
-for i in range(1, sub_jobs):
+# for i in range(1, sub_jobs+1):
+for i in range(419, sub_jobs+1):
 	
 	files = glob.glob(f'{gangadir}/workspace/marshall/LocalXML/{job_ID}/{i}/output/__postprocesslocations__')
 
