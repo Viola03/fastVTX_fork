@@ -7,6 +7,9 @@ import tensorflow as tf
 import uproot
 
 import uproot3 
+from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.pyplot as plt
+import numpy as np
 
 def write_df_to_root(df, output_name):
 	branch_dict = {}
@@ -108,7 +111,16 @@ class Transformer:
             f"{rd.mother_particle}_ENDVERTEX_CHI2",
             f"{rd.mother_particle}_IPCHI2_OWNPV",
             f"IP_{rd.mother_particle}",
-            f"{rd.intermediate_particle}_FDCHI2_OWNPV"
+            f"{rd.intermediate_particle}_FDCHI2_OWNPV",
+            f"{rd.intermediate_particle}_FLIGHT",
+
+            f"{rd.mother_particle}_P",
+            f"{rd.mother_particle}_PT",
+            f"IP_{rd.daughter_particles[0]}",
+            f"IP_{rd.daughter_particles[1]}",
+            f"IP_{rd.daughter_particles[2]}",
+            f"FD_{rd.mother_particle}",
+
         ]
 
         self.one_minus_log_columns = [f"{rd.mother_particle}_DIRA_OWNPV", f"DIRA_{rd.mother_particle}"]
@@ -167,10 +179,56 @@ class Transformer:
 
 class dataset:
 
-    def __init__(self, transformers=None):
+    def __init__(self, filenames, transformers=None):
 
         self.Transformers = transformers
         self.all_data = {"processed": None, "physical": None}
+        self.filenames = filenames
+
+    def fill_stripping_bool(self):
+
+        self.all_data["physical"]["pass_stripping"] = np.zeros(self.all_data["physical"].shape[0])
+
+        # print(self.all_data["physical"]["pass_stripping"])
+
+        cuts = {}
+        cuts['B_plus_FDCHI2_OWNPV'] = ">100."
+        cuts['B_plus_DIRA_OWNPV'] = ">0.9995"
+        cuts['B_plus_IPCHI2_OWNPV'] = "<25"
+        cuts['(B_plus_ENDVERTEX_CHI2/B_plus_ENDVERTEX_NDOF)'] = "<9"
+        # cuts['J_psi_1S_PT'] = ">0"
+        cuts['J_psi_1S_FDCHI2_OWNPV'] = ">16"
+        cuts['J_psi_1S_IPCHI2_OWNPV'] = ">0"
+        for lepton in ['e_minus', 'e_plus']:
+            cuts[f'{lepton}_IPCHI2_OWNPV'] = ">9"
+            # cuts[f'{lepton}_PT'] = ">300"
+        for hadron in ['K_Kst']:
+            cuts[f'{hadron}_IPCHI2_OWNPV'] = ">9"
+            # cuts[f'{hadron}_PT'] = ">400"
+        # cuts['m_12'] = "<5500"
+        # cuts['B_plus_M_Kee_reco'] = ">(5279.34-1500)"
+        # cuts['B_plus_M_Kee_reco'] = "<(5279.34+1500)"
+
+        if isinstance(cuts, dict):
+            cut_string = ''
+            for cut_idx, cut_i in enumerate(list(cuts.keys())):
+                if cut_idx > 0:
+                    cut_string += ' & '
+                if cut_i == 'extra_cut':
+                    cut_string += f'{cuts[cut_i]}'
+                else:
+                    cut_string += f'{cut_i}{cuts[cut_i]}'
+            cuts = cut_string   
+
+        # gen_tot_val = self.all_data['physical'].shape[0]
+        try:
+            cut_array = self.all_data['physical'].query(cuts)
+            self.all_data["physical"].loc[cut_array.index,"pass_stripping"] = 1.
+        except Exception as e:
+            print(f"\n\nAn error occurred: {e}")
+            print("continuing with pass_stripping = 1\n")
+            self.all_data["physical"]["pass_stripping"] = np.ones(self.all_data["physical"].shape[0])
+
 
     def print_branches(self):
         for key in list(self.all_data["physical"].keys()):
@@ -209,6 +267,8 @@ class dataset:
         self.all_data["physical"] = self.all_data["physical"].loc[
             :, ~self.all_data["physical"].columns.str.contains("^Unnamed")
         ]
+
+        self.fill_stripping_bool()
 
         self.all_data["processed"] = self.pre_process(self.all_data["physical"])
 
@@ -304,6 +364,9 @@ class dataset:
             self.all_data["processed"][column] = np.asarray(df_processed[column])
             self.all_data["physical"][column] = np.asarray(df_physical[column])
 
+        self.fill_stripping_bool()
+        self.all_data["processed"]["pass_stripping"] = self.all_data["physical"]["pass_stripping"]
+
     def select_randomly(self, Nevents):
 
         idx = np.random.choice(
@@ -362,7 +425,7 @@ class dataset:
 
         for column in list(physical_data.keys()):
 
-            if column == "file":
+            if column == "file" or column == "pass_stripping":
                 df[column] = physical_data[column]
             else:
                 try:
@@ -458,7 +521,40 @@ class dataset:
 
     def convert_value_to_processed(self, name, value):
         return self.Transformers[name].process(value)
-         
+    
+    def plot(self,filename, variables=None):
+
+        if variables == None:
+            variables = list(self.all_data["physical"].keys())
+
+        with PdfPages(filename) as pdf:
+
+            for variable in variables:
+
+                plt.figure(figsize=(10,8))
+
+                plt.subplot(2,2,1)
+                plt.title(variable)
+                plt.hist(self.all_data["physical"][variable], bins=50, density=True, histtype='step')
+                
+                plt.subplot(2,2,2)
+                plt.title(f'{variable} processed')
+                plt.hist(self.all_data["processed"][variable], bins=50, density=True, histtype='step', range=[-1,1])
+
+                plt.subplot(2,2,3)
+                plt.hist(self.all_data["physical"][variable], bins=50, density=True, histtype='step')
+                plt.yscale('log')
+                
+                plt.subplot(2,2,4)
+                plt.hist(self.all_data["processed"][variable], bins=50, density=True, histtype='step', range=[-1,1])
+                plt.yscale('log')
+
+                pdf.savefig(bbox_inches="tight")
+                plt.close()
+
+    def get_file_names(self):
+        return self.filenames
+
 
 def convert_branches_to_RK_branch_names(columns, conversions):
     new_columns = []
@@ -528,10 +624,11 @@ def load_data(path, equal_sizes=True, N=-1, transformers=None, convert_to_RK_bra
             events["file"] = np.asarray(np.ones(events.shape[0]) * i).astype("int")
     else:
         events = pd.read_csv(path)
+        path = [path]
 
     events = events.loc[:, ~events.columns.str.contains("^Unnamed")]
 
-    events_dataset = dataset(transformers=transformers)
+    events_dataset = dataset(filenames=path, transformers=transformers)
     events_dataset.fill(events, turn_off_processing)
 
     return events_dataset

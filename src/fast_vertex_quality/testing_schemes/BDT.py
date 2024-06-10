@@ -171,17 +171,39 @@ class BDT_tester:
         sample_loc,
         vertex_quality_trainer_obj,
         generate,
+        cut=None,
+        convert_branches=False,
         N=10000,
     ):
 
-        event_loader = data_loader.load_data(
-            [
-                sample_loc,
-            ],
-            transformers=self.transformers,
-        )
+        if convert_branches:
+            event_loader = data_loader.load_data(
+                [
+                    sample_loc,
+                ],
+                transformers=self.transformers,
+                convert_to_RK_branch_names=True,
+                conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
+            )
+        else:
+            event_loader = data_loader.load_data(
+                [
+                    sample_loc,
+                ],
+                transformers=self.transformers,
+            )
 
-        event_loader.select_randomly(Nevents=N)
+        if cut is not None:
+            print(event_loader.shape())
+            event_loader.cut(cut)
+            print(event_loader.shape())
+        
+        try:
+            event_loader.select_randomly(Nevents=N)
+        except:
+            pass
+        
+
         if generate:
 
             event_loader = vertex_quality_trainer_obj.predict_from_data_loader(
@@ -342,6 +364,56 @@ class BDT_tester:
         )
 
         return scores
+
+    
+    def make_BDT_plot_intermediates(
+        self,
+        filename,
+        include_combinatorial=False,
+        include_jpsiX=False,
+    ):
+
+        prc_MC = self.get_sample(
+            "datasets/Kstee_2018_truthed_more_vars.csv",
+            None,
+            generate=False,
+            N=10000,
+        )
+            
+        
+        cocktail_421 = self.get_sample(
+            "datasets/cocktail_three_body_cut_more_vars.root",
+            None,
+            generate=False,
+            N=10000,
+            convert_branches=True,
+            cut='abs(B_plus_TRUEID)==521 & abs(J_psi_1S_TRUEID)==421 & pass_stripping == 1',
+        )
+
+        cocktail_521 = self.get_sample(
+            "datasets/cocktail_three_body_cut_more_vars.root",
+            None,
+            generate=False,
+            N=10000,
+            convert_branches=True,
+            cut='abs(B_plus_TRUEID)==521 & abs(e_plus_TRUEID)==11 & abs(e_minus_TRUEID)==11 & abs(K_Kst_TRUEID)==321 & pass_stripping == 1',
+        )
+
+        samples = [prc_MC, cocktail_421, cocktail_521]
+        labels = ["prc - MC", 'cocktail - 421', 'cocktail - 521']
+        colours = ["tab:blue", "tab:red", "tab:purple", 'k', 'tab:green']
+
+        scores = self.query_and_plot_samples(
+            samples,
+            labels,
+            colours=colours,
+            filename=filename,
+            include_combinatorial=include_combinatorial,
+            only_hists=True,
+        )
+
+        return scores
+    
 
     def query_and_plot_samples_jpsiX(
         self,
@@ -589,6 +661,7 @@ class BDT_tester:
         filename="BDT.pdf",
         kFold=0,
         include_combinatorial=False,
+        only_hists=False,
     ):
 
         sample_values = {}
@@ -648,6 +721,11 @@ class BDT_tester:
             )
             plt.legend(loc="upper left")
             plt.xlabel(f"BDT output")
+
+            if only_hists:
+                pdf.savefig(bbox_inches="tight")
+                plt.close()
+                return None
 
             ax = plt.subplot(2, 3, 3)
 

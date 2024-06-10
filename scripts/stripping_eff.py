@@ -40,7 +40,7 @@ cuts['B_plus_IPCHI2_OWNPV'] = "<25"
 cuts['(B_plus_ENDVERTEX_CHI2/B_plus_ENDVERTEX_NDOF)'] = "<9"
 # cuts['J_psi_1S_PT'] = ">0"
 cuts['J_psi_1S_FDCHI2_OWNPV'] = ">16"
-cuts['B_plus_IPCHI2_OWNPV'] = ">0"
+cuts['J_psi_1S_IPCHI2_OWNPV'] = ">0"
 for lepton in ['e_minus', 'e_plus']:
     cuts[f'{lepton}_IPCHI2_OWNPV'] = ">9"
     # cuts[f'{lepton}_PT'] = ">300"

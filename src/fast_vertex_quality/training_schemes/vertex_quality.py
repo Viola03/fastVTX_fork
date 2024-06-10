@@ -393,7 +393,7 @@ class vertex_quality_trainer:
         plt.savefig("Losses.png")
         plt.close("all")
 
-    def make_plots(self, N=10000, filename=f"plots"):
+    def make_plots(self, N=10000, filename=f"plots", testing_file="datasets/B2KEE_three_body_cut_more_vars.root"):
 
         self.set_trained_weights()
 
@@ -407,9 +407,7 @@ class vertex_quality_trainer:
         #     transformers=self.transformers,
         # )
         X_test_data_loader = data_loader.load_data(
-                    [
-                        "datasets/B2KEE_three_body_cut_more_vars.root",
-                    ],
+                    testing_file,
                     transformers=self.transformers,
                     convert_to_RK_branch_names=True,
                     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}

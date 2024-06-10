@@ -176,6 +176,14 @@ def compute_impactParameter_i(df, mother, particle, true_vars=True):
 
 
 
+def compute_intermediate_distance(df, intermediate, mother):
+
+    X = df[f'{intermediate}_TRUEENDVERTEX_X']-df[f'{mother}_TRUEENDVERTEX_X']
+    Y = df[f'{intermediate}_TRUEENDVERTEX_Y']-df[f'{mother}_TRUEENDVERTEX_Y']
+    Z = df[f'{intermediate}_TRUEENDVERTEX_Z']-df[f'{mother}_TRUEENDVERTEX_Z']
+    dist = np.sqrt(X**2 + Y**2 + Z**2)
+    return dist
+
 def compute_impactParameter(df, mother, particles, true_vars=True):
 
     PX = 0

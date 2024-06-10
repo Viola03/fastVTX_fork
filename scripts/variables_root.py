@@ -15,7 +15,8 @@ masses[211] = 139.57039
 masses[13] = 105.66
 masses[11] = 0.51099895000 * 1e-3
 
-file_name = 'B2KEE_three_body_cut.root'
+# file_name = 'B2KEE_three_body_cut.root'
+file_name = 'cocktail_three_body_cut.root'
 # file_name = 'B2KEE_three_body_cut_SMALL.root'
 particles = ["DAUGHTER1", "DAUGHTER2", "DAUGHTER3"]
 mother = 'MOTHER'
@@ -23,10 +24,11 @@ intermediate = 'INTERMEDIATE'
 
 # particles = ["K_Kst", "e_minus", "e_plus"]
 # mother = 'B_plus'
+# intermediate = "J_psi_1S"
 # # file_name = 'Kee_2018_truthed.csv'
 # # file_name = 'Kstee_2018_truthed.csv'
-# file_name = 'B2Kee_2018_CommonPresel.csv'
-# # file_name = 'JPSIX_2018_truthed.csv'
+# # file_name = 'B2Kee_2018_CommonPresel.csv'
+# file_name = 'JPSIX_2018_truthed.csv'
 
 directory = '/users/am13743/fast_vertexing_variables/datasets/'
 print("Opening file...")
@@ -44,6 +46,7 @@ print(events.shape)
 pid_list = [11,13,211,321]
 
 
+
 for particle in particles:
     events = events[np.abs(events[f'{particle}_TRUEID']).isin(pid_list)]
 
@@ -54,6 +57,20 @@ for particle in particles:
     events[f'{particle}_mass'] = mass
 
 print(events.shape)
+
+dist = vt.compute_intermediate_distance(events, intermediate, mother)
+dist = np.asarray(dist)
+print(f'fraction of intermediates that travel: {np.shape(dist[np.where(dist>0)])[0]/np.shape(dist)[0]}')
+dist[np.where(dist==0)] = 1E-4
+events[f"{intermediate}_FLIGHT"] = dist
+
+# plt.hist(np.log10(dist[np.where(dist>0)]),bins=50)
+# plt.xlabel('log10(distance intermediate travelled)')
+# plt.title('9 percent travel')
+# plt.yscale('log')
+# plt.savefig('test')
+# quit()
+
 
 for particle_i in range(0, len(particles)):
     for particle_j in range(particle_i + 1, len(particles)):
