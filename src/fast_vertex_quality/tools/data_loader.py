@@ -157,12 +157,18 @@ class Transformer:
             data = np.asarray(data_raw).astype('float64')
 
         if self.column in self.log_columns:
-            data[np.where(data==0)] = 1E-6
+            try:
+                data[np.where(data==0)] = 1E-6
+            except:
+                pass
             data = np.log10(data)
         elif self.column in self.one_minus_log_columns:
-            data[np.where(data==1)] = 1.-1E-15
-            data[np.where(np.isnan(data))] = 1.-1E-15
-            data[np.where(np.isinf(data))] = 1.-1E-15
+            try:
+                data[np.where(data==1)] = 1.-1E-15
+                data[np.where(np.isnan(data))] = 1.-1E-15
+                data[np.where(np.isinf(data))] = 1.-1E-15
+            except:
+                pass
             data = np.log10(1.0 - data)
 
         data = data - self.min

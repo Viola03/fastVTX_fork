@@ -15,20 +15,20 @@ masses[211] = 139.57039
 masses[13] = 105.66
 masses[11] = 0.51099895000 * 1e-3
 
-# # file_name = 'B2KEE_three_body_cut.root'
+file_name = 'B2KEE_three_body_cut.root'
 # file_name = 'cocktail_three_body_cut.root'
-# # file_name = 'B2KEE_three_body_cut_SMALL.root'
-# particles = ["DAUGHTER1", "DAUGHTER2", "DAUGHTER3"]
-# mother = 'MOTHER'
-# intermediate = 'INTERMEDIATE'
+# file_name = 'B2KEE_three_body_cut_SMALL.root'
+particles = ["DAUGHTER1", "DAUGHTER2", "DAUGHTER3"]
+mother = 'MOTHER'
+intermediate = 'INTERMEDIATE'
 
-particles = ["K_Kst", "e_minus", "e_plus"]
-mother = 'B_plus'
-intermediate = "J_psi_1S"
-# file_name = 'Kee_2018_truthed.csv'
-file_name = 'Kstee_2018_truthed.csv'
-# file_name = 'B2Kee_2018_CommonPresel.csv'
-# file_name = 'JPSIX_2018_truthed.csv'
+# particles = ["K_Kst", "e_minus", "e_plus"]
+# mother = 'B_plus'
+# intermediate = "J_psi_1S"
+# # file_name = 'Kee_2018_truthed.csv'
+# file_name = 'Kstee_2018_truthed.csv'
+# # file_name = 'B2Kee_2018_CommonPresel.csv'
+# # file_name = 'JPSIX_2018_truthed.csv'
 
 directory = '/users/am13743/fast_vertexing_variables/datasets/'
 print("Opening file...")

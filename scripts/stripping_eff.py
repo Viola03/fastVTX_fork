@@ -21,7 +21,8 @@ loader = data_loader.load_data(
 loader_gen = data_loader.load_data(
     [
         # "saved_output.root",
-        "saved_output_WGAN.root",
+        # "saved_output_WGAN.root",
+        "saved_output_WGANcocktail.root",
     ],
     transformers=transformers,
     convert_to_RK_branch_names=True,
