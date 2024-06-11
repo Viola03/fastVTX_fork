@@ -9,7 +9,7 @@ import vector
 
 
 
-def compute_DIRA(df, mother, particles, true_vars=True):
+def compute_DIRA(df, mother, particles, true_vars=True, true_vertex=False):
 
     PX = 0
     PY = 0
@@ -31,22 +31,34 @@ def compute_DIRA(df, mother, particles, true_vars=True):
         PY,
         PZ]))
 
-    B = norm(
-        np.asarray(
-            [
-                df[f"{mother}_ENDVERTEX_X"] - df[f"{mother}_OWNPV_X"],
-                df[f"{mother}_ENDVERTEX_Y"] - df[f"{mother}_OWNPV_Y"],
-                df[f"{mother}_ENDVERTEX_Z"] - df[f"{mother}_OWNPV_Z"],
-            ]
+    if true_vertex:
+        B = norm(
+            np.asarray(
+                [
+                    df[f"{mother}_TRUEENDVERTEX_X"] - df[f"{mother}_TRUEORIGINVERTEX_X"],
+                    df[f"{mother}_TRUEENDVERTEX_Y"] - df[f"{mother}_TRUEORIGINVERTEX_Y"],
+                    df[f"{mother}_TRUEENDVERTEX_Z"] - df[f"{mother}_TRUEORIGINVERTEX_Z"],
+                ]
+            )
         )
-    )
+    else:
+        B = norm(
+            np.asarray(
+                [
+                    df[f"{mother}_ENDVERTEX_X"] - df[f"{mother}_OWNPV_X"],
+                    df[f"{mother}_ENDVERTEX_Y"] - df[f"{mother}_OWNPV_Y"],
+                    df[f"{mother}_ENDVERTEX_Z"] - df[f"{mother}_OWNPV_Z"],
+                ]
+            )
+        )
+
     dira = dot(A, B) / np.sqrt(mag(A) ** 2 * mag(B) ** 2)
 
     return dira
 
 
 
-def compute_flightDistance(df, mother, particles, true_vars=True):
+def compute_flightDistance(df, mother, particles, true_vars=True, true_vertex=False):
 
     PX = 0
     PY = 0
@@ -68,13 +80,21 @@ def compute_flightDistance(df, mother, particles, true_vars=True):
         py=PY,
         pz=PZ,
     )
-
-    end_vertex = np.asarray(
-        [df[f"{mother}_ENDVERTEX_X"], df[f"{mother}_ENDVERTEX_Y"], df[f"{mother}_ENDVERTEX_Z"]]
-    )
-    primary_vertex = np.asarray(
-        [df[f"{mother}_OWNPV_X"], df[f"{mother}_OWNPV_Y"], df[f"{mother}_OWNPV_Z"]]
-    )
+    
+    if true_vertex:
+        end_vertex = np.asarray(
+            [df[f"{mother}_TRUEENDVERTEX_X"], df[f"{mother}_TRUEENDVERTEX_Y"], df[f"{mother}_TRUEENDVERTEX_Z"]]
+        )
+        primary_vertex = np.asarray(
+            [df[f"{mother}_TRUEORIGINVERTEX_X"], df[f"{mother}_TRUEORIGINVERTEX_Y"], df[f"{mother}_TRUEORIGINVERTEX_Z"]]
+        )
+    else:
+        end_vertex = np.asarray(
+            [df[f"{mother}_ENDVERTEX_X"], df[f"{mother}_ENDVERTEX_Y"], df[f"{mother}_ENDVERTEX_Z"]]
+        )
+        primary_vertex = np.asarray(
+            [df[f"{mother}_OWNPV_X"], df[f"{mother}_OWNPV_Y"], df[f"{mother}_OWNPV_Z"]]
+        )
 
     momenta_array = np.asarray([momenta.px, momenta.py, momenta.pz])
     P = momenta.mag
@@ -141,7 +161,7 @@ def compute_angle(df, mother, particle, true_vars=True):
     return dot_prod
 
 
-def compute_impactParameter_i(df, mother, particle, true_vars=True):
+def compute_impactParameter_i(df, mother, particle, true_vars=True, true_vertex=False):
 
     if true_vars:
         momenta = vector.obj(
@@ -155,12 +175,21 @@ def compute_impactParameter_i(df, mother, particle, true_vars=True):
             py=df[f"{particle}_PY"],
             pz=df[f"{particle}_PZ"],
         )
-    end_vertex = np.asarray(
-        [df[f"{mother}_ENDVERTEX_X"], df[f"{mother}_ENDVERTEX_Y"], df[f"{mother}_ENDVERTEX_Z"]]
-    )
-    primary_vertex = np.asarray(
-        [df[f"{mother}_OWNPV_X"], df[f"{mother}_OWNPV_Y"], df[f"{mother}_OWNPV_Z"]]
-    )
+
+    if true_vertex:
+        end_vertex = np.asarray(
+            [df[f"{mother}_TRUEENDVERTEX_X"], df[f"{mother}_TRUEENDVERTEX_Y"], df[f"{mother}_TRUEENDVERTEX_Z"]]
+        )
+        primary_vertex = np.asarray(
+            [df[f"{mother}_TRUEORIGINVERTEX_X"], df[f"{mother}_TRUEORIGINVERTEX_Y"], df[f"{mother}_TRUEORIGINVERTEX_Z"]]
+        )
+    else:
+        end_vertex = np.asarray(
+            [df[f"{mother}_ENDVERTEX_X"], df[f"{mother}_ENDVERTEX_Y"], df[f"{mother}_ENDVERTEX_Z"]]
+        )
+        primary_vertex = np.asarray(
+            [df[f"{mother}_OWNPV_X"], df[f"{mother}_OWNPV_Y"], df[f"{mother}_OWNPV_Z"]]
+        )
 
     momenta_array = np.asarray([momenta.px, momenta.py, momenta.pz])
     P = momenta.mag
@@ -184,7 +213,7 @@ def compute_intermediate_distance(df, intermediate, mother):
     dist = np.sqrt(X**2 + Y**2 + Z**2)
     return dist
 
-def compute_impactParameter(df, mother, particles, true_vars=True):
+def compute_impactParameter(df, mother, particles, true_vars=True, true_vertex=False):
 
     PX = 0
     PY = 0
@@ -207,12 +236,21 @@ def compute_impactParameter(df, mother, particles, true_vars=True):
         pz=PZ,
     )
 
-    end_vertex = np.asarray(
-        [df[f"{mother}_ENDVERTEX_X"], df[f"{mother}_ENDVERTEX_Y"], df[f"{mother}_ENDVERTEX_Z"]]
-    )
-    primary_vertex = np.asarray(
-        [df[f"{mother}_OWNPV_X"], df[f"{mother}_OWNPV_Y"], df[f"{mother}_OWNPV_Z"]]
-    )
+    if true_vertex:
+        end_vertex = np.asarray(
+            [df[f"{mother}_TRUEENDVERTEX_X"], df[f"{mother}_TRUEENDVERTEX_Y"], df[f"{mother}_TRUEENDVERTEX_Z"]]
+        )
+        primary_vertex = np.asarray(
+            [df[f"{mother}_TRUEORIGINVERTEX_X"], df[f"{mother}_TRUEORIGINVERTEX_Y"], df[f"{mother}_TRUEORIGINVERTEX_Z"]]
+        )
+    else:
+        end_vertex = np.asarray(
+            [df[f"{mother}_ENDVERTEX_X"], df[f"{mother}_ENDVERTEX_Y"], df[f"{mother}_ENDVERTEX_Z"]]
+        )
+        primary_vertex = np.asarray(
+            [df[f"{mother}_OWNPV_X"], df[f"{mother}_OWNPV_Y"], df[f"{mother}_OWNPV_Z"]]
+        )
+
 
     momenta_array = np.asarray([momenta.px, momenta.py, momenta.pz])
     P = momenta.mag

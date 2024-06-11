@@ -38,6 +38,36 @@ class BDT_tester:
         gen_track_chi2=True,
     ):
 
+        self.log_columns = [
+            f"{rd.mother_particle}_FDCHI2_OWNPV",
+            f"{rd.daughter_particles[0]}_IPCHI2_OWNPV",
+            f"{rd.daughter_particles[1]}_IPCHI2_OWNPV",
+            f"{rd.daughter_particles[2]}_IPCHI2_OWNPV",
+            f"{rd.daughter_particles[0]}_PZ",
+            f"{rd.daughter_particles[1]}_PZ",
+            f"{rd.daughter_particles[2]}_PZ",
+            f"{rd.mother_particle}_ENDVERTEX_CHI2",
+            f"{rd.mother_particle}_IPCHI2_OWNPV",
+            f"IP_{rd.mother_particle}",
+            f"{rd.intermediate_particle}_FDCHI2_OWNPV",
+            f"{rd.intermediate_particle}_FLIGHT",
+
+            f"{rd.mother_particle}_P",
+            f"{rd.mother_particle}_PT",
+            f"IP_{rd.daughter_particles[0]}",
+            f"IP_{rd.daughter_particles[1]}",
+            f"IP_{rd.daughter_particles[2]}",
+            f"FD_{rd.mother_particle}",
+            f"IP_{rd.daughter_particles[0]}_true_vertex",
+            f"IP_{rd.daughter_particles[1]}_true_vertex",
+            f"IP_{rd.daughter_particles[2]}_true_vertex",
+            f"FD_{rd.mother_particle}_true_vertex",
+
+        ]
+
+        self.one_minus_log_columns = [f"{rd.mother_particle}_DIRA_OWNPV", f"DIRA_{rd.mother_particle}", f"DIRA_{rd.mother_particle}_true_vertex"]
+
+
         self.signal_label = signal_label
         self.background_label = background_label
 
@@ -119,6 +149,8 @@ class BDT_tester:
 
                 self.BDTs[kFold] = {}
                 self.BDTs[kFold]["BDT"] = clf
+                self.BDTs[kFold]["signal_sample"] = real_training_data
+                self.BDTs[kFold]["bkg_sample"] = fake_training_data
 
                 break
 
@@ -304,13 +336,47 @@ class BDT_tester:
             generate=False,
             N=10000,
         )
-
+        
         prc_gen = self.get_sample(
             "datasets/Kstee_2018_truthed_more_vars.csv",
             vertex_quality_trainer_obj,
             generate=True,
             N=10000,
         )
+
+        print(np.shape(signal_gen))
+        print(np.shape(prc_MC))
+        print(np.shape(prc_gen))
+        print(np.shape(self.BDTs[0]["signal_sample"]))
+        print(np.shape(self.BDTs[0]["bkg_sample"]))
+
+        with PdfPages(f"BDT_distributions.pdf") as pdf:
+            
+            for i in range(np.shape(signal_gen)[1]):
+                
+                data = [np.asarray(self.BDTs[0]["signal_sample"])[:,i], np.asarray(self.BDTs[0]["bkg_sample"])[:,i], np.asarray(signal_gen)[:,i], np.asarray(prc_MC)[:,i], np.asarray(prc_gen)[:,i]]
+
+                if self.BDT_vars[i] in self.log_columns:
+                    for j in range(len(data)):
+                        data[j] = np.log10(data[j])
+                # elif self.BDT_vars[i] in self.one_minus_log_columns:
+                #     data[j][np.where(data[j]==1)] = 1.-1E-15
+                #     data[j][np.where(np.isnan(data[j]))] = 1.-1E-15
+                #     data[j][np.where(np.isinf(data[j]))] = 1.-1E-15
+                #     for j in range(len(data)):
+                #         data[j] = np.log10(1.-data[j])
+
+                plt.hist(data, density=True, histtype='step', color=["tab:blue", "tab:red", "tab:green", "tab:purple", "k"], bins=75,label=["sig - MC","bkg","sig - gen", "prc - MC", "prc - gen"])
+                if self.BDT_vars[i] in self.log_columns:
+                    plt.xlabel(f'log({self.BDT_vars[i]})')
+                # elif self.BDT_vars[i] in self.one_minus_log_columns:
+                #     plt.xlabel(f'log(1-{self.BDT_vars[i]})')
+                else:
+                    plt.xlabel(self.BDT_vars[i])
+                plt.legend()
+                pdf.savefig(bbox_inches="tight")
+                plt.close()
+
 
         samples = [signal_gen, prc_MC, prc_gen]
         labels = ["sig - gen", "prc - MC", "prc - gen"]
@@ -368,6 +434,7 @@ class BDT_tester:
     
     def make_BDT_plot_intermediates(
         self,
+        vertex_quality_trainer_obj,
         filename,
         include_combinatorial=False,
         include_jpsiX=False,
@@ -379,8 +446,26 @@ class BDT_tester:
             generate=False,
             N=10000,
         )
+
+        cocktail_421_gen = self.get_sample(
+            "datasets/cocktail_three_body_cut_more_vars.root",
+            vertex_quality_trainer_obj,
+            generate=True,
+            N=10000,
+            convert_branches=True,
+            cut='abs(B_plus_TRUEID)==521 & abs(J_psi_1S_TRUEID)==421 & pass_stripping == 1',
+        )
+
+        cocktail_521_gen = self.get_sample(
+            "datasets/cocktail_three_body_cut_more_vars.root",
+            vertex_quality_trainer_obj,
+            generate=True,
+            N=10000,
+            convert_branches=True,
+            cut='abs(B_plus_TRUEID)==521 & abs(e_plus_TRUEID)==11 & abs(e_minus_TRUEID)==11 & abs(K_Kst_TRUEID)==321 & pass_stripping == 1',
+        )
+
             
-        
         cocktail_421 = self.get_sample(
             "datasets/cocktail_three_body_cut_more_vars.root",
             None,
@@ -399,9 +484,9 @@ class BDT_tester:
             cut='abs(B_plus_TRUEID)==521 & abs(e_plus_TRUEID)==11 & abs(e_minus_TRUEID)==11 & abs(K_Kst_TRUEID)==321 & pass_stripping == 1',
         )
 
-        samples = [prc_MC, cocktail_421, cocktail_521]
-        labels = ["prc - MC", 'cocktail - 421', 'cocktail - 521']
-        colours = ["tab:blue", "tab:red", "tab:purple", 'k', 'tab:green']
+        samples = [prc_MC, cocktail_421, cocktail_521, cocktail_421_gen, cocktail_521_gen]
+        labels = ["prc - MC", 'cocktail - 421', 'cocktail - 521', 'cocktail - 421 gen', 'cocktail - 521 -gen']
+        colours = ["tab:blue", "tab:red", "tab:purple", 'k', 'tab:green', 'tab:orange', 'tab:olive']
 
         scores = self.query_and_plot_samples(
             samples,

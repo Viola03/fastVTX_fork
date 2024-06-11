@@ -31,8 +31,10 @@ def write_df_to_root(df, output_name):
 
 
 
-mode = 'cocktail_three_body'
-job_ID = 1344
+# mode = 'cocktail_three_body'
+# job_ID = 1344
+mode = 'B2KEE_three_body'
+job_ID = 719
 # job_ID = 'temp'
 
 localDir = f'/eos/lhcb/user/m/marshall/gangaDownload/{job_ID}/'

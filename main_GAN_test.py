@@ -168,8 +168,15 @@ conditions = [
     "IP_e_minus",
     "FD_B_plus",
     "DIRA_B_plus",
-    "J_psi_1S_FLIGHT"
-]
+    "J_psi_1S_FLIGHT",
+    "missing_B_plus_P",
+    "missing_B_plus_PT",
+    "missing_J_psi_1S_P",
+    "missing_J_psi_1S_PT",
+    "m_01",
+    "m_02",
+    "m_12",
+    ]
 
 targets = [
     "B_plus_ENDVERTEX_CHI2",
@@ -217,7 +224,7 @@ vertex_quality_trainer_obj = vertex_quality_trainer(
 
 # vertex_quality_trainer_obj.load_state(tag=f"networks/vertex_job_WGANcocktail")
 vertex_quality_trainer_obj.load_state(tag=f"networks/vertex_job_WGANcocktail")
-# vertex_quality_trainer_obj.gen_data('saved_output_WGANcocktail.root')
+vertex_quality_trainer_obj.gen_data('saved_output_WGANcocktail.root')
 
 print(f"Initialising BDT tester...")
 BDT_tester_obj = BDT_tester(
@@ -232,6 +239,6 @@ BDT_tester_obj = BDT_tester(
     gen_track_chi2=False
 )
 scores = BDT_tester_obj.make_BDT_plot(
-    vertex_quality_trainer_obj, f"BDT_job_WGANcocktail_521.pdf", include_combinatorial=False, include_jpsiX=False
+    vertex_quality_trainer_obj, f"BDT_job_WGANcocktail.pdf", include_combinatorial=False, include_jpsiX=False
 )
 

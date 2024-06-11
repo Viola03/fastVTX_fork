@@ -16,23 +16,47 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 transformers = pickle.load(open("networks/vertex_job_WGANcocktail_transfomers.pkl", "rb"))
 
+rd.latent = 50 # noise dims
+
 rd.daughter_particles = ["K_Kst", "e_plus", "e_minus"] # K e e
 rd.mother_particle = 'B_plus'
 rd.intermediate_particle = 'J_psi_1S'
 
 
-# print(f"Loading data...")
-# training_data_loader = data_loader.load_data(
-#     [
-#         "datasets/cocktail_three_body_cut_more_vars.root",
-#     ],
-#     convert_to_RK_branch_names=True,
-#     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
-# )
-# transformers = training_data_loader.get_transformers()
+print(f"Loading data...")
+training_data_loader = data_loader.load_data(
+    [
+        "datasets/cocktail_three_body_cut_more_vars.root",
+    ],
+    convert_to_RK_branch_names=True,
+    conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
+)
+transformers = training_data_loader.get_transformers()
 
-# quit()
-
+conditions = [
+    "B_plus_P",
+    "B_plus_PT",
+    "angle_K_Kst",
+    "angle_e_plus",
+    "angle_e_minus",
+    "K_Kst_eta",
+    "e_plus_eta",
+    "e_minus_eta",
+    "IP_B_plus",
+    "IP_K_Kst",
+    "IP_e_plus",
+    "IP_e_minus",
+    "FD_B_plus",
+    "DIRA_B_plus",
+    "J_psi_1S_FLIGHT",
+    "missing_B_plus_P",
+    "missing_B_plus_PT",
+    "missing_J_psi_1S_P",
+    "missing_J_psi_1S_PT",
+    "m_01",
+    "m_02",
+    "m_12",
+    ]
 
 targets = [
     "B_plus_ENDVERTEX_CHI2",
@@ -47,6 +71,20 @@ targets = [
     "e_plus_TRACK_CHI2NDOF",
     "J_psi_1S_FDCHI2_OWNPV",
 ]
+
+vertex_quality_trainer_obj = vertex_quality_trainer(
+    training_data_loader,
+    None,
+    conditions=conditions,
+    targets=targets,
+    beta=float(rd.beta),
+    latent_dim=rd.latent,
+    batch_size=64,
+    D_architecture=[1000,2000,1000],
+    G_architecture=[1000,2000,1000],
+    network_option='WGAN',
+)
+vertex_quality_trainer_obj.load_state(tag=f"networks/vertex_job_WGANcocktail")
 
 print(f"Initialising BDT tester...")
 BDT_tester_obj = BDT_tester(
@@ -64,6 +102,6 @@ BDT_tester_obj = BDT_tester(
 #     vertex_quality_trainer_obj, f"BDT_job_WGANcocktail.pdf", include_combinatorial=False, include_jpsiX=False
 # )
 
-scores = BDT_tester_obj.make_BDT_plot_intermediates(f"BDT_intermediates.pdf", include_combinatorial=False, include_jpsiX=False
+scores = BDT_tester_obj.make_BDT_plot_intermediates(vertex_quality_trainer_obj, f"BDT_intermediates.pdf", include_combinatorial=False, include_jpsiX=False
 )
 

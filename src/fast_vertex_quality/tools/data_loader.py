@@ -120,10 +120,14 @@ class Transformer:
             f"IP_{rd.daughter_particles[1]}",
             f"IP_{rd.daughter_particles[2]}",
             f"FD_{rd.mother_particle}",
+            f"IP_{rd.daughter_particles[0]}_true_vertex",
+            f"IP_{rd.daughter_particles[1]}_true_vertex",
+            f"IP_{rd.daughter_particles[2]}_true_vertex",
+            f"FD_{rd.mother_particle}_true_vertex",
 
         ]
 
-        self.one_minus_log_columns = [f"{rd.mother_particle}_DIRA_OWNPV", f"DIRA_{rd.mother_particle}"]
+        self.one_minus_log_columns = [f"{rd.mother_particle}_DIRA_OWNPV", f"DIRA_{rd.mother_particle}", f"DIRA_{rd.mother_particle}_true_vertex"]
 
     def fit(self, data_raw, column):
 
@@ -132,10 +136,15 @@ class Transformer:
         data = data_raw.copy()
 
         if column in self.log_columns:
+            data[np.where(data==0)] = 1E-6
             data = np.log10(data)
         elif column in self.one_minus_log_columns:
+            data[np.where(data==1)] = 1.-1E-15
+            data[np.where(np.isnan(data))] = 1.-1E-15
+            data[np.where(np.isinf(data))] = 1.-1E-15
             data = np.log10(1.0 - data)
 
+            
         self.min = np.amin(data)
         self.max = np.amax(data)
 
@@ -148,8 +157,12 @@ class Transformer:
             data = np.asarray(data_raw).astype('float64')
 
         if self.column in self.log_columns:
+            data[np.where(data==0)] = 1E-6
             data = np.log10(data)
         elif self.column in self.one_minus_log_columns:
+            data[np.where(data==1)] = 1.-1E-15
+            data[np.where(np.isnan(data))] = 1.-1E-15
+            data[np.where(np.isinf(data))] = 1.-1E-15
             data = np.log10(1.0 - data)
 
         data = data - self.min
