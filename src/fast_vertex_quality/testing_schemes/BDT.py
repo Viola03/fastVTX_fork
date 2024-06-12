@@ -438,65 +438,87 @@ class BDT_tester:
         filename,
         include_combinatorial=False,
         include_jpsiX=False,
+        intermediate_IDs=None
     ):
 
-        prc_MC = self.get_sample(
-            "datasets/Kstee_2018_truthed_more_vars.csv",
-            None,
-            generate=False,
-            N=10000,
-        )
+        # if intermediate_IDs == None:
+        #     intermediate_IDs = [421]
 
-        cocktail_421_gen = self.get_sample(
-            "datasets/cocktail_three_body_cut_more_vars.root",
-            vertex_quality_trainer_obj,
-            generate=True,
-            N=10000,
-            convert_branches=True,
-            cut='abs(B_plus_TRUEID)==521 & abs(J_psi_1S_TRUEID)==421 & pass_stripping == 1',
-        )
+        # for intermediate_ID in intermediate_IDs:
 
-        cocktail_521_gen = self.get_sample(
-            "datasets/cocktail_three_body_cut_more_vars.root",
-            vertex_quality_trainer_obj,
-            generate=True,
-            N=10000,
-            convert_branches=True,
-            cut='abs(B_plus_TRUEID)==521 & abs(e_plus_TRUEID)==11 & abs(e_minus_TRUEID)==11 & abs(K_Kst_TRUEID)==321 & pass_stripping == 1',
-        )
+        #     cocktail_gen = self.get_sample(
+        #         "datasets/cocktail_three_body_cut_more_vars.root",
+        #         vertex_quality_trainer_obj,
+        #         generate=True,
+        #         N=10000,
+        #         convert_branches=True,
+        #         cut=f'abs(B_plus_TRUEID)==521 & abs(J_psi_1S_TRUEID)=={intermediate_ID} & pass_stripping == 1',
+        #     )
 
-            
-        cocktail_421 = self.get_sample(
-            "datasets/cocktail_three_body_cut_more_vars.root",
-            None,
-            generate=False,
-            N=10000,
-            convert_branches=True,
-            cut='abs(B_plus_TRUEID)==521 & abs(J_psi_1S_TRUEID)==421 & pass_stripping == 1',
-        )
+        #     cocktail = self.get_sample(
+        #         "datasets/cocktail_three_body_cut_more_vars.root",
+        #         None,
+        #         generate=False,
+        #         N=10000,
+        #         convert_branches=True,
+        #         cut=f'abs(B_plus_TRUEID)==521 & abs(J_psi_1S_TRUEID)=={intermediate_ID} & pass_stripping == 1',
+        #     )
 
-        cocktail_521 = self.get_sample(
-            "datasets/cocktail_three_body_cut_more_vars.root",
-            None,
-            generate=False,
-            N=10000,
-            convert_branches=True,
-            cut='abs(B_plus_TRUEID)==521 & abs(e_plus_TRUEID)==11 & abs(e_minus_TRUEID)==11 & abs(K_Kst_TRUEID)==321 & pass_stripping == 1',
-        )
+        #     samples = [cocktail, cocktail_gen]
+        #     labels = [f'cocktail - {intermediate_ID}', f'cocktail - {intermediate_ID} gen']
+        #     # colours = ["tab:blue", "tab:red", "tab:purple", 'k']
+        #     colours = ["tab:purple", 'k']
 
-        samples = [prc_MC, cocktail_421, cocktail_521, cocktail_421_gen, cocktail_521_gen]
-        labels = ["prc - MC", 'cocktail - 421', 'cocktail - 521', 'cocktail - 421 gen', 'cocktail - 521 -gen']
-        colours = ["tab:blue", "tab:red", "tab:purple", 'k', 'tab:green', 'tab:orange', 'tab:olive']
+        #     scores = self.query_and_plot_samples(
+        #         samples,
+        #         labels,
+        #         colours=colours,
+        #         filename=f"{filename[:-4]}_{intermediate_ID}.pdf",
+        #         include_combinatorial=include_combinatorial,
+        #         only_hists=True,
+        #         plot_training=False,
+        #     )
 
-        scores = self.query_and_plot_samples(
-            samples,
-            labels,
-            colours=colours,
-            filename=filename,
-            include_combinatorial=include_combinatorial,
-            only_hists=True,
-        )
+        if intermediate_IDs == None:
+            intermediate_IDs = [421]
 
+        for intermediate_ID in intermediate_IDs:
+
+            cocktail_gen = self.get_sample(
+                "datasets/cocktail_three_body_cut_more_vars.root",
+                vertex_quality_trainer_obj,
+                generate=True,
+                N=10000,
+                convert_branches=True,
+                cut=f'abs(B_plus_TRUEID)==521 & abs(J_psi_1S_TRUEID)=={intermediate_ID} & pass_stripping == 1',
+            )
+
+            cocktail = self.get_sample(
+                "datasets/cocktail_three_body_cut_more_vars.root",
+                None,
+                generate=False,
+                N=10000,
+                convert_branches=True,
+                cut=f'abs(B_plus_TRUEID)==521 & abs(J_psi_1S_TRUEID)=={intermediate_ID} & pass_stripping == 1',
+            )
+
+            samples = [cocktail, cocktail_gen]
+            labels = [f'cocktail - {intermediate_ID}', f'cocktail - {intermediate_ID} gen']
+            # colours = ["tab:blue", "tab:red", "tab:purple", 'k']
+            colours = ["tab:purple", 'k']
+
+            scores = self.query_and_plot_samples(
+                samples,
+                labels,
+                colours=colours,
+                filename=f"{filename[:-4]}_{intermediate_ID}.pdf",
+                include_combinatorial=include_combinatorial,
+                only_hists=True,
+                plot_training=False,
+            )
+
+
+    
         return scores
     
 
@@ -747,11 +769,13 @@ class BDT_tester:
         kFold=0,
         include_combinatorial=False,
         only_hists=False,
+        plot_training=True,
     ):
 
         sample_values = {}
-        sample_values[self.signal_label] = self.BDTs[kFold]["values_sig"]
-        sample_values[self.background_label] = self.BDTs[kFold]["values_bkg"]
+        if plot_training:
+            sample_values[self.signal_label] = self.BDTs[kFold]["values_sig"]
+            sample_values[self.background_label] = self.BDTs[kFold]["values_bkg"]
 
         clf = self.BDTs[kFold]["BDT"]
 

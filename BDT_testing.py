@@ -33,6 +33,28 @@ training_data_loader = data_loader.load_data(
 )
 transformers = training_data_loader.get_transformers()
 
+df = training_data_loader.get_branches(['J_psi_1S_TRUEID', 'B_plus_TRUEID', 'pass_stripping'], processed=False)
+# df = df.query('abs(B_plus_TRUEID)==521 & pass_stripping')
+trueIDs = np.asarray(df['B_plus_TRUEID'])
+IDs = np.unique(trueIDs)
+for ID in IDs:
+    shape = np.shape(np.where(trueIDs==ID))[1]
+    if ID > 0:
+        print(ID, 'n:',shape)
+quit()
+
+
+df = training_data_loader.get_branches(['J_psi_1S_TRUEID', 'B_plus_TRUEID', 'pass_stripping'], processed=False)
+df = df.query('abs(B_plus_TRUEID)==521 & pass_stripping')
+trueIDs = np.asarray(df['J_psi_1S_TRUEID'])
+IDs = np.unique(trueIDs)
+intermediate_IDs = []
+for ID in IDs:
+    shape = np.shape(np.where(trueIDs==ID))[1]
+    if shape > 500 and ID > 0:
+        print(ID, 'n:',shape)
+        intermediate_IDs.append(ID)
+
 conditions = [
     "B_plus_P",
     "B_plus_PT",
@@ -102,6 +124,6 @@ BDT_tester_obj = BDT_tester(
 #     vertex_quality_trainer_obj, f"BDT_job_WGANcocktail.pdf", include_combinatorial=False, include_jpsiX=False
 # )
 
-scores = BDT_tester_obj.make_BDT_plot_intermediates(vertex_quality_trainer_obj, f"BDT_intermediates.pdf", include_combinatorial=False, include_jpsiX=False
+scores = BDT_tester_obj.make_BDT_plot_intermediates(vertex_quality_trainer_obj, f"BDT_intermediates.pdf", include_combinatorial=False, include_jpsiX=False,intermediate_IDs=intermediate_IDs
 )
 
