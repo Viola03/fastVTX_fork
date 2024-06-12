@@ -31,11 +31,14 @@ def write_df_to_root(df, output_name):
 
 
 
-mode = 'cocktail_three_body'
-job_ID = 1344
+# mode = 'cocktail_three_body'
+# job_ID = 1344
 #mode = 'B2KEE_three_body'
 #job_ID = 719
 # job_ID = 'temp'
+
+mode = 'cocktail_mix'
+job_ID = 1404
 
 localDir = f'/eos/lhcb/user/m/marshall/gangaDownload/{job_ID}/'
 
@@ -77,6 +80,7 @@ branches_to_keep = [
     'INTERMEDIATE_TRUEORIGINVERTEX_X',
     'INTERMEDIATE_TRUEORIGINVERTEX_Y',
     'INTERMEDIATE_TRUEORIGINVERTEX_Z',
+    'EVT_GenEvent',
 ]
 # branches_to_keep = [
 # 'MOTHER_TRUEID', 'MOTHER_BKGCAT'

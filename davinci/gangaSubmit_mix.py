@@ -72,8 +72,13 @@ LFNs = pickle.load(filehandler)
 
 extend = False
 
-nfiles_per = 25
+# nfiles_per = 25
+# filesPerJob = 4
 
+nfiles_per = 1
+filesPerJob = 1
+
+total = 0
 for target in list(LFNs.keys()):
 
 	files = []
@@ -85,6 +90,8 @@ for target in list(LFNs.keys()):
 		for n in range(nfiles_per):
 			files.append(LFNs[target][n])
 	
+	total += len(files)
+
 	if extend:
 		comp_dataset.extend(files)
 	else:
@@ -92,6 +99,7 @@ for target in list(LFNs.keys()):
 		comp_dataset = LHCbCompressedDataset(fileset)
 		extend = True
 
+print(f'\n\ntotal number of files: {total}, jobs {total/filesPerJob:2f}\n\n')
 
 # job_name = 'mix'
 year = ["18"]
@@ -120,7 +128,8 @@ except:
     myApp = GaudiExec()
     myApp.directory = "./DaVinciDev_v44r3"
 
-myApp.platform = "x86_64-slc6-gcc62-opt"
+# myApp.platform = "x86_64-slc6-gcc62-opt"
+myApp.platform = "x86_64+avx2+fma-centos7-gcc62-opt"
 myApp.options = ["./davinci_intermediates.py"]
 
 bck = Dirac()
@@ -131,7 +140,7 @@ bck = Dirac()
 splitter = SplitByFiles()
 splitter.ignoremissing = True
 splitter.maxFiles = -1
-splitter.filesPerJob = 4
+splitter.filesPerJob = filesPerJob
 
 job = Job(name=job_name, comment=job_name, backend=bck, splitter=splitter)
 Year = (

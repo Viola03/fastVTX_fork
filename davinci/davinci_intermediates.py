@@ -308,13 +308,13 @@ print("Local INFO    Data Type  = {}".format(DaVinci().DataType))
 print("Local INFO    Simulation = {}".format(DaVinci().Simulation))
 
 
-from GaudiConf import IOHelper
-IOHelper().inputFiles(
-    [
-        # "/eos/home-m/marshall/DL-Advocate2/Kee.dst"
-        # "/eos/home-m/marshall/DL-Advocate2/00140982_00000034_7.AllStreams.dst"
-        # "/afs/cern.ch/work/m/marshall/fast_vertexing_variables/davinci/00113947_00000003_7.AllStreams.dst"
-        "/afs/cern.ch/work/m/marshall/fast_vertexing_variables/davinci/Kee.dst"
-    ],
-    clear=True,
-)
+# from GaudiConf import IOHelper
+# IOHelper().inputFiles(
+#     [
+#         # "/eos/home-m/marshall/DL-Advocate2/Kee.dst"
+#         # "/eos/home-m/marshall/DL-Advocate2/00140982_00000034_7.AllStreams.dst"
+#         # "/afs/cern.ch/work/m/marshall/fast_vertexing_variables/davinci/00113947_00000003_7.AllStreams.dst"
+#         "/afs/cern.ch/work/m/marshall/fast_vertexing_variables/davinci/Kee.dst"
+#     ],
+#     clear=True,
+# )
