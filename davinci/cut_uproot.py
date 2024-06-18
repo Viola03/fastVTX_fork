@@ -38,7 +38,10 @@ def write_df_to_root(df, output_name):
 # job_ID = 'temp'
 
 mode = 'cocktail_mix'
-job_ID = 1404
+job_ID = 1405
+
+add_cut = True
+# add_cut = False
 
 localDir = f'/eos/lhcb/user/m/marshall/gangaDownload/{job_ID}/'
 
@@ -81,6 +84,24 @@ branches_to_keep = [
     'INTERMEDIATE_TRUEORIGINVERTEX_Y',
     'INTERMEDIATE_TRUEORIGINVERTEX_Z',
     'EVT_GenEvent',
+
+
+    "MOTHER_MC_MOTHER_ID",
+    "MOTHER_MC_GD_MOTHER_ID",
+    "MOTHER_MC_GD_GD_MOTHER_ID",
+    "INTERMEDIATE_MC_MOTHER_ID",
+    "INTERMEDIATE_MC_GD_MOTHER_ID",
+    "INTERMEDIATE_MC_GD_GD_MOTHER_ID",
+    "DAUGHTER1_MC_MOTHER_ID",
+    "DAUGHTER1_MC_GD_MOTHER_ID",
+    "DAUGHTER1_MC_GD_GD_MOTHER_ID",
+    "DAUGHTER2_MC_MOTHER_ID",
+    "DAUGHTER2_MC_GD_MOTHER_ID",
+    "DAUGHTER2_MC_GD_GD_MOTHER_ID",
+    "DAUGHTER3_MC_MOTHER_ID",
+    "DAUGHTER3_MC_GD_MOTHER_ID",
+    "DAUGHTER3_MC_GD_GD_MOTHER_ID",
+
 ]
 # branches_to_keep = [
 # 'MOTHER_TRUEID', 'MOTHER_BKGCAT'
@@ -98,24 +119,33 @@ for file_idx, file in tqdm(enumerate(files), total=len(files), desc="Processing 
 
     if '_cut' in file:
         continue
-    # try:
-    with uproot.open(file) as ur_file:
-        tree = ur_file["B2Kee_Tuple/DecayTree"]
-        
-        data = tree.arrays(branches_to_keep, library="pd")
-        filtered_data = data.query(cut_condition)
+    try:
+        with uproot.open(file) as ur_file:
+            tree = ur_file["B2Kee_Tuple/DecayTree"]
 
-        if file_idx == 0:
-            filtered_data_total = filtered_data
-        else:
-            filtered_data_total = pd.concat((filtered_data_total, filtered_data), axis=0)
-        sucesses += 1
-        # with uproot.recreate(f'{file[:-5]}_cut.root') as temp_file:
-            # temp_file["DecayTree"] = {branch: filtered_data[branch] for branch in branches_to_keep if branch in filtered_data.columns}
+            if add_cut:
+                data = tree.arrays(branches_to_keep, library="pd")
+            else:
+                data = tree.arrays(list(tree.keys()), library="pd")
+                print(data)
 
-        # write_df_to_root(data, f'{file[:-5]}_cut.root')
-    # except:
-    #      pass
+            try:
+                filtered_data = data.query(cut_condition)
+            except:
+                filtered_data = data[0].query(cut_condition)
+                
+
+            if file_idx == 0:
+                filtered_data_total = filtered_data
+            else:
+                filtered_data_total = pd.concat((filtered_data_total, filtered_data), axis=0)
+            sucesses += 1
+            # with uproot.recreate(f'{file[:-5]}_cut.root') as temp_file:
+                # temp_file["DecayTree"] = {branch: filtered_data[branch] for branch in branches_to_keep if branch in filtered_data.columns}
+
+            # write_df_to_root(data, f'{file[:-5]}_cut.root')
+    except:
+         pass
     # if sucesses > 50:
     #       break
 write_df_to_root(filtered_data_total, new_file_path)
@@ -146,6 +176,7 @@ for branch in branches:
     # print(events.shape)
 
 
+print(new_file_path)
 
 quit()
 

@@ -190,10 +190,13 @@ class Bu2LLKConf(LineBuilder):
             "((VFASPF(VCHI2/VDOF) < %(BVertexCHI2)s) "
             "& (BPVIPCHI2() < %(BIPCHI2)s) "
             "& (BPVDIRA > %(BDIRA)s) "
+            # "& (ABSID > 0) "
+            "& ((mcMatch('B+')) | (mcMatch('B-')) | (mcMatch('B0')) | (mcMatch('B~0')) | (mcMatch('B_s0')) | (mcMatch('B_s~0'))  | (mcMatch('B_c+')) | (mcMatch('B_c-')))"
             "& (BPVVDCHI2 > %(BFlightCHI2)s))" % params
         )
 
         _Combine = CombineParticles(
+            Preambulo = ["from LoKiPhysMC.decorators import *","from LoKiPhysMC.functions import mcMatch"],
             DecayDescriptors=_Decays, CombinationCut=masscut, MotherCut=_Cut
         )
 
@@ -260,24 +263,8 @@ tuple.ToolList += [
     # "TupleToolANNPID",
 ]
 
-
-
-# tuple.ToolList += ["TupleToolPid"]
-# tuple.addTool(TupleToolPid, name="TupleToolPid")
-# tuple.TupleToolPid.Verbose = True
 tuple.ToolList += ["TupleToolMCTruth"]
-
-# tuple.ToolList += ["MCTupleToolDecayType"] # added nothing
 tuple.ToolList += ["MCTupleToolEventType"]
-# tuple.ToolList += ["TupleToolGeneration"] # not interesting
-# tuple.ToolList += ["MCTupleToolHierarchy"]# added nothing
-
-# tuple.ToolList += ["MCTupleToolPID"]
-
-# from Configurables import MCTupleToolHierarchy
-# tuple.ToolList += ["MCTupleToolHierarchy"]
-# tuple.addTool(MCTupleToolHierarchy, name="MCTupleToolHierarchy")
-# tuple.MCTupleToolHierarchy.Verbose = True
 
 from Configurables import TupleToolMCTruth
 mc_truth = TupleToolMCTruth()
@@ -285,7 +272,8 @@ mc_truth.ToolList = ["MCTupleToolKinematic", "MCTupleToolHierarchy"]
 tuple.addTool(mc_truth)
 tuple.TupleToolMCTruth.Verbose = True
 
-
+# MCTupleToolHierarchyOtherTracks
+# https://gitlab.cern.ch:8443/lhcb/Analysis/-/merge_requests/707/diffs#diff-content-279d6abf536ade7c3044e046262dba6dd103778c
 
 from Configurables import TupleToolKinematic
 

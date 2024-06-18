@@ -75,8 +75,10 @@ extend = False
 # nfiles_per = 25
 # filesPerJob = 4
 
-nfiles_per = 1
-filesPerJob = 1
+nfiles_per = 30
+filesPerJob = 5
+# nfiles_per = 1
+# filesPerJob = 1
 
 total = 0
 for target in list(LFNs.keys()):
@@ -130,6 +132,8 @@ except:
 
 # myApp.platform = "x86_64-slc6-gcc62-opt"
 myApp.platform = "x86_64+avx2+fma-centos7-gcc62-opt"
+# myApp.options = ["./davinci_intermediates.py", "./print_something.py"]
+# myApp.options = ["./print_something.py", "./davinci_intermediates.py"]
 myApp.options = ["./davinci_intermediates.py"]
 
 bck = Dirac()
@@ -171,11 +175,13 @@ job.application.extraOpts = (
 )
 
 print("Create job for thee jobs: ", job.name)
+# job.inputdata = comp_dataset[:5]
 job.inputdata  = comp_dataset
 
 # This throws the files on the grid personall space
 job.outputfiles = [
-    DiracFile(namePattern="*.root"),
+    # DiracFile(namePattern="*.root"),
+    LocalFile(namePattern="DTT*.root"),
     LocalFile("summary.xml"),
 ]  # keep my Tuples on grid element (retrive manually)
 # job.outputfiles= [LocalFile(namePattern='*.root') , LocalFile('summary.xml') ] # keep my Tuples on grid element (retrive manually)
