@@ -15,7 +15,8 @@ masses[211] = 139.57039
 masses[13] = 105.66
 masses[11] = 0.51099895000 * 1e-3
 
-file_name = 'B2KEE_three_body_cut.root'
+# file_name = 'B2KEE_three_body_cut.root'
+file_name = 'cocktail_hierarchy_merge.root'
 # file_name = 'cocktail_three_body_cut.root'
 # file_name = 'B2KEE_three_body_cut_SMALL.root'
 particles = ["DAUGHTER1", "DAUGHTER2", "DAUGHTER3"]

@@ -10,7 +10,7 @@ import fast_vertex_quality.tools.data_loader as data_loader
 from sklearn.ensemble import GradientBoostingClassifier
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-
+from particle import Particle
 
 class BDT_tester:
 
@@ -316,6 +316,128 @@ class BDT_tester:
 
         return queries
 
+
+    def get_sample_Kee(
+        self,
+        sample_loc,
+        vertex_quality_trainer_obj,
+        generate,
+        cut=None,
+        convert_branches=False,
+        N=10000,
+    ):
+
+        if convert_branches:
+            event_loader = data_loader.load_data(
+                [
+                    sample_loc,
+                ],
+                transformers=self.transformers,
+                convert_to_RK_branch_names=True,
+                conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
+            )
+        else:
+            event_loader = data_loader.load_data(
+                [
+                    sample_loc,
+                ],
+                transformers=self.transformers,
+            )
+
+        Jpsi_ID = 443
+
+        new_condition_dict = {}
+        new_condition_dict["B_plus_TRUEID"] = 521
+        new_condition_dict["J_psi_1S_TRUEID_width"] = Particle.from_pdgid(Jpsi_ID).width
+        new_condition_dict["J_psi_1S_MC_MOTHER_ID_width"] = Particle.from_pdgid(521).width
+        new_condition_dict["J_psi_1S_MC_GD_MOTHER_ID_width"] = 0.
+        new_condition_dict["J_psi_1S_MC_GD_GD_MOTHER_ID_width"] = 0.
+        new_condition_dict["K_Kst_TRUEID"] = 321
+        new_condition_dict["K_Kst_MC_MOTHER_ID_width"] = Particle.from_pdgid(521).width
+        new_condition_dict["K_Kst_MC_GD_MOTHER_ID_width"] = 0.
+        new_condition_dict["K_Kst_MC_GD_GD_MOTHER_ID_width"] = 0.
+        new_condition_dict["e_plus_TRUEID"] = 11
+        new_condition_dict["e_plus_MC_MOTHER_ID_width"] = Particle.from_pdgid(Jpsi_ID).width
+        new_condition_dict["e_plus_MC_GD_MOTHER_ID_width"] = Particle.from_pdgid(521).width
+        new_condition_dict["e_plus_MC_GD_GD_MOTHER_ID_width"] = 0.
+        new_condition_dict["e_minus_TRUEID"] = 11
+        new_condition_dict["e_minus_MC_MOTHER_ID_width"] = Particle.from_pdgid(Jpsi_ID).width
+        new_condition_dict["e_minus_MC_GD_MOTHER_ID_width"] = Particle.from_pdgid(521).width
+        new_condition_dict["e_minus_MC_GD_GD_MOTHER_ID_width"] = 0.
+        new_condition_dict["J_psi_1S_MC_MOTHER_ID_mass"] = Particle.from_pdgid(521).width
+        new_condition_dict["J_psi_1S_MC_GD_MOTHER_ID_mass"] = 0.
+        new_condition_dict["J_psi_1S_MC_GD_GD_MOTHER_ID_mass"] = 0.
+        new_condition_dict["K_Kst_MC_MOTHER_ID_mass"] = Particle.from_pdgid(521).mass
+        new_condition_dict["K_Kst_MC_GD_MOTHER_ID_mass"] = 0.
+        new_condition_dict["K_Kst_MC_GD_GD_MOTHER_ID_mass"] = 0.
+        new_condition_dict["e_plus_MC_MOTHER_ID_mass"] = Particle.from_pdgid(Jpsi_ID).mass
+        new_condition_dict["e_plus_MC_GD_MOTHER_ID_mass"] = Particle.from_pdgid(521).mass
+        new_condition_dict["e_plus_MC_GD_GD_MOTHER_ID_mass"] = 0.
+        new_condition_dict["e_minus_MC_MOTHER_ID_mass"] = Particle.from_pdgid(Jpsi_ID).mass
+        new_condition_dict["e_minus_MC_GD_MOTHER_ID_mass"] = Particle.from_pdgid(521).mass
+        new_condition_dict["e_minus_MC_GD_GD_MOTHER_ID_mass"] = 0.
+
+        event_loader.fill_new_condition(new_condition_dict)
+
+        if cut is not None:
+            print(event_loader.shape())
+            event_loader.cut(cut)
+            print(event_loader.shape())
+        
+        try:
+            event_loader.select_randomly(Nevents=N)
+        except:
+            pass
+        
+
+        if generate:
+
+            event_loader = vertex_quality_trainer_obj.predict_from_data_loader(
+                event_loader
+            )
+
+            query = event_loader.get_branches(self.BDT_vars_gen, processed=False)
+
+            query = np.squeeze(np.asarray(query[self.BDT_vars_gen]))
+
+        else:
+            query = event_loader.get_branches(self.BDT_vars, processed=False)
+
+            query = np.squeeze(np.asarray(query[self.BDT_vars]))
+
+        return query
+    
+    def make_BDT_plot_hierarchy(
+        self,
+        vertex_quality_trainer_obj,
+        filename,
+        include_combinatorial=False,
+        include_jpsiX=False,
+    ):
+        signal_gen = self.get_sample_Kee(
+            "datasets/Kee_2018_truthed_more_vars.csv",
+            vertex_quality_trainer_obj,
+            generate=True,
+            N=10000,
+        )
+        
+        samples = [signal_gen]
+        labels = ["sig - gen"]
+        colours = ["tab:blue", "tab:red", "tab:green"]
+
+        scores = self.query_and_plot_samples(
+            samples,
+            labels,
+            colours=colours,
+            filename=filename,
+            include_combinatorial=include_combinatorial,
+            only_hists=True,
+        )
+
+        return scores
+    
+    
+    
     def make_BDT_plot(
         self,
         vertex_quality_trainer_obj,

@@ -22,6 +22,93 @@ rd.daughter_particles = ["K_Kst", "e_plus", "e_minus"] # K e e
 rd.mother_particle = 'B_plus'
 rd.intermediate_particle = 'J_psi_1S'
 
+print(f"Loading data...")
+training_data_loader = data_loader.load_data(
+    [
+        "datasets/cocktail_three_body_cut.root",
+    ],
+    convert_to_RK_branch_names=True,
+    conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
+)
+transformers = training_data_loader.get_transformers()
+
+training_data_loader.print_branches()
+
+df = training_data_loader.get_branches(['B_plus_TRUEENDVERTEX_Z', 'B_plus_TRUEORIGINVERTEX_Z', 'J_psi_1S_TRUEORIGINVERTEX_Z', 'J_psi_1S_TRUEENDVERTEX_Z','B_plus_TRUEENDVERTEX_X', 'B_plus_TRUEORIGINVERTEX_X', 'J_psi_1S_TRUEORIGINVERTEX_X', 'J_psi_1S_TRUEENDVERTEX_X','B_plus_TRUEP_Z','pass_stripping','B_plus_TRUEID','J_psi_1S_TRUEID'], processed=False)
+print(df)
+df = df.query('B_plus_TRUEENDVERTEX_Z!=J_psi_1S_TRUEORIGINVERTEX_Z')
+df = df.query('B_plus_TRUEORIGINVERTEX_Z!=J_psi_1S_TRUEORIGINVERTEX_Z')
+print(df)
+df = df.query('B_plus_TRUEP_Z>100 & pass_stripping')
+print(df)
+# df = df.query('abs(J_psi_1S_TRUEID)==421')
+# print(df)
+df_full = df.head(n=25)
+#print(df_full)
+# plt.scatter(df['B_plus_TRUEORIGINVERTEX_X'], df['B_plus_TRUEORIGINVERTEX_Z'])
+# plt.scatter(df['B_plus_TRUEENDVERTEX_X'], df['B_plus_TRUEENDVERTEX_Z'])
+
+# Assuming df is your DataFrame and you have the necessary columns
+
+for i in range(25):
+
+    df = df_full.iloc[i]
+
+    print(i, df['B_plus_TRUEID'], df['J_psi_1S_TRUEID'])
+
+    color = 'red'
+    x_start = np.asarray(df['B_plus_TRUEORIGINVERTEX_X'])
+    z_start = np.asarray(df['B_plus_TRUEORIGINVERTEX_Z'])
+    x_end = np.asarray(df['B_plus_TRUEENDVERTEX_X'])
+    z_end = np.asarray(df['B_plus_TRUEENDVERTEX_Z'])
+    AB = plt.scatter(x_start, z_start, c = color, marker = 'o', s = 10, zorder = 3,alpha=0.5)
+    CD = plt.scatter(x_end, z_end, c = color, marker = 'o', s = 10, zorder = 2,alpha=0.5)
+    plt.quiver(x_start, z_start, (x_end-x_start), (z_end-z_start), angles='xy', scale_units='xy', scale=1, color=color,alpha=0.5)
+
+    color = 'blue'
+    x_start = np.asarray(df['B_plus_TRUEENDVERTEX_X'])
+    z_start = np.asarray(df['B_plus_TRUEENDVERTEX_Z'])
+    x_end = np.asarray(df['J_psi_1S_TRUEORIGINVERTEX_X'])
+    z_end = np.asarray(df['J_psi_1S_TRUEORIGINVERTEX_Z'])
+    AB = plt.scatter(x_start, z_start, c = color, marker = 'o', s = 10, zorder = 3,alpha=0.5)
+    CD = plt.scatter(x_end, z_end, c = color, marker = 'o', s = 10, zorder = 2,alpha=0.5)
+    plt.quiver(x_start, z_start, (x_end-x_start), (z_end-z_start), angles='xy', scale_units='xy', scale=1, color=color,alpha=0.5)
+
+
+    color = 'green'
+    x_start = np.asarray(df['J_psi_1S_TRUEORIGINVERTEX_X'])
+    z_start = np.asarray(df['J_psi_1S_TRUEORIGINVERTEX_Z'])
+    x_end = np.asarray(df['J_psi_1S_TRUEENDVERTEX_X'])
+    z_end = np.asarray(df['J_psi_1S_TRUEENDVERTEX_Z'])
+    AB = plt.scatter(x_start, z_start, c = color, marker = 'o', s = 10, zorder = 3,alpha=0.5)
+    CD = plt.scatter(x_end, z_end, c = color, marker = 'o', s = 10, zorder = 2,alpha=0.5)
+    plt.quiver(x_start, z_start, (x_end-x_start), (z_end-z_start), angles='xy', scale_units='xy', scale=1, color=color,alpha=0.5)
+
+    plt.xlabel('B_plus_TRUEORIGINVERTEX_X')
+    plt.ylabel('B_plus_TRUEORIGINVERTEX_Z')
+    # plt.title('Arrows from TRUEORIGINVERTEX to TRUEENDVERTEX')
+    plt.savefig(f'test_{i}')
+    plt.close('all')
+
+# 'MOTHER_TRUEENDVERTEX_X',
+# 'MOTHER_TRUEENDVERTEX_Y',
+# 'MOTHER_TRUEENDVERTEX_Z',
+
+# 'MOTHER_TRUEORIGINVERTEX_X',
+# 'MOTHER_TRUEORIGINVERTEX_Y',
+# 'MOTHER_TRUEORIGINVERTEX_Z',
+
+# 'INTERMEDIATE_TRUEENDVERTEX_X',
+# 'INTERMEDIATE_TRUEENDVERTEX_Y',
+# 'INTERMEDIATE_TRUEENDVERTEX_Z',
+# 'INTERMEDIATE_TRUEORIGINVERTEX_X',
+# 'INTERMEDIATE_TRUEORIGINVERTEX_Y',
+# 'INTERMEDIATE_TRUEORIGINVERTEX_Z',
+
+
+
+quit()
+
 
 print(f"Loading data...")
 training_data_loader = data_loader.load_data(

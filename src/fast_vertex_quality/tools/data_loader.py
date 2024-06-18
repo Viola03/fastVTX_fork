@@ -11,6 +11,8 @@ from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 import numpy as np
 
+from particle import Particle
+
 def write_df_to_root(df, output_name):
 	branch_dict = {}
 	data_dict = {}
@@ -97,8 +99,12 @@ class Transformer:
 
     def __init__(self):
 
-        self.log_columns = []
-        self.one_minus_log_columns = []
+        self.abs_columns = [
+            f"{rd.mother_particle}_TRUEID",
+            f"{rd.daughter_particles[0]}_TRUEID",
+            f"{rd.daughter_particles[1]}_TRUEID",
+            f"{rd.daughter_particles[2]}_TRUEID",
+                            ]
 
         self.log_columns = [
             f"{rd.mother_particle}_FDCHI2_OWNPV",
@@ -125,9 +131,43 @@ class Transformer:
             f"IP_{rd.daughter_particles[2]}_true_vertex",
             f"FD_{rd.mother_particle}_true_vertex",
 
+            f"{rd.intermediate_particle}_TRUEID_width",
+            f"{rd.intermediate_particle}_MC_MOTHER_ID_width",
+            f"{rd.intermediate_particle}_MC_GD_MOTHER_ID_width",
+            f"{rd.intermediate_particle}_MC_GD_GD_MOTHER_ID_width",
+
+            f"{rd.daughter_particles[0]}_MC_MOTHER_ID_width",
+            f"{rd.daughter_particles[0]}_MC_GD_MOTHER_ID_width",
+            f"{rd.daughter_particles[0]}_MC_GD_GD_MOTHER_ID_width",
+
+            f"{rd.daughter_particles[1]}_MC_MOTHER_ID_width",
+            f"{rd.daughter_particles[1]}_MC_GD_MOTHER_ID_width",
+            f"{rd.daughter_particles[1]}_MC_GD_GD_MOTHER_ID_width",
+
+            f"{rd.daughter_particles[2]}_MC_MOTHER_ID_width",
+            f"{rd.daughter_particles[2]}_MC_GD_MOTHER_ID_width",
+            f"{rd.daughter_particles[2]}_MC_GD_GD_MOTHER_ID_width",
+
+            f"{rd.intermediate_particle}_MC_MOTHER_ID_mass",
+            f"{rd.intermediate_particle}_MC_GD_MOTHER_ID_mass",
+            f"{rd.intermediate_particle}_MC_GD_GD_MOTHER_ID_mass",
+
+            f"{rd.daughter_particles[0]}_MC_MOTHER_ID_mass",
+            f"{rd.daughter_particles[0]}_MC_GD_MOTHER_ID_mass",
+            f"{rd.daughter_particles[0]}_MC_GD_GD_MOTHER_ID_mass",
+
+            f"{rd.daughter_particles[1]}_MC_MOTHER_ID_mass",
+            f"{rd.daughter_particles[1]}_MC_GD_MOTHER_ID_mass",
+            f"{rd.daughter_particles[1]}_MC_GD_GD_MOTHER_ID_mass",
+
+            f"{rd.daughter_particles[2]}_MC_MOTHER_ID_mass",
+            f"{rd.daughter_particles[2]}_MC_GD_MOTHER_ID_mass",
+            f"{rd.daughter_particles[2]}_MC_GD_GD_MOTHER_ID_mass",
         ]
 
         self.one_minus_log_columns = [f"{rd.mother_particle}_DIRA_OWNPV", f"DIRA_{rd.mother_particle}", f"DIRA_{rd.mother_particle}_true_vertex"]
+        
+        self.min_fills = {}
 
     def fit(self, data_raw, column):
 
@@ -136,15 +176,20 @@ class Transformer:
         data = data_raw.copy()
 
         if column in self.log_columns:
-            data[np.where(data==0)] = 1E-6
+            if "width" in self.column or "mass" in self.column:
+                data[np.where(data==0)] = np.amin(data[np.where(data!=0)])/2.
+                self.min_fills[self.column] = np.amin(data[np.where(data!=0)])/2.
+            else:
+                data[np.where(data==0)] = 1E-6
             data = np.log10(data)
         elif column in self.one_minus_log_columns:
             data[np.where(data==1)] = 1.-1E-15
             data[np.where(np.isnan(data))] = 1.-1E-15
             data[np.where(np.isinf(data))] = 1.-1E-15
             data = np.log10(1.0 - data)
+        elif self.column in self.abs_columns:
+            data = np.abs(data)
 
-            
         self.min = np.amin(data)
         self.max = np.amax(data)
 
@@ -158,7 +203,10 @@ class Transformer:
 
         if self.column in self.log_columns:
             try:
-                data[np.where(data==0)] = 1E-6
+                if "width" in self.column or "mass" in self.column:
+                    data[np.where(data==0)] = self.min_fills[self.column]
+                else:
+                    data[np.where(data==0)] = 1E-6
             except:
                 pass
             data = np.log10(data)
@@ -170,6 +218,8 @@ class Transformer:
             except:
                 pass
             data = np.log10(1.0 - data)
+        elif self.column in self.abs_columns:
+            data = np.abs(data)
 
         data = data - self.min
         data = data / (self.max - self.min)
@@ -370,6 +420,16 @@ class dataset:
             print("fill_new_column, processed False not implemented quitting...")
             quit()
 
+    def fill_new_condition(self, conditon_dict):
+
+        for condition in list(conditon_dict.keys()):
+            self.all_data["physical"][condition] = np.ones(self.all_data["physical"].shape[0])*conditon_dict[condition]
+            self.all_data["processed"][condition] = self.Transformers[condition].process(
+                        np.asarray(self.all_data["physical"][condition]).copy()
+                    )
+
+
+    
     def fill_target(self, processed_data, targets=None):
 
         if targets == None:
@@ -459,6 +519,8 @@ class dataset:
                     )
                 except:
                     pass
+            
+            # print(np.shape(df[column]), column)
 
         return pd.DataFrame.from_dict(df)
 
@@ -579,23 +641,27 @@ def convert_branches_to_RK_branch_names(columns, conversions):
     new_columns = []
     for column in columns:
         converted = False
-        # if column not in ["B_P", "B_PT"]:
+
         for conversion in conversions.keys():
-            # if column[:len(conversion)] == conversion:
+
             if conversion in column:
-                new_column = column.replace(conversion, conversions[conversion])
+                if conversion == "MOTHER":
+                    if column[:6] == "MOTHER":
+                        new_column = conversions[conversion]+column[6:]
+                    elif "_MC_" in column:
+                        continue
+                    else:
+                        new_column = column.replace(conversion, conversions[conversion])
+                else:
+                    new_column = column.replace(conversion, conversions[conversion])
+
                 new_columns.append(new_column)
                 converted = True
                 break
-            # if f'_DAUGHTER{conversion[:-1]}' in column:
-            #     new_column = column.replace(f'_DAUGHTER{conversion[:-1]}', f'_{conversions[conversion][:-1]}')
-            #     new_columns.append(new_column)
-            #     converted = True
-            #     break
 
         if not converted:
             new_columns.append(column)
-        
+
     return new_columns
 
 def load_data(path, equal_sizes=True, N=-1, transformers=None, convert_to_RK_branch_names=False, conversions=None, turn_off_processing=False):
