@@ -215,9 +215,10 @@ class Transformer:
                 data[np.where(data==1)] = 1.-1E-15
                 data[np.where(np.isnan(data))] = 1.-1E-15
                 data[np.where(np.isinf(data))] = 1.-1E-15
-            except:
-                pass
+            except Exception as e:
+                print(f"\n\nAn error occurred: {e}")
             data = np.log10(1.0 - data)
+
         elif self.column in self.abs_columns:
             data = np.abs(data)
 
@@ -517,9 +518,10 @@ class dataset:
                     df[column] = self.Transformers[column].process(
                         np.asarray(physical_data[column]).copy()
                     )
+                # except Exception as e:
+                #     print(f"\n\n pre_process: An error occurred: {e}")
                 except:
                     pass
-            
             # print(np.shape(df[column]), column)
 
         return pd.DataFrame.from_dict(df)
@@ -611,27 +613,32 @@ class dataset:
         with PdfPages(filename) as pdf:
 
             for variable in variables:
-
-                plt.figure(figsize=(10,8))
-
-                plt.subplot(2,2,1)
-                plt.title(variable)
-                plt.hist(self.all_data["physical"][variable], bins=50, density=True, histtype='step')
                 
-                plt.subplot(2,2,2)
-                plt.title(f'{variable} processed')
-                plt.hist(self.all_data["processed"][variable], bins=50, density=True, histtype='step', range=[-1,1])
+                try:
+                    plt.figure(figsize=(10,8))
 
-                plt.subplot(2,2,3)
-                plt.hist(self.all_data["physical"][variable], bins=50, density=True, histtype='step')
-                plt.yscale('log')
-                
-                plt.subplot(2,2,4)
-                plt.hist(self.all_data["processed"][variable], bins=50, density=True, histtype='step', range=[-1,1])
-                plt.yscale('log')
+                    plt.subplot(2,2,1)
+                    plt.title(variable)
+                    plt.hist(self.all_data["physical"][variable], bins=50, density=True, histtype='step')
+                    
+                    plt.subplot(2,2,2)
+                    plt.title(f'{variable} processed')
+                    plt.hist(self.all_data["processed"][variable], bins=50, density=True, histtype='step', range=[-1,1])
 
-                pdf.savefig(bbox_inches="tight")
-                plt.close()
+                    plt.subplot(2,2,3)
+                    plt.hist(self.all_data["physical"][variable], bins=50, density=True, histtype='step')
+                    plt.yscale('log')
+                    
+                    plt.subplot(2,2,4)
+                    plt.hist(self.all_data["processed"][variable], bins=50, density=True, histtype='step', range=[-1,1])
+                    plt.yscale('log')
+
+                    pdf.savefig(bbox_inches="tight")
+                    plt.close()
+                except:
+                    pdf.savefig(bbox_inches="tight")
+                    plt.close()
+                    pass
 
     def get_file_names(self):
         return self.filenames

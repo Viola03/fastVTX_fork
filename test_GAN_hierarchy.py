@@ -18,7 +18,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 from particle import Particle
 
 
-# transformers = pickle.load(open("networks/vertex_job_WGANcocktail_hierarchy_transfomers.pkl", "rb"))
+transformers = pickle.load(open("networks/vertex_job_WGANcocktail_hierarchy2_transfomers.pkl", "rb"))
 
 rd.latent = 50 # noise dims
 
@@ -31,7 +31,7 @@ training_data_loader = data_loader.load_data(
     [
         "datasets/cocktail_hierarchy_merge_more_vars.root",
     ],
-    # transformers=transformers,
+    transformers=transformers,
     convert_to_RK_branch_names=True,
     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
 )
@@ -124,12 +124,14 @@ vertex_quality_trainer_obj = vertex_quality_trainer(
     beta=float(rd.beta),
     latent_dim=rd.latent,
     batch_size=64,
-    D_architecture=[1000,2000,1000],
-    G_architecture=[1000,2000,1000],
+    # D_architecture=[1000,2000,1000],
+    # G_architecture=[1000,2000,1000],
+    D_architecture=[200,400,400,400,200],
+    G_architecture=[200,400,400,400,200],
     network_option='WGAN',
 )
 
-vertex_quality_trainer_obj.load_state(tag=f"networks/vertex_job_WGANcocktail_hierarchy")
+vertex_quality_trainer_obj.load_state(tag=f"networks/vertex_job_WGANcocktail_hierarchy2")
 # vertex_quality_trainer_obj.gen_data('saved_output_WGANcocktail_hierarchy.root')
 
 

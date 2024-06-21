@@ -123,8 +123,10 @@ vertex_quality_trainer_obj = vertex_quality_trainer(
     beta=float(rd.beta),
     latent_dim=rd.latent,
     batch_size=64,
-    D_architecture=[1000,2000,1000],
-    G_architecture=[1000,2000,1000],
+    # D_architecture=[1000,2000,1000],
+    # G_architecture=[1000,2000,1000],
+    D_architecture=[200,400,400,400,200],
+    G_architecture=[200,400,400,400,200],
     network_option='WGAN',
 )
 
@@ -133,14 +135,14 @@ vertex_quality_trainer_obj = vertex_quality_trainer(
 # vertex_quality_trainer_obj.make_plots(filename=f'plots_0.pdf',testing_file=training_data_loader.get_file_names())
 
 
-steps_for_plot = 5000
+steps_for_plot = 1000
 vertex_quality_trainer_obj.train(steps=steps_for_plot)
-vertex_quality_trainer_obj.save_state(tag=f"networks/vertex_job_WGANcocktail_hierarchy")
+vertex_quality_trainer_obj.save_state(tag=f"networks/vertex_job_WGANcocktail_hierarchy2")
 vertex_quality_trainer_obj.make_plots(filename=f'plots_0.pdf',testing_file=training_data_loader.get_file_names())
 
 for i in range(7):
     vertex_quality_trainer_obj.train_more_steps(steps=steps_for_plot)
-    vertex_quality_trainer_obj.save_state(tag=f"networks/vertex_job_WGANcocktail_hierarchy")
+    vertex_quality_trainer_obj.save_state(tag=f"networks/vertex_job_WGANcocktail_hierarchy2")
     vertex_quality_trainer_obj.make_plots(filename=f'plots_{i+1}.pdf',testing_file=training_data_loader.get_file_names())
 
 

@@ -98,7 +98,11 @@ class vertex_quality_trainer:
                     decay_rate=0.9,
                 )
             self.disc_optimizer = tfa.optimizers.Yogi(learning_rate=disc_lr_schedule, beta1=0.5)
-                
+            
+            # self.gen_optimizer = tf.keras.optimizers.RMSprop(learning_rate=0.0004)
+            # self.disc_optimizer = tf.keras.optimizers.RMSprop(learning_rate=0.0004)
+
+
 
         if self.network_option == 'VAE':
             self.encoder, self.decoder, self.vae = self.build_VAE()
@@ -312,8 +316,10 @@ class vertex_quality_trainer:
         self.trained_weights = self.get_weights()
 
         plt.subplot(1, 3, 1)
+        plt.title('disc')
         plt.plot(self.loss_list[:, 0], self.loss_list[:, 1])
         plt.subplot(1, 3, 2)
+        plt.title('gen')
         plt.plot(self.loss_list[:, 0], self.loss_list[:, 2])
         plt.subplot(1, 3, 3)
         plt.plot(self.loss_list[:, 0], self.loss_list[:, 3])
@@ -378,6 +384,18 @@ class vertex_quality_trainer:
                 if self.iteration > steps:
                     break_option = True
                     break
+                
+                if self.iteration % 500 == 0 and self.iteration > 1:
+                    plt.subplot(1, 3, 1)
+                    plt.title('disc')
+                    plt.plot(self.loss_list[:, 0], self.loss_list[:, 1])
+                    plt.subplot(1, 3, 2)
+                    plt.title('gen')
+                    plt.plot(self.loss_list[:, 0], self.loss_list[:, 2])
+                    plt.subplot(1, 3, 3)
+                    plt.plot(self.loss_list[:, 0], self.loss_list[:, 3])
+                    plt.savefig("Losses.png")
+                    plt.close("all")
 
             if break_option:
                 break
@@ -385,8 +403,10 @@ class vertex_quality_trainer:
         self.trained_weights = self.get_weights()
 
         plt.subplot(1, 3, 1)
+        plt.title('disc')
         plt.plot(self.loss_list[:, 0], self.loss_list[:, 1])
         plt.subplot(1, 3, 2)
+        plt.title('gen')
         plt.plot(self.loss_list[:, 0], self.loss_list[:, 2])
         plt.subplot(1, 3, 3)
         plt.plot(self.loss_list[:, 0], self.loss_list[:, 3])
@@ -530,7 +550,6 @@ class vertex_quality_trainer:
             images = np.squeeze(self.decoder.predict([gen_noise, events_gen]))
         elif self.network_option == 'GAN' or self.network_option == 'WGAN':
             images = np.squeeze(self.generator.predict([gen_noise, events_gen]))
-
 
         data_loader_obj.fill_target(images, self.targets)
 

@@ -119,7 +119,7 @@ def WGAN_gradient_penalty(discriminator, batch_size, real_images, real_condition
 	return gp
 
 
-d_steps = 3 # number of steps to train D for every one generator step
+d_steps = 5 # number of steps to train D for every one generator step
 # gp_weight = 10.
 gp_weight = 0.1
 
@@ -176,7 +176,7 @@ def train_step_vertexing_WGAN(
 		# Update the weights of the generator using the generator optimizer
 		gen_optimizer.apply_gradients(zip(gen_gradient, generator.trainable_variables))
 
-	return g_loss, d_loss
+	return d_loss, g_loss
 
 
 

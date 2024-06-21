@@ -325,24 +325,60 @@ class BDT_tester:
         cut=None,
         convert_branches=False,
         N=10000,
+        rapidsim=False,
     ):
 
-        if convert_branches:
+        conditions = [
+    "B_plus_P",
+    "B_plus_PT",
+    "angle_K_Kst",
+    "angle_e_plus",
+    "angle_e_minus",
+    "K_Kst_eta",
+    "e_plus_eta",
+    "e_minus_eta",
+    "IP_B_plus",
+    "IP_K_Kst",
+    "IP_e_plus",
+    "IP_e_minus",
+    "FD_B_plus",
+    "DIRA_B_plus",
+    "missing_B_plus_P",
+    "missing_B_plus_PT",
+    "missing_J_psi_1S_P",
+    "missing_J_psi_1S_PT",
+    "m_01",
+    "m_02",
+    "m_12",
+        ]
+        if rapidsim:
             event_loader = data_loader.load_data(
                 [
-                    sample_loc,
+                    "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_more_vars.root",
                 ],
                 transformers=self.transformers,
                 convert_to_RK_branch_names=True,
                 conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
             )
+            # event_loader.plot('conditions_rapdsim.pdf',variables=conditions)
         else:
-            event_loader = data_loader.load_data(
-                [
-                    sample_loc,
-                ],
-                transformers=self.transformers,
-            )
+            if convert_branches:
+                event_loader = data_loader.load_data(
+                    [
+                        sample_loc,
+                    ],
+                    transformers=self.transformers,
+                    convert_to_RK_branch_names=True,
+                    conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
+                )
+            else:
+                event_loader = data_loader.load_data(
+                    [
+                        sample_loc,
+                    ],
+                    transformers=self.transformers,
+                )
+            # event_loader.plot('conditions_notrapdsim.pdf',variables=conditions)
 
         Jpsi_ID = 443
 
@@ -419,11 +455,19 @@ class BDT_tester:
             vertex_quality_trainer_obj,
             generate=True,
             N=10000,
-        )
+        )  
         
-        samples = [signal_gen]
-        labels = ["sig - gen"]
-        colours = ["tab:blue", "tab:red", "tab:green"]
+        signal_gen_rapidsim = self.get_sample_Kee(
+            "datasets/Kee_2018_truthed_more_vars.csv",
+            vertex_quality_trainer_obj,
+            generate=True,
+            N=10000,
+            rapidsim=True,
+        )  
+        
+        samples = [signal_gen, signal_gen_rapidsim]
+        labels = ["sig - gen", "sig - gen (rapidsim)"]
+        colours = ["tab:blue", "tab:red", "tab:green", "tab:orange"]
 
         scores = self.query_and_plot_samples(
             samples,
