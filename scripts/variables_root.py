@@ -15,21 +15,16 @@ masses[211] = 139.57039
 masses[13] = 105.66
 masses[11] = 0.51099895000 * 1e-3
 
-# file_name = 'B2KEE_three_body_cut.root'
-file_name = 'cocktail_hierarchy_merge.root'
-# file_name = 'cocktail_three_body_cut.root'
-# file_name = 'B2KEE_three_body_cut_SMALL.root'
-particles = ["DAUGHTER1", "DAUGHTER2", "DAUGHTER3"]
-mother = 'MOTHER'
-intermediate = 'INTERMEDIATE'
+# file_name = 'cocktail_hierarchy_cut.root'
+# particles = ["DAUGHTER1", "DAUGHTER2", "DAUGHTER3"]
+# mother = 'MOTHER'
+# intermediate = 'INTERMEDIATE'
 
-# particles = ["K_Kst", "e_minus", "e_plus"]
-# mother = 'B_plus'
-# intermediate = "J_psi_1S"
-# # file_name = 'Kee_2018_truthed.csv'
-# file_name = 'Kstee_2018_truthed.csv'
-# # file_name = 'B2Kee_2018_CommonPresel.csv'
-# # file_name = 'JPSIX_2018_truthed.csv'
+particles = ["K_Kst", "e_minus", "e_plus"]
+mother = 'B_plus'
+intermediate = "J_psi_1S"
+file_name = 'Kee_cut.root'
+
 
 directory = '/users/am13743/fast_vertexing_variables/datasets/'
 print("Opening file...")
@@ -59,13 +54,47 @@ for particle in particles:
         mass[np.where(np.abs(mass)==pid)] = masses[pid]
     events[f'{particle}_mass'] = mass
 
-print(events.shape)
+# print(events.shape)
+
+print(events[f'{mother}_TRUEP_Z'])
+
+A = vt.compute_distance(events, mother, 'TRUEENDVERTEX', mother, 'TRUEORIGINVERTEX')
+B = vt.compute_distance(events, particles[0], 'TRUEORIGINVERTEX', mother, 'TRUEENDVERTEX')
+C = vt.compute_distance(events, particles[1], 'TRUEORIGINVERTEX', mother, 'TRUEENDVERTEX')
+D = vt.compute_distance(events, particles[2], 'TRUEORIGINVERTEX', mother, 'TRUEENDVERTEX')
+
+A = np.asarray(A)
+B = np.asarray(B)
+C = np.asarray(C)
+D = np.asarray(D)
+
+# min_A = np.amin(A[np.where(A>0)])/2.
+# min_B = np.amin(B[np.where(B>0)])/2.
+# min_C = np.amin(C[np.where(C>0)])/2.
+# min_D = np.amin(D[np.where(D>0)])/2.
+
+min_A = 5e-5
+min_B = 5e-5
+min_C = 5e-5
+min_D = 5e-5
+
+A[np.where(A==0)] = min_A
+B[np.where(B==0)] = min_B
+C[np.where(C==0)] = min_C
+D[np.where(D==0)] = min_D
+
+events[f"{mother}_FLIGHT"] = A
+events[f"{particles[0]}_FLIGHT"] = B
+events[f"{particles[1]}_FLIGHT"] = C
+events[f"{particles[2]}_FLIGHT"] = D
+
 
 dist = vt.compute_intermediate_distance(events, intermediate, mother)
 dist = np.asarray(dist)
 print(f'fraction of intermediates that travel: {np.shape(dist[np.where(dist>0)])[0]/np.shape(dist)[0]}')
 dist[np.where(dist==0)] = 1E-4
 events[f"{intermediate}_FLIGHT"] = dist
+
 
 # plt.hist(np.log10(dist[np.where(dist>0)]),bins=50)
 # plt.xlabel('log10(distance intermediate travelled)')
@@ -121,14 +150,16 @@ events[f"{mother}_M_Kee_reco"] = vt.compute_mass_3(events,
             masses[11], true_vars=False)
 
 
-
 for particle in particles:
     events[f"{particle}_P"], events[f"{particle}_PT"] = vt.compute_reconstructed_mother_momenta(events, particle)
 
+# print(events[f'{mother}_TRUEP_Z'])
+# quit()
 events[f"{mother}_P"], events[f"{mother}_PT"] = vt.compute_reconstructed_mother_momenta(events, mother)
 
 events[f"{intermediate}_P"], events[f"{intermediate}_PT"] = vt.compute_reconstructed_intermediate_momenta(events, [particles[1], particles[2]])
-
+# print(events[f'{mother}_TRUEP_Z'])
+# quit()
 # events[f"B_P"], events[f"B_PT"] = vt.compute_reconstructed_mother_momenta(events, 'M')
 events[f"missing_{mother}_P"], events[f"missing_{mother}_PT"] = vt.compute_missing_momentum(
     events, mother,particles
@@ -136,7 +167,8 @@ events[f"missing_{mother}_P"], events[f"missing_{mother}_PT"] = vt.compute_missi
 events[f"missing_{intermediate}_P"], events[f"missing_{intermediate}_PT"] = vt.compute_missing_momentum(
     events, mother,[particles[1], particles[2]]
 )
-
+# print(events[f'{mother}_TRUEP_Z'])
+# quit()
 for particle_i in range(0, len(particles)):
     (
         events[f"delta_{particle_i}_P"],
@@ -166,7 +198,7 @@ events[f"FD_{mother}_true_vertex"] = vt.compute_flightDistance(events,mother,par
 events[f"DIRA_{mother}_true_vertex"] = vt.compute_DIRA(events,mother,particles,true_vertex=true_vertex)
 
 
-print(events)
+print(events[f'{mother}_TRUEP_Z'])
 
 import uproot3
 

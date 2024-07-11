@@ -119,7 +119,7 @@ def WGAN_gradient_penalty(discriminator, batch_size, real_images, real_condition
 	return gp
 
 
-d_steps = 5 # number of steps to train D for every one generator step
+d_steps = 3 # number of steps to train D for every one generator step
 # gp_weight = 10.
 gp_weight = 0.1
 

@@ -350,17 +350,27 @@ class BDT_tester:
     "m_01",
     "m_02",
     "m_12",
+
+    "B_plus_FLIGHT",
+    "K_Kst_FLIGHT",
+    "e_plus_FLIGHT",
+    "e_minus_FLIGHT",
         ]
         if rapidsim:
             event_loader = data_loader.load_data(
                 [
-                    "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_more_vars.root",
+                    "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root",
+                    # "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_more_vars.root",
                 ],
                 transformers=self.transformers,
                 convert_to_RK_branch_names=True,
                 conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
             )
-            # event_loader.plot('conditions_rapdsim.pdf',variables=conditions)
+            # event_loader.plot('conditions_rapdsim.pdf',variables=conditions, save_vars=True)
+            # event_loader.plot('conditions_rapdsim.pdf', save_vars=True)
+            # A = event_loader.get_branches(['pass_stripping'])
+            # print(np.asarray(A), np.shape(np.where(A!=1)))
+            # quit()
         else:
             if convert_branches:
                 event_loader = data_loader.load_data(
@@ -378,42 +388,43 @@ class BDT_tester:
                     ],
                     transformers=self.transformers,
                 )
-            # event_loader.plot('conditions_notrapdsim.pdf',variables=conditions)
+            # event_loader.plot('conditions_notrapdsim.pdf',variables=conditions, save_vars=True)
+            # event_loader.plot('conditions_notrapdsim.pdf', save_vars=True)
 
-        Jpsi_ID = 443
+        # Jpsi_ID = 443
 
-        new_condition_dict = {}
-        new_condition_dict["B_plus_TRUEID"] = 521
-        new_condition_dict["J_psi_1S_TRUEID_width"] = Particle.from_pdgid(Jpsi_ID).width
-        new_condition_dict["J_psi_1S_MC_MOTHER_ID_width"] = Particle.from_pdgid(521).width
-        new_condition_dict["J_psi_1S_MC_GD_MOTHER_ID_width"] = 0.
-        new_condition_dict["J_psi_1S_MC_GD_GD_MOTHER_ID_width"] = 0.
-        new_condition_dict["K_Kst_TRUEID"] = 321
-        new_condition_dict["K_Kst_MC_MOTHER_ID_width"] = Particle.from_pdgid(521).width
-        new_condition_dict["K_Kst_MC_GD_MOTHER_ID_width"] = 0.
-        new_condition_dict["K_Kst_MC_GD_GD_MOTHER_ID_width"] = 0.
-        new_condition_dict["e_plus_TRUEID"] = 11
-        new_condition_dict["e_plus_MC_MOTHER_ID_width"] = Particle.from_pdgid(Jpsi_ID).width
-        new_condition_dict["e_plus_MC_GD_MOTHER_ID_width"] = Particle.from_pdgid(521).width
-        new_condition_dict["e_plus_MC_GD_GD_MOTHER_ID_width"] = 0.
-        new_condition_dict["e_minus_TRUEID"] = 11
-        new_condition_dict["e_minus_MC_MOTHER_ID_width"] = Particle.from_pdgid(Jpsi_ID).width
-        new_condition_dict["e_minus_MC_GD_MOTHER_ID_width"] = Particle.from_pdgid(521).width
-        new_condition_dict["e_minus_MC_GD_GD_MOTHER_ID_width"] = 0.
-        new_condition_dict["J_psi_1S_MC_MOTHER_ID_mass"] = Particle.from_pdgid(521).width
-        new_condition_dict["J_psi_1S_MC_GD_MOTHER_ID_mass"] = 0.
-        new_condition_dict["J_psi_1S_MC_GD_GD_MOTHER_ID_mass"] = 0.
-        new_condition_dict["K_Kst_MC_MOTHER_ID_mass"] = Particle.from_pdgid(521).mass
-        new_condition_dict["K_Kst_MC_GD_MOTHER_ID_mass"] = 0.
-        new_condition_dict["K_Kst_MC_GD_GD_MOTHER_ID_mass"] = 0.
-        new_condition_dict["e_plus_MC_MOTHER_ID_mass"] = Particle.from_pdgid(Jpsi_ID).mass
-        new_condition_dict["e_plus_MC_GD_MOTHER_ID_mass"] = Particle.from_pdgid(521).mass
-        new_condition_dict["e_plus_MC_GD_GD_MOTHER_ID_mass"] = 0.
-        new_condition_dict["e_minus_MC_MOTHER_ID_mass"] = Particle.from_pdgid(Jpsi_ID).mass
-        new_condition_dict["e_minus_MC_GD_MOTHER_ID_mass"] = Particle.from_pdgid(521).mass
-        new_condition_dict["e_minus_MC_GD_GD_MOTHER_ID_mass"] = 0.
+        # new_condition_dict = {}
+        # new_condition_dict["B_plus_TRUEID"] = 521
+        # new_condition_dict["J_psi_1S_TRUEID_width"] = Particle.from_pdgid(Jpsi_ID).width
+        # new_condition_dict["J_psi_1S_MC_MOTHER_ID_width"] = Particle.from_pdgid(521).width
+        # new_condition_dict["J_psi_1S_MC_GD_MOTHER_ID_width"] = 0.
+        # new_condition_dict["J_psi_1S_MC_GD_GD_MOTHER_ID_width"] = 0.
+        # new_condition_dict["K_Kst_TRUEID"] = 321
+        # new_condition_dict["K_Kst_MC_MOTHER_ID_width"] = Particle.from_pdgid(521).width
+        # new_condition_dict["K_Kst_MC_GD_MOTHER_ID_width"] = 0.
+        # new_condition_dict["K_Kst_MC_GD_GD_MOTHER_ID_width"] = 0.
+        # new_condition_dict["e_plus_TRUEID"] = 11
+        # new_condition_dict["e_plus_MC_MOTHER_ID_width"] = Particle.from_pdgid(Jpsi_ID).width
+        # new_condition_dict["e_plus_MC_GD_MOTHER_ID_width"] = Particle.from_pdgid(521).width
+        # new_condition_dict["e_plus_MC_GD_GD_MOTHER_ID_width"] = 0.
+        # new_condition_dict["e_minus_TRUEID"] = 11
+        # new_condition_dict["e_minus_MC_MOTHER_ID_width"] = Particle.from_pdgid(Jpsi_ID).width
+        # new_condition_dict["e_minus_MC_GD_MOTHER_ID_width"] = Particle.from_pdgid(521).width
+        # new_condition_dict["e_minus_MC_GD_GD_MOTHER_ID_width"] = 0.
+        # new_condition_dict["J_psi_1S_MC_MOTHER_ID_mass"] = Particle.from_pdgid(521).width
+        # new_condition_dict["J_psi_1S_MC_GD_MOTHER_ID_mass"] = 0.
+        # new_condition_dict["J_psi_1S_MC_GD_GD_MOTHER_ID_mass"] = 0.
+        # new_condition_dict["K_Kst_MC_MOTHER_ID_mass"] = Particle.from_pdgid(521).mass
+        # new_condition_dict["K_Kst_MC_GD_MOTHER_ID_mass"] = 0.
+        # new_condition_dict["K_Kst_MC_GD_GD_MOTHER_ID_mass"] = 0.
+        # new_condition_dict["e_plus_MC_MOTHER_ID_mass"] = Particle.from_pdgid(Jpsi_ID).mass
+        # new_condition_dict["e_plus_MC_GD_MOTHER_ID_mass"] = Particle.from_pdgid(521).mass
+        # new_condition_dict["e_plus_MC_GD_GD_MOTHER_ID_mass"] = 0.
+        # new_condition_dict["e_minus_MC_MOTHER_ID_mass"] = Particle.from_pdgid(Jpsi_ID).mass
+        # new_condition_dict["e_minus_MC_GD_MOTHER_ID_mass"] = Particle.from_pdgid(521).mass
+        # new_condition_dict["e_minus_MC_GD_GD_MOTHER_ID_mass"] = 0.
 
-        event_loader.fill_new_condition(new_condition_dict)
+        # event_loader.fill_new_condition(new_condition_dict)
 
         if cut is not None:
             print(event_loader.shape())
@@ -451,7 +462,8 @@ class BDT_tester:
         include_jpsiX=False,
     ):
         signal_gen = self.get_sample_Kee(
-            "datasets/Kee_2018_truthed_more_vars.csv",
+            # "datasets/Kee_2018_truthed_more_vars.csv",
+            "datasets/Kee_cut_more_vars.root",
             vertex_quality_trainer_obj,
             generate=True,
             N=10000,

@@ -60,52 +60,53 @@ def compute_DIRA(df, mother, particles, true_vars=True, true_vertex=False):
 
 def compute_flightDistance(df, mother, particles, true_vars=True, true_vertex=False):
 
-    PX = 0
-    PY = 0
-    PZ = 0
+    # PX = 0
+    # PY = 0
+    # PZ = 0
 
-    if true_vars:
-        for particle in particles:
-            PX += df[f"{particle}_TRUEP_X"]
-            PY += df[f"{particle}_TRUEP_Y"]
-            PZ += df[f"{particle}_TRUEP_Z"]
-    else:
-        for particle in particles:
-            PX += df[f"{particle}_PX"]
-            PY += df[f"{particle}_PY"]
-            PZ += df[f"{particle}_PZ"]
+    # if true_vars:
+    #     for particle in particles:
+    #         PX += df[f"{particle}_TRUEP_X"]
+    #         PY += df[f"{particle}_TRUEP_Y"]
+    #         PZ += df[f"{particle}_TRUEP_Z"]
+    # else:
+    #     for particle in particles:
+    #         PX += df[f"{particle}_PX"]
+    #         PY += df[f"{particle}_PY"]
+    #         PZ += df[f"{particle}_PZ"]
         
-    momenta = vector.obj(
-        px=PX,
-        py=PY,
-        pz=PZ,
-    )
+    # momenta = vector.obj(
+    #     px=PX,
+    #     py=PY,
+    #     pz=PZ,
+    # )
     
-    if true_vertex:
-        end_vertex = np.asarray(
-            [df[f"{mother}_TRUEENDVERTEX_X"], df[f"{mother}_TRUEENDVERTEX_Y"], df[f"{mother}_TRUEENDVERTEX_Z"]]
-        )
-        primary_vertex = np.asarray(
-            [df[f"{mother}_TRUEORIGINVERTEX_X"], df[f"{mother}_TRUEORIGINVERTEX_Y"], df[f"{mother}_TRUEORIGINVERTEX_Z"]]
-        )
-    else:
-        end_vertex = np.asarray(
-            [df[f"{mother}_ENDVERTEX_X"], df[f"{mother}_ENDVERTEX_Y"], df[f"{mother}_ENDVERTEX_Z"]]
-        )
-        primary_vertex = np.asarray(
-            [df[f"{mother}_OWNPV_X"], df[f"{mother}_OWNPV_Y"], df[f"{mother}_OWNPV_Z"]]
-        )
+    # if true_vertex:
+    #     end_vertex = np.asarray(
+    #         [df[f"{mother}_TRUEENDVERTEX_X"], df[f"{mother}_TRUEENDVERTEX_Y"], df[f"{mother}_TRUEENDVERTEX_Z"]]
+    #     )
+    #     primary_vertex = np.asarray(
+    #         [df[f"{mother}_TRUEORIGINVERTEX_X"], df[f"{mother}_TRUEORIGINVERTEX_Y"], df[f"{mother}_TRUEORIGINVERTEX_Z"]]
+    #     )
+    # else:
+    #     end_vertex = np.asarray(
+    #         [df[f"{mother}_ENDVERTEX_X"], df[f"{mother}_ENDVERTEX_Y"], df[f"{mother}_ENDVERTEX_Z"]]
+    #     )
+    #     primary_vertex = np.asarray(
+    #         [df[f"{mother}_OWNPV_X"], df[f"{mother}_OWNPV_Y"], df[f"{mother}_OWNPV_Z"]]
+    #     )
 
-    momenta_array = np.asarray([momenta.px, momenta.py, momenta.pz])
-    P = momenta.mag
-    t = 0
-    for i in range(3):
-        t += momenta_array[i] / P * (primary_vertex[i] - end_vertex[i])
-    dist = 0
-    for i in range(3):
-        dist += (t * momenta_array[i] / P) ** 2
-    dist = np.sqrt(dist)
+    # momenta_array = np.asarray([momenta.px, momenta.py, momenta.pz])
+    # P = momenta.mag
+    # t = 0
+    # for i in range(3):
+    #     t += momenta_array[i] / P * (primary_vertex[i] - end_vertex[i])
+    # dist = 0
+    # for i in range(3):
+    #     dist += (t * momenta_array[i] / P) ** 2
+    # dist = np.sqrt(dist)
 
+    dist = np.sqrt((df[f"{mother}_TRUEENDVERTEX_X"]-df[f"{mother}_TRUEORIGINVERTEX_X"])**2 + (df[f"{mother}_TRUEENDVERTEX_Y"]-df[f"{mother}_TRUEORIGINVERTEX_Y"])**2 + (df[f"{mother}_TRUEENDVERTEX_Z"]-df[f"{mother}_TRUEORIGINVERTEX_Z"])**2)
     return dist
 
 
@@ -213,6 +214,15 @@ def compute_intermediate_distance(df, intermediate, mother):
     dist = np.sqrt(X**2 + Y**2 + Z**2)
     return dist
 
+def compute_distance(df, A, A_var, B, B_var):
+
+    X = df[f'{A}_{A_var}_X']-df[f'{B}_{B_var}_X']
+    Y = df[f'{A}_{A_var}_Y']-df[f'{B}_{B_var}_Y']
+    Z = df[f'{A}_{A_var}_Z']-df[f'{B}_{B_var}_Z']
+    dist = np.sqrt(X**2 + Y**2 + Z**2)
+    return dist
+
+
 def compute_impactParameter(df, mother, particles, true_vars=True, true_vertex=False):
 
     PX = 0
@@ -283,23 +293,23 @@ def compute_reconstructed_momentum_residual(df, particle):
 def compute_missing_momentum(df, mother, particles, true_vars=True):
 
     if true_vars:
-        PX = df[f"{mother}_TRUEP_X"]
-        PY = df[f"{mother}_TRUEP_Y"]
-        PZ = df[f"{mother}_TRUEP_Z"]
+        PX = np.asarray(df[f"{mother}_TRUEP_X"]).copy()
+        PY = np.asarray(df[f"{mother}_TRUEP_Y"]).copy()
+        PZ = np.asarray(df[f"{mother}_TRUEP_Z"]).copy()
 
         for particle in particles:
-            PX += -1.0 * df[f"{particle}_TRUEP_X"]
-            PY += -1.0 * df[f"{particle}_TRUEP_Y"]
-            PZ += -1.0 * df[f"{particle}_TRUEP_Z"]
+            PX += -1.0 * np.asarray(df[f"{particle}_TRUEP_X"]).copy()
+            PY += -1.0 * np.asarray(df[f"{particle}_TRUEP_Y"]).copy()
+            PZ += -1.0 * np.asarray(df[f"{particle}_TRUEP_Z"]).copy()
     else:
-        PX = df[f"{mother}_PX"]
-        PY = df[f"{mother}_PY"]
-        PZ = df[f"{mother}_PZ"]
+        PX = np.asarray(df[f"{mother}_PX"]).copy()
+        PY = np.asarray(df[f"{mother}_PY"]).copy()
+        PZ = np.asarray(df[f"{mother}_PZ"]).copy()
 
         for particle in particles:
-            PX += -1.0 * df[f"{particle}_PX"]
-            PY += -1.0 * df[f"{particle}_PY"]
-            PZ += -1.0 * df[f"{particle}_PZ"]
+            PX += -1.0 * np.asarray(df[f"{particle}_PX"]).copy()
+            PY += -1.0 * np.asarray(df[f"{particle}_PY"]).copy()
+            PZ += -1.0 * np.asarray(df[f"{particle}_PZ"]).copy()
 
     return np.sqrt((PX**2 + PY**2 + PZ**2)) * 1e-3, np.sqrt((PX**2 + PY**2)) #* 1e-3
 

@@ -10,7 +10,7 @@ import uproot3
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 import numpy as np
-
+import pickle
 from particle import Particle
 
 def write_df_to_root(df, output_name):
@@ -95,6 +95,16 @@ class NoneError(Exception):
     pass
 
 
+def symsqrt(x, c=1):
+    """Apply symmetric logarithm transformation."""
+    # return np.sign(x) * np.log10(c * np.abs(x) + 1)
+    return np.sign(x) * np.sqrt(np.abs(x))
+
+def inv_symsqrt(y, c=1):
+    """Apply inverse symmetric logarithm transformation."""
+    # return np.sign(y) * (10**np.abs(y) - 1) / c
+    return np.sign(y) * np.abs(y)**2
+
 class Transformer:
 
     def __init__(self):
@@ -105,6 +115,11 @@ class Transformer:
             f"{rd.daughter_particles[1]}_TRUEID",
             f"{rd.daughter_particles[2]}_TRUEID",
                             ]
+
+        self.shift_and_symsqrt_columns = [
+            f"{rd.mother_particle}_TRUEORIGINVERTEX_X",
+            f"{rd.mother_particle}_TRUEORIGINVERTEX_Y"
+        ]
 
         self.log_columns = [
             f"{rd.mother_particle}_FDCHI2_OWNPV",
@@ -163,6 +178,11 @@ class Transformer:
             f"{rd.daughter_particles[2]}_MC_MOTHER_ID_mass",
             f"{rd.daughter_particles[2]}_MC_GD_MOTHER_ID_mass",
             f"{rd.daughter_particles[2]}_MC_GD_GD_MOTHER_ID_mass",
+
+            f"{rd.daughter_particles[0]}_FLIGHT",
+            f"{rd.daughter_particles[1]}_FLIGHT",
+            f"{rd.daughter_particles[2]}_FLIGHT",
+
         ]
 
         self.one_minus_log_columns = [f"{rd.mother_particle}_DIRA_OWNPV", f"DIRA_{rd.mother_particle}", f"DIRA_{rd.mother_particle}_true_vertex"]
@@ -183,15 +203,27 @@ class Transformer:
                 data[np.where(data==0)] = 1E-6
             data = np.log10(data)
         elif column in self.one_minus_log_columns:
+            # print(column, data)
             data[np.where(data==1)] = 1.-1E-15
+            data[np.where(data>1)] = 1.-1E-15
             data[np.where(np.isnan(data))] = 1.-1E-15
             data[np.where(np.isinf(data))] = 1.-1E-15
+            # print(np.amin(data), np.amax(data))
             data = np.log10(1.0 - data)
+            # print(np.amin(data), np.amax(data))
         elif self.column in self.abs_columns:
             data = np.abs(data)
+        elif self.column in self.shift_and_symsqrt_columns:
+            self.shift = np.mean(data)
+            data = data - self.shift
+            data = symsqrt(data)
 
         self.min = np.amin(data)
         self.max = np.amax(data)
+        # if column in self.one_minus_log_columns:
+        #     print(self.min)
+        #     print(self.max)
+        #     print('\n\n')
 
     def process(self, data_raw):
         
@@ -222,6 +254,20 @@ class Transformer:
         elif self.column in self.abs_columns:
             data = np.abs(data)
 
+        elif self.column in self.shift_and_symsqrt_columns:
+            data = data - self.shift
+            data = symsqrt(data)
+
+        if "DIRA" in self.column:
+            # print('\n')
+            # print(self.column)
+            # print(data)
+            # print(np.shape(np.where(np.isnan(data))))
+            data[np.where(np.isnan(data))] = -1
+            # print(self.column)
+            # print(data)
+            # print(np.shape(np.where(np.isnan(data))))
+
         data = data - self.min
         data = data / (self.max - self.min)
         data *= 2
@@ -243,6 +289,10 @@ class Transformer:
         elif self.column in self.one_minus_log_columns:
             data = np.power(10, data)
             data = 1.0 - data
+
+        elif self.column in self.shift_and_symsqrt_columns:
+            data = inv_symsqrt(data)
+            data = data + self.shift
 
         return data
 
@@ -601,14 +651,35 @@ class dataset:
     def add_branch_to_physical(self, name, values):
 
         self.all_data["physical"][name] = values
+    
+    def add_branch_and_process(self, name, recipe):
+
+        self.all_data["physical"][name] = self.all_data["physical"].eval(recipe)
+        physical_data = self.all_data["physical"]
+        column = name
+
+        data_array = np.asarray(physical_data[column]).copy()
+        transformer_i = Transformer()
+        transformer_i.fit(data_array, column)
+        self.Transformers[column] = transformer_i
+
+        self.all_data["processed"][column] = self.Transformers[column].process(
+        np.asarray(physical_data[column]).copy()
+        )
+
 
     def convert_value_to_processed(self, name, value):
         return self.Transformers[name].process(value)
     
-    def plot(self,filename, variables=None):
+    def plot(self,filename, variables=None,save_vars=False):
 
         if variables == None:
             variables = list(self.all_data["physical"].keys())
+
+        if save_vars:
+            vars_to_save = {}
+            vars_to_save["physical"] = {}
+            vars_to_save["processed"] = {}
 
         with PdfPages(filename) as pdf:
 
@@ -635,10 +706,19 @@ class dataset:
 
                     pdf.savefig(bbox_inches="tight")
                     plt.close()
+
+                    if save_vars:
+                        vars_to_save["physical"][variable] = np.asarray(self.all_data["physical"][variable])
+                        vars_to_save["processed"][variable] = np.asarray(self.all_data["processed"][variable])
+
                 except:
                     pdf.savefig(bbox_inches="tight")
                     plt.close()
                     pass
+        
+        if save_vars:
+            with open(f'{filename[:-3]}.pickle', 'wb') as handle:
+                pickle.dump(vars_to_save, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     def get_file_names(self):
         return self.filenames

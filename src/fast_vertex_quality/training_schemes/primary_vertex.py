@@ -13,13 +13,13 @@ import pickle
 import fast_vertex_quality.tools.data_loader as data_loader
 import matplotlib.pyplot as plt
 import tensorflow_addons as tfa
+import pandas as pd
 
-class vertex_quality_trainer:
+class primary_vertex_trainer:
 
     def __init__(
         self,
         data_loader_obj,
-        trackchi2_trainer=None,
         targets=None,
         conditions=None,
         beta=1000.0,
@@ -31,28 +31,25 @@ class vertex_quality_trainer:
         network_option='VAE',
     ):
 
-        self.trackchi2_trainer = trackchi2_trainer
-
         if targets == None:
             self.targets = [
-                "B_plus_ENDVERTEX_CHI2",
-                "B_plus_IPCHI2_OWNPV",
-                "B_plus_FDCHI2_OWNPV",
-                "B_plus_DIRA_OWNPV",
-                "K_Kst_IPCHI2_OWNPV",
-                # "K_Kst_TRACK_CHI2NDOF",
-                "e_minus_IPCHI2_OWNPV",
-                # "e_minus_TRACK_CHI2NDOF",
-                "e_plus_IPCHI2_OWNPV",
-                # "e_plus_TRACK_CHI2NDOF",
+                "B_plus_TRUEENDVERTEX_X",
+                "B_plus_TRUEENDVERTEX_Y",
+                "B_plus_TRUEENDVERTEX_Z",
+                "B_plus_TRUEORIGINVERTEX_X",
+                "B_plus_TRUEORIGINVERTEX_Y",
+                "B_plus_TRUEORIGINVERTEX_Z",
             ]
         else:
             self.targets = targets
 
         if conditions == None:
             self.conditions = [
-                "IP_B",
-                "DIRA_B",
+                "B_plus_P",
+                "B_plus_PT",
+                "B_plus_TRUEP_X",
+                "B_plus_TRUEP_Y",
+                "B_plus_TRUEP_Z",
             ]
         else:
             self.conditions = conditions
@@ -119,7 +116,11 @@ class vertex_quality_trainer:
         self.initialised_weights = self.get_weights()
 
         self.data_loader_obj = data_loader_obj
-        self.transformers = self.data_loader_obj.get_transformers()
+        try:
+            self.transformers = self.data_loader_obj.get_transformers()
+        except:
+            print("primary_vertex_trainer: get_transformers() failed... continuing as data_loader_obj may not have been supplied intentionally")
+            pass
 
         self.trained_weights = {}
 
@@ -306,18 +307,6 @@ class vertex_quality_trainer:
                     axis=0,
                 )
 
-                if np.isnan(self.loss_list[-1]).any():
-                    print(samples_for_batch)
-                    print(
-                        f"NaNs present in loss_list, quitting on iteration {self.iteration}..."
-                    )
-                    print(np.shape(np.asarray(samples_for_batch)))
-                    print('\n')
-                    print(np.where(np.isnan(np.asarray(samples_for_batch))))
-                    print('\n')
-                    print(np.where(np.isinf(np.asarray(samples_for_batch))))
-                    quit()
-
                 if private_iteration > steps:
                     break_option = True
                     break
@@ -387,18 +376,10 @@ class vertex_quality_trainer:
 
                 if self.iteration % 100 == 0:
                     print("Iteration:", self.iteration)
-                
-
                 if np.isnan(self.loss_list[-1]).any():
-                    print(samples_for_batch)
                     print(
                         f"NaNs present in loss_list, quitting on iteration {self.iteration}..."
                     )
-                    print(np.shape(np.asarray(samples_for_batch)))
-                    print('\n')
-                    print(np.where(np.isnan(np.asarray(samples_for_batch))))
-                    print('\n')
-                    print(np.where(np.isinf(np.asarray(samples_for_batch))))
                     quit()
 
                 if self.iteration > steps:
@@ -452,12 +433,12 @@ class vertex_quality_trainer:
                     convert_to_RK_branch_names=True,
                     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
                 )
+        X_test_data_loader.add_branch_and_process(name='B_plus_TRUE_FD',recipe="sqrt((B_plus_TRUEENDVERTEX_X-B_plus_TRUEORIGINVERTEX_X)**2 + (B_plus_TRUEENDVERTEX_Y-B_plus_TRUEORIGINVERTEX_Y)**2 + (B_plus_TRUEENDVERTEX_Z-B_plus_TRUEORIGINVERTEX_Z)**2)")
+        X_test_data_loader.add_branch_and_process(name='B_plus_TRUEP',recipe="sqrt((B_plus_TRUEP_X)**2 + (B_plus_TRUEP_Y)**2 + (B_plus_TRUEP_Z)**2)")
+        X_test_data_loader.add_branch_and_process(name='B_plus_TRUEP_T',recipe="sqrt((B_plus_TRUEP_X)**2 + (B_plus_TRUEP_Y)**2)")
 
 
         X_test_data_loader.select_randomly(Nevents=N)
-
-        if self.trackchi2_trainer is not None:
-            X_test_data_loader.fill_chi2_gen(self.trackchi2_trainer)
 
         X_test_conditions = X_test_data_loader.get_branches(
             self.conditions, processed=True
@@ -497,9 +478,6 @@ class vertex_quality_trainer:
         )
 
         X_test_data_loader.select_randomly(Nevents=N)
-
-        if self.trackchi2_trainer is not None:
-            X_test_data_loader.fill_chi2_gen(self.trackchi2_trainer)
 
         X_test_conditions = X_test_data_loader.get_branches(
             self.conditions, processed=True
@@ -557,9 +535,6 @@ class vertex_quality_trainer:
 
         self.set_trained_weights()
 
-        if self.trackchi2_trainer is not None:
-            data_loader_obj.fill_chi2_gen(self.trackchi2_trainer)
-
         events_gen = data_loader_obj.get_branches(self.conditions, processed=True)
 
         events_gen = np.asarray(events_gen[self.conditions])
@@ -574,3 +549,37 @@ class vertex_quality_trainer:
         data_loader_obj.fill_target(images, self.targets)
 
         return data_loader_obj
+
+    def predict_physical_from_physical_pandas(self, conditions, targets):
+        
+        self.set_trained_weights()
+
+        for branch in list(conditions.keys()):
+            
+            conditions[branch] = self.transformers[branch.replace('MOTHER','B_plus')].process(conditions[branch])
+
+        events_gen = np.asarray(conditions)
+        gen_noise = np.random.normal(0, 1, (np.shape(events_gen)[0], self.latent_dim))
+
+        if self.network_option == 'VAE':
+            images = np.squeeze(self.decoder.predict([gen_noise, events_gen]))
+        elif self.network_option == 'GAN' or self.network_option == 'WGAN':
+            images = np.squeeze(self.generator.predict([gen_noise, events_gen]))
+
+        for branch in list(conditions.keys()):
+            
+            conditions[branch] = self.transformers[branch.replace('MOTHER','B_plus')].unprocess(conditions[branch])
+
+
+        images_dict = {}
+
+        for i in range(np.shape(images)[1]):
+            images_dict[targets[i]] = images[:,i]
+        
+        images = pd.DataFrame(images_dict)
+
+        for branch in list(images.keys()):
+            
+            images[branch] = self.transformers[branch.replace('MOTHER','B_plus')].unprocess(images[branch])
+
+        return images

@@ -155,6 +155,7 @@ def plot(data, gen_data, filename, targets, Nevents=10000):
                 bins=75,
                 histtype="step",
                 label=["truth", "gen"],
+                density=True
             )
             plt.xlabel(column)
             plt.legend()
@@ -167,6 +168,7 @@ def plot(data, gen_data, filename, targets, Nevents=10000):
                 bins=75,
                 histtype="step",
                 range=[-1, 1],
+                density=True
             )
             plt.xlabel(column)
             pdf.savefig(bbox_inches="tight")
