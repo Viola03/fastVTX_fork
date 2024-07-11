@@ -259,19 +259,15 @@ class Transformer:
             data = symsqrt(data)
 
         if "DIRA" in self.column:
-            # print('\n')
-            # print(self.column)
-            # print(data)
-            # print(np.shape(np.where(np.isnan(data))))
-            data[np.where(np.isnan(data))] = -1
-            # print(self.column)
-            # print(data)
-            # print(np.shape(np.where(np.isnan(data))))
+            where = np.where(np.isnan(data))
 
         data = data - self.min
         data = data / (self.max - self.min)
         data *= 2
         data += -1
+
+        if "DIRA" in self.column:
+            data[where] = -1
 
         return data
 
