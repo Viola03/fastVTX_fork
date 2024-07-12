@@ -20,10 +20,15 @@ masses[11] = 0.51099895000 * 1e-3
 # mother = 'MOTHER'
 # intermediate = 'INTERMEDIATE'
 
+# particles = ["K_Kst", "e_minus", "e_plus"]
+# mother = 'B_plus'
+# intermediate = "J_psi_1S"
+# file_name = 'Kee_cut.root'
+
 particles = ["K_Kst", "e_minus", "e_plus"]
 mother = 'B_plus'
 intermediate = "J_psi_1S"
-file_name = 'Kee_cut.root'
+file_name = 'Kstee_cut.root'
 
 
 directory = '/users/am13743/fast_vertexing_variables/datasets/'

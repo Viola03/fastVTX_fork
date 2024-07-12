@@ -359,8 +359,7 @@ class BDT_tester:
         if rapidsim:
             event_loader = data_loader.load_data(
                 [
-                    "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root",
-                    # "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_more_vars.root",
+                    sample_loc,
                 ],
                 transformers=self.transformers,
                 convert_to_RK_branch_names=True,
@@ -470,16 +469,41 @@ class BDT_tester:
         )  
         
         signal_gen_rapidsim = self.get_sample_Kee(
-            "datasets/Kee_2018_truthed_more_vars.csv",
+            "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root",
+            vertex_quality_trainer_obj,
+            generate=True,
+            N=10000,
+            rapidsim=True,
+        )  
+
+
+        part_reco_gen = self.get_sample_Kee(
+            "datasets/Kstee_cut_more_vars.root",
+            vertex_quality_trainer_obj,
+            generate=True,
+            N=10000,
+            rapidsim=False,
+        )  
+        
+        part_reco_gen_rapidsim = self.get_sample_Kee(
+            "/users/am13743/fast_vertexing_variables/rapidsim/Kstree/Partreco_tree_NNvertex_more_vars.root",
             vertex_quality_trainer_obj,
             generate=True,
             N=10000,
             rapidsim=True,
         )  
         
-        samples = [signal_gen, signal_gen_rapidsim]
-        labels = ["sig - gen", "sig - gen (rapidsim)"]
-        colours = ["tab:blue", "tab:red", "tab:green", "tab:orange"]
+        part_reco_MC = self.get_sample_Kee(
+            "datasets/Kstee_cut_more_vars.root",
+            vertex_quality_trainer_obj,
+            generate=False,
+            N=10000,
+        )  
+        
+
+        samples = [signal_gen, signal_gen_rapidsim, part_reco_gen, part_reco_gen_rapidsim, part_reco_MC]
+        labels = ["sig - gen", "sig - gen (rapidsim)", "prc - gen", "prc - gen (rapidsim)", "prc - MC"]
+        colours = ["tab:blue", "tab:red", "tab:green", "tab:orange", "k", "violet", "tab:purple"]
 
         scores = self.query_and_plot_samples(
             samples,
