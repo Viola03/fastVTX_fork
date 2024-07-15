@@ -489,7 +489,9 @@ class vertex_quality_trainer:
         X_test_data_loader = data_loader.load_data(
             [
                 # "datasets/Kee_2018_truthed_more_vars.csv",
-                "datasets/B2KEE_three_body_cut_more_vars.root",
+                # "datasets/B2KEE_three_body_cut_more_vars.root",
+                # "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
+                "datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
             ],
             transformers=self.transformers,
             convert_to_RK_branch_names=True,

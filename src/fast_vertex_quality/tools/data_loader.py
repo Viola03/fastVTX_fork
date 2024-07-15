@@ -267,8 +267,12 @@ class Transformer:
         data *= 2
         data += -1
 
-        if "DIRA" in self.column:
-            data[where] = -1
+        try:
+            if "DIRA" in self.column:
+                data[where] = -1
+        except Exception as e:
+            print("ERROR in data_loader:",e)
+            print("Continuing, might not be essential")
 
         return data
 

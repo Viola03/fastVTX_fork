@@ -6,11 +6,14 @@ import pickle
 rd.daughter_particles = ["K_Kst", "e_plus", "e_minus"] # K e e
 rd.mother_particle = 'B_plus'
 
-transformers = pickle.load(open("networks/vertex_job_WGAN_transfomers.pkl", "rb"))
+# transformers = pickle.load(open("networks/vertex_job_WGAN_transfomers.pkl", "rb"))
+transformers = pickle.load(open("networks/vertex_job_WGANcocktail_distances_newconditions_transfomers.pkl", "rb"))
 
 loader = data_loader.load_data(
     [
-        "datasets/B2KEE_three_body_cut_more_vars.root",
+        # "datasets/B2KEE_three_body_cut_more_vars.root",
+        # "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
+        "datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
     ],
     transformers=transformers,
     convert_to_RK_branch_names=True,
@@ -22,7 +25,8 @@ loader_gen = data_loader.load_data(
     [
         # "saved_output.root",
         # "saved_output_WGAN.root",
-        "saved_output_WGANcocktail.root",
+        # "saved_output_WGANcocktail.root",
+        "saved_output_WGANcocktail_hierarchy_VAE.root",
     ],
     transformers=transformers,
     convert_to_RK_branch_names=True,
