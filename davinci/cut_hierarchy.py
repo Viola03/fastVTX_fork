@@ -57,7 +57,27 @@ branches_to_keep = [
     'INTERMEDIATE_TRUEORIGINVERTEX_Z',
     'EVT_GenEvent',
 
+    'DAUGHTER1_TRUEENDVERTEX_X',
+    'DAUGHTER1_TRUEENDVERTEX_Y',
+    'DAUGHTER1_TRUEENDVERTEX_Z',
+    'DAUGHTER1_TRUEORIGINVERTEX_X',
+    'DAUGHTER1_TRUEORIGINVERTEX_Y',
+    'DAUGHTER1_TRUEORIGINVERTEX_Z',
 
+    'DAUGHTER2_TRUEENDVERTEX_X',
+    'DAUGHTER2_TRUEENDVERTEX_Y',
+    'DAUGHTER2_TRUEENDVERTEX_Z',
+    'DAUGHTER2_TRUEORIGINVERTEX_X',
+    'DAUGHTER2_TRUEORIGINVERTEX_Y',
+    'DAUGHTER2_TRUEORIGINVERTEX_Z',
+
+    'DAUGHTER3_TRUEENDVERTEX_X',
+    'DAUGHTER3_TRUEENDVERTEX_Y',
+    'DAUGHTER3_TRUEENDVERTEX_Z',
+    'DAUGHTER3_TRUEORIGINVERTEX_X',
+    'DAUGHTER3_TRUEORIGINVERTEX_Y',
+    'DAUGHTER3_TRUEORIGINVERTEX_Z',
+	
     "MOTHER_MC_MOTHER_ID",
     "MOTHER_MC_GD_MOTHER_ID",
     "MOTHER_MC_GD_GD_MOTHER_ID",
@@ -79,7 +99,11 @@ branches_to_keep = [
 # Define the cut condition
 cut_condition = "(MOTHER_TRUEID != 0) & (MOTHER_BKGCAT < 60)"
 
-with uproot.open('/users/am13743/fast_vertexing_variables/datasets/cocktail_hierarchy.root') as ur_file:
+# name = 'cocktail_hierarchy'
+# name = 'dedicated_Kee_MC_hierachy'
+name = 'dedicated_Kstee_MC_hierachy'
+
+with uproot.open(f'/users/am13743/fast_vertexing_variables/datasets/raw/{name}.root') as ur_file:
 	
     tree = ur_file["B2Kee_Tuple/DecayTree"]
 
@@ -87,4 +111,4 @@ with uproot.open('/users/am13743/fast_vertexing_variables/datasets/cocktail_hier
 
     filtered_data = data.query(cut_condition)
 
-write_df_to_root(filtered_data, '/users/am13743/fast_vertexing_variables/datasets/cocktail_hierarchy_cut.root')
+write_df_to_root(filtered_data, f'/users/am13743/fast_vertexing_variables/datasets/{name}_cut.root')

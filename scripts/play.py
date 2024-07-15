@@ -7,6 +7,46 @@ from fast_vertex_quality.tools.config import read_definition, rd
 import fast_vertex_quality.tools.data_loader as data_loader
 import numpy as np
 
+# rd.latent = 50 # noise dims
+
+# rd.daughter_particles = ["K_Kst", "e_plus", "e_minus"] # K e e
+# rd.mother_particle = 'B_plus'
+# rd.intermediate_particle = 'J_psi_1S'
+
+
+# transformers = pickle.load(open("networks/vertex_job_WGANcocktail_distances_newconditions_transfomers.pkl", "rb"))
+
+# Kstee_data_loader = data_loader.load_data(
+#     [
+#         "datasets/Kstee_cut_more_vars.root",
+#     ],
+#     convert_to_RK_branch_names=True,
+#     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
+# 	transformers=transformers
+# )
+# Kstee_data_loader.cut('abs(K_Kst_TRUEID)==321')
+
+
+# event_loader = data_loader.load_data(
+# 	[
+# 		"/users/am13743/fast_vertexing_variables/rapidsim/Kstree/Partreco_tree_NNvertex_more_vars.root",
+# 	],
+# 	transformers=transformers,
+# 	convert_to_RK_branch_names=True,
+# 	conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
+# )
+# event_loader.cut('K_Kst_PT>400')
+# event_loader.cut('e_minus_PT>300')
+# event_loader.cut('e_plus_PT>300')
+
+# event_loader.sample_with_replacement_with_reweight(target_loader=Kstee_data_loader, reweight_vars=['K_Kst_eta','e_minus_eta','e_plus_eta'])
+
+
+
+
+# quit()
+
+
 conditions = [
 
     "B_plus_P",
@@ -129,6 +169,10 @@ training_data_loader_rapidsim.cut('e_plus_PT>300')
 # training_data_loader_rapidsim.cut('B_plus_TRUEP_Z>0')
 
 
+# training_data_loader_rapidsim.sample_with_replacement_with_reweight(target_loader=training_data_loader, reweight_vars=['K_Kst_eta','e_minus_eta','e_plus_eta'])
+training_data_loader_rapidsim.sample_with_replacement_with_reweight(target_loader=training_data_loader, reweight_vars=['m_01','m_02','m_12'])
+
+
 conditions_rapdsim = {}
 conditions_rapdsim["processed"] = training_data_loader_rapidsim.get_branches(conditions, processed=True)
 conditions_rapdsim["physical"] = training_data_loader_rapidsim.get_branches(conditions, processed=False)
@@ -177,6 +221,52 @@ def compare_in_2d(filename, var_1, var_2, processed=False):
 
 	plt.savefig(filename)
 	plt.close("all")
+
+
+
+# original = np.swapaxes(np.asarray([conditions_rapdsim["physical"]["K_Kst_eta"],conditions_rapdsim["physical"]["e_minus_eta"],conditions_rapdsim["physical"]["e_plus_eta"]]),0,1)
+# target = np.swapaxes(np.asarray([conditions_notrapdsim["physical"]["K_Kst_eta"],conditions_notrapdsim["physical"]["e_minus_eta"],conditions_notrapdsim["physical"]["e_plus_eta"]]),0,1)
+
+# from hep_ml.reweight import BinsReweighter, GBReweighter, FoldingReweighter
+# reweighter_base = GBReweighter(max_depth=2, gb_args={'subsample': 0.5})
+# reweighter = FoldingReweighter(reweighter_base, n_folds=3)
+# reweighter.fit(original=original, target=target)
+# MC_weights = reweighter.predict_weights(original)
+
+# conditions_rapdsim["physical"]['weights'] = MC_weights
+
+
+# # with PdfPages('conditions_distances.pdf') as pdf:
+# with PdfPages('conditions_distances_NNvertex_Kstr_weights.pdf') as pdf:
+
+# 	for variable in list(conditions):
+		
+# 		# try:
+
+# 			plt.figure(figsize=(10,8))
+
+# 			plt.subplot(2,2,1)
+# 			plt.title(variable)
+# 			plt.hist([conditions_rapdsim["physical"][variable], conditions_rapdsim["physical"][variable], conditions_notrapdsim["physical"][variable], conditions_cocktail["physical"][variable]], bins=50, density=True, histtype='step', label=['Rapidsim_weights', 'Rapidsim','Kee MC','Cocktail MC'], color=['k','tab:red','tab:blue','tab:grey'], weights=[conditions_rapdsim["physical"]['weights'], np.ones(np.shape(conditions_rapdsim["physical"][variable])), np.ones(np.shape(conditions_notrapdsim["physical"][variable])), np.ones(np.shape(conditions_cocktail["physical"][variable]))])
+# 			plt.legend()
+			
+# 			plt.subplot(2,2,2)
+# 			plt.title(f'{variable} processed')
+# 			plt.hist([conditions_rapdsim["processed"][variable], conditions_rapdsim["processed"][variable], conditions_notrapdsim["processed"][variable], conditions_cocktail["processed"][variable]], bins=50, density=True, histtype='step', range=[-1,1], color=['k','tab:red','tab:blue','tab:grey'], weights=[conditions_rapdsim["physical"]['weights'], np.ones(np.shape(conditions_rapdsim["physical"][variable])), np.ones(np.shape(conditions_notrapdsim["physical"][variable])), np.ones(np.shape(conditions_cocktail["physical"][variable]))])
+
+# 			plt.subplot(2,2,3)
+# 			plt.hist([conditions_rapdsim["physical"][variable], conditions_rapdsim["physical"][variable], conditions_notrapdsim["physical"][variable], conditions_cocktail["physical"][variable]], bins=50, density=True, histtype='step', label=['Rapidsim_weights', 'Rapidsim','Kee MC','Cocktail MC'], color=['k','tab:red','tab:blue','tab:grey'], weights=[conditions_rapdsim["physical"]['weights'], np.ones(np.shape(conditions_rapdsim["physical"][variable])), np.ones(np.shape(conditions_notrapdsim["physical"][variable])), np.ones(np.shape(conditions_cocktail["physical"][variable]))])
+# 			plt.yscale('log')
+			
+# 			plt.subplot(2,2,4)
+# 			plt.hist([conditions_rapdsim["processed"][variable], conditions_rapdsim["processed"][variable], conditions_notrapdsim["processed"][variable], conditions_cocktail["processed"][variable]], bins=50, density=True, histtype='step', range=[-1,1], color=['k','tab:red','tab:blue','tab:grey'], weights=[conditions_rapdsim["physical"]['weights'], np.ones(np.shape(conditions_rapdsim["physical"][variable])), np.ones(np.shape(conditions_notrapdsim["physical"][variable])), np.ones(np.shape(conditions_cocktail["physical"][variable]))])
+# 			plt.yscale('log')
+
+# 			pdf.savefig(bbox_inches="tight")
+# 			plt.close()
+# 		# except:
+# 		# 	pass
+# quit()
 
 # with PdfPages('conditions_distances.pdf') as pdf:
 with PdfPages('conditions_distances_NNvertex_Kstr.pdf') as pdf:

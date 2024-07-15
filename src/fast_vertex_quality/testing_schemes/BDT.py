@@ -370,6 +370,26 @@ class BDT_tester:
             # A = event_loader.get_branches(['pass_stripping'])
             # print(np.asarray(A), np.shape(np.where(A!=1)))
             # quit()
+            event_loader.cut('K_Kst_PT>400')
+            event_loader.cut('e_minus_PT>300')
+            event_loader.cut('e_plus_PT>300')
+
+            if "Partreco" in sample_loc:
+                event_loader_target = data_loader.load_data(
+                    [
+                        "datasets/Kstee_cut_more_vars.root",
+                    ],
+                    transformers=self.transformers,
+                    convert_to_RK_branch_names=True,
+                    conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
+                )
+                # event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['K_Kst_eta','e_minus_eta','e_plus_eta'])
+                # event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['B_plus_P','B_plus_PT'])
+                # event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['B_plus_P','B_plus_PT','K_Kst_eta','e_minus_eta','e_plus_eta','m_01','m_02','m_12'])
+                event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['m_01','m_02','m_12'])
+
+
+
         else:
             if convert_branches:
                 event_loader = data_loader.load_data(

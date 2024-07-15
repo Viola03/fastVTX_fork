@@ -92,6 +92,8 @@ targets = [
     "J_psi_1S_FDCHI2_OWNPV",
 ]
 
+# network_option = 'WGAN'
+network_option = 'VAE'
 
 vertex_quality_trainer_obj = vertex_quality_trainer(
     training_data_loader,
@@ -101,12 +103,12 @@ vertex_quality_trainer_obj = vertex_quality_trainer(
     beta=float(rd.beta),
     latent_dim=rd.latent,
     batch_size=64,
-    D_architecture=[1000,2000,1000],
-    G_architecture=[1000,2000,1000],
-    network_option='WGAN',
+    D_architecture=[1000,2000,2000,1000],
+    G_architecture=[1000,2000,2000,1000],
+    network_option=network_option,
 )
 
-vertex_quality_trainer_obj.load_state(tag=f"networks/vertex_job_WGANcocktail_distances_newconditions")
+vertex_quality_trainer_obj.load_state(tag=f"networks/vertex_job_{network_option}cocktail_distances_newconditions")
 # vertex_quality_trainer_obj.gen_data('saved_output_WGANcocktail_hierarchy.root')
 
 
@@ -123,6 +125,6 @@ BDT_tester_obj = BDT_tester(
     gen_track_chi2=False
 )
 scores = BDT_tester_obj.make_BDT_plot_hierarchy(
-    vertex_quality_trainer_obj, f"BDT_job_WGANcocktail_newconditions.pdf", include_combinatorial=False, include_jpsiX=False
+    vertex_quality_trainer_obj, f"BDT_job_WGANcocktail_newconditions{network_option}.pdf", include_combinatorial=False, include_jpsiX=False
 )
 

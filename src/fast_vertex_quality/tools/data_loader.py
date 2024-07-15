@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pickle
 from particle import Particle
+from hep_ml.reweight import BinsReweighter, GBReweighter, FoldingReweighter
 
 def write_df_to_root(df, output_name):
 	branch_dict = {}
@@ -349,6 +350,37 @@ class dataset:
     def print_branches(self):
         for key in list(self.all_data["physical"].keys()):
             print(key)
+
+    def sample_with_replacement_with_reweight(self, target_loader, reweight_vars):
+
+        original = []
+        for var in reweight_vars:
+            original.append(self.all_data['physical'][var])
+        
+        target_branches = target_loader.get_branches(reweight_vars, processed=False)
+
+        target = []
+        for var in reweight_vars:
+            target.append(target_branches[var])
+
+        original = np.swapaxes(np.asarray(original),0,1)
+        target = np.swapaxes(np.asarray(target),0,1)
+
+        print("Using GBReweighter to reweight then re-select data...")
+        reweighter_base = GBReweighter(max_depth=2, gb_args={'subsample': 0.5})
+        reweighter = FoldingReweighter(reweighter_base, n_folds=3)
+        reweighter.fit(original=original, target=target)
+        MC_weights = reweighter.predict_weights(original)
+
+        N = self.all_data['physical'].shape[0]
+        indexes = np.random.choice(np.arange(N), size=N, replace=True, p=MC_weights/np.sum(MC_weights))
+
+        self.all_data['physical'] = self.all_data['physical'].iloc[indexes]
+        self.all_data['processed'] = self.all_data['processed'].iloc[indexes]
+
+        self.all_data['physical'].reset_index(drop=True, inplace=True)
+        self.all_data['processed'].reset_index(drop=True, inplace=True)
+
 
     def fill(self, data, turn_off_processing=False):
 
