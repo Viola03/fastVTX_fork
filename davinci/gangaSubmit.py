@@ -59,7 +59,7 @@ for job_name, path_dict in job_setting.items():
     splitter = SplitByFiles()
     splitter.ignoremissing = True
     splitter.maxFiles = -1
-    splitter.filesPerJob = 1
+    splitter.filesPerJob = 3
 
     job = Job(name=job_name, comment=job_name, backend=bck, splitter=splitter)
     Year = (
@@ -78,8 +78,8 @@ for job_name, path_dict in job_setting.items():
         + 'DaVinci().TupleFile     = "DTT_'
         + job_name
         + '.root"  ; '
-        # + "DaVinci().EvtMax        =              -1             ; "
-        + "DaVinci().EvtMax        =              25             ; "
+        + "DaVinci().EvtMax        =              -1             ; "
+        # + "DaVinci().EvtMax        =              25             ; "
         + "from Configurables import CondDB                      ; "
         + "CondDB( LatestGlobalTagByDataType = "
         + Year
@@ -90,8 +90,8 @@ for job_name, path_dict in job_setting.items():
     )
 
     print("Create job for thee jobs: ", job.name)
-    # job.inputdata  = dataset
-    job.inputdata = [dataset[0]]
+    job.inputdata  = dataset
+    # job.inputdata = [dataset[0]]
     # job.inputdata = dataset[:5]
 
     # This throws the files on the grid personall space
