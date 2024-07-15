@@ -10,9 +10,12 @@ streams = ["ALLSTREAMS.DST"]
 job_setting = {}
 List_Of_Paths = []
 i = 0
+# inclusive B
 # PATH_name = "/MC/2018/Beam6500GeV-2018-MagDown-Nu1.6-25ns-Pythia8/Sim09k/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/10000023/ALLSTREAMS.DST"
-# PATH_name = "/MC/2018/Beam6500GeV-2018-MagDown-Nu1.6-25ns-Pythia8/Sim09i/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/12123003/ALLSTREAMS.DST"
-PATH_name = "/MC/2018/Beam6500GeV-2018-MagDown-Nu1.6-25ns-Pythia8/Sim09g/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/12123003/ALLSTREAMS.DST"
+# Kee
+# PATH_name = "/MC/2018/Beam6500GeV-2018-MagDown-Nu1.6-25ns-Pythia8/Sim09g/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/12123003/ALLSTREAMS.DST"
+# K*ee
+PATH_name = "/MC/2015/Beam6500GeV-2015-MagUp-Nu1.6-25ns-Pythia8/Sim09i/Trig0x411400a2/Reco15a/Turbo02/Stripping24r1NoPrescalingFlagged/11124002/ALLSTREAMS.DST"
 print(PATH_name)
 job_name = (
     "20"
@@ -74,8 +77,8 @@ for job_name, path_dict in job_setting.items():
         + 'DaVinci().TupleFile     = "DTT_'
         + job_name
         + '.root"  ; '
-        + "DaVinci().EvtMax        =              -1             ; "
-        # + "DaVinci().EvtMax        =              25             ; "
+        # + "DaVinci().EvtMax        =              -1             ; "
+        + "DaVinci().EvtMax        =              25             ; "
         + "from Configurables import CondDB                      ; "
         + "CondDB( LatestGlobalTagByDataType = "
         + Year
@@ -87,8 +90,8 @@ for job_name, path_dict in job_setting.items():
 
     print("Create job for thee jobs: ", job.name)
     # job.inputdata  = dataset
-    # job.inputdata = [dataset[0]]
-    job.inputdata = dataset[:5]
+    job.inputdata = [dataset[0]]
+    # job.inputdata = dataset[:5]
 
     # This throws the files on the grid personall space
     job.outputfiles = [
