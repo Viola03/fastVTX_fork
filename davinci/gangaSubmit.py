@@ -48,7 +48,8 @@ for job_name, path_dict in job_setting.items():
 
     # myApp.platform = "x86_64-slc6-gcc62-opt"
     myApp.platform = "x86_64+avx2+fma-centos7-gcc62-opt"
-    myApp.options = ["./davinci_intermediates.py", "./print_something.py"]
+    # myApp.options = ["./davinci_intermediates.py", "./print_something.py"]
+    myApp.options = ["./davinci_intermediates.py"]
 
     bck = Dirac()
     # bck = Condor()
