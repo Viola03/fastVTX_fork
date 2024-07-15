@@ -18,7 +18,7 @@ i = 0
 PATH_name = "/MC/2015/Beam6500GeV-2015-MagUp-Nu1.6-25ns-Pythia8/Sim09i/Trig0x411400a2/Reco15a/Turbo02/Stripping24r1NoPrescalingFlagged/11124002/ALLSTREAMS.DST"
 print(PATH_name)
 job_name = (
-    "20"
+    "Kstee_20"
     + year[i]
     + "_Reco"
     + Reco_v[i]
