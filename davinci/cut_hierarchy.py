@@ -100,8 +100,9 @@ branches_to_keep = [
 cut_condition = "(MOTHER_TRUEID != 0) & (MOTHER_BKGCAT < 60)"
 
 # name = 'cocktail_hierarchy'
-name = 'dedicated_Kee_MC_hierachy'
+# name = 'dedicated_Kee_MC_hierachy'
 # name = 'dedicated_Kstee_MC_hierachy'
+name = 'dedicated_BuD0enuKenu_MC_hierachy'
 
 with uproot.open(f'/users/am13743/fast_vertexing_variables/datasets/raw/{name}.root') as ur_file:
 	

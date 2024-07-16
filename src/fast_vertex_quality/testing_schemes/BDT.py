@@ -385,8 +385,20 @@ class BDT_tester:
                 )
                 # event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['K_Kst_eta','e_minus_eta','e_plus_eta'])
                 # event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['B_plus_P','B_plus_PT'])
-                # event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['B_plus_P','B_plus_PT','K_Kst_eta','e_minus_eta','e_plus_eta','m_01','m_02','m_12'])
-                event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['m_01','m_02','m_12'])
+                event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['B_plus_P','B_plus_PT','K_Kst_eta','e_minus_eta','e_plus_eta','m_01','m_02','m_12'])
+                # best
+                # event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['m_01','m_02','m_12'])
+            # if "BuD0enuKenu" in sample_loc:
+            #     event_loader_target = data_loader.load_data(
+            #         [
+            #             "datasets/dedicated_BuD0enuKenu_MC_hierachy_cut_more_vars.root",
+            #         ],
+            #         transformers=self.transformers,
+            #         convert_to_RK_branch_names=True,
+            #         conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
+            #     )
+            #     event_loader_target.cut("pass_stripping")
+            #     event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['m_01','m_02','m_12'])
 
 
 
@@ -461,12 +473,18 @@ class BDT_tester:
             event_loader = vertex_quality_trainer_obj.predict_from_data_loader(
                 event_loader
             )
+            event_loader.fill_stripping_bool()
+            event_loader.cut("pass_stripping")
 
             query = event_loader.get_branches(self.BDT_vars_gen, processed=False)
 
             query = np.squeeze(np.asarray(query[self.BDT_vars_gen]))
 
-        else:
+        else:  
+            
+            event_loader.fill_stripping_bool()
+            event_loader.cut("pass_stripping")
+     
             query = event_loader.get_branches(self.BDT_vars, processed=False)
 
             query = np.squeeze(np.asarray(query[self.BDT_vars]))
@@ -479,7 +497,10 @@ class BDT_tester:
         filename,
         include_combinatorial=False,
         include_jpsiX=False,
-    ):
+    ):  
+        
+
+
         signal_gen = self.get_sample_Kee(
             # "datasets/Kee_2018_truthed_more_vars.csv",
             "datasets/Kee_cut_more_vars.root",
@@ -519,10 +540,44 @@ class BDT_tester:
             generate=False,
             N=10000,
         )  
+
+
+
+
+
+
+
+
+
+
+        BuD0enuKenu_gen = self.get_sample_Kee(
+            "datasets/dedicated_BuD0enuKenu_MC_hierachy_cut_more_vars.root",
+            vertex_quality_trainer_obj,
+            generate=True,
+            N=10000,
+            rapidsim=False,
+            convert_branches=True,
+        )  
+        
+        BuD0enuKenu_gen_rapidsim = self.get_sample_Kee(
+            "/users/am13743/fast_vertexing_variables/rapidsim/BuD0enuKenu/BuD0enuKenu_tree_NNvertex_more_vars.root",
+            vertex_quality_trainer_obj,
+            generate=True,
+            N=10000,
+            rapidsim=True,
+        )  
+        
+        BuD0enuKenu_MC = self.get_sample_Kee(
+            "datasets/dedicated_BuD0enuKenu_MC_hierachy_cut_more_vars.root",
+            vertex_quality_trainer_obj,
+            generate=False,
+            N=10000,
+            convert_branches=True,
+        )  
         
 
         samples = [signal_gen, signal_gen_rapidsim, part_reco_gen, part_reco_gen_rapidsim, part_reco_MC]
-        labels = ["sig - gen", "sig - gen (rapidsim)", "prc - gen", "prc - gen (rapidsim)", "prc - MC"]
+        labels = [self.signal_label, self.background_label, "sig - gen", "sig - gen (rapidsim)", "prc - gen", "prc - gen (rapidsim)", "prc - MC"]
         colours = ["tab:blue", "tab:red", "tab:green", "tab:orange", "k", "violet", "tab:purple"]
 
         scores = self.query_and_plot_samples(
@@ -530,6 +585,19 @@ class BDT_tester:
             labels,
             colours=colours,
             filename=filename,
+            include_combinatorial=include_combinatorial,
+            only_hists=True,
+        )
+
+        samples = [signal_gen, signal_gen_rapidsim, BuD0enuKenu_gen, BuD0enuKenu_gen_rapidsim, BuD0enuKenu_MC]
+        labels = [self.signal_label, self.background_label, "sig - gen", "sig - gen (rapidsim)", "BuD0enuKenu - gen", "BuD0enuKenu - gen (rapidsim)", "BuD0enuKenu - MC"]
+        colours = ["tab:blue", "tab:red", "tab:green", "tab:orange", "k", "violet", "tab:purple"]
+
+        scores = self.query_and_plot_samples(
+            samples,
+            labels,
+            colours=colours,
+            filename=filename.replace('.pdf','_BuD0enuKenu.pdf'),
             include_combinatorial=include_combinatorial,
             only_hists=True,
         )
@@ -1003,12 +1071,12 @@ class BDT_tester:
 
         for idx, sample in enumerate(samples):
             # print(idx, sample, np.where(np.isinf(sample)), np.where(np.isnan(sample)))
-            sample_values[labels[idx]] = clf.predict_proba(sample)[:, 1]
+            sample_values[labels[idx+2]] = clf.predict_proba(sample)[:, 1]
 
         with PdfPages(f"{filename}") as pdf:
 
-            plt.figure(figsize=(15, 10))
-            plt.subplot(2, 3, 1)
+            plt.figure(figsize=(26, 7))
+            plt.subplot(1, 4, 1)
 
             hist = plt.hist(
                 sample_values.values(),
@@ -1031,7 +1099,7 @@ class BDT_tester:
             # plt.legend(loc="upper left")
             plt.xlabel(f"BDT output")
             plt.yscale("log")
-            plt.subplot(2, 3, 2)
+            plt.subplot(1, 4, 2)
             plt.hist(
                 sample_values.values(),
                 bins=50,
@@ -1053,12 +1121,12 @@ class BDT_tester:
             plt.legend(loc="upper left")
             plt.xlabel(f"BDT output")
 
-            if only_hists:
-                pdf.savefig(bbox_inches="tight")
-                plt.close()
-                return None
+            # if only_hists:
+            #     pdf.savefig(bbox_inches="tight")
+            #     plt.close()
+            #     return None
 
-            ax = plt.subplot(2, 3, 3)
+            ax = plt.subplot(1, 4, 4)
 
             hist = plt.hist(
                 sample_values.values(),
@@ -1084,70 +1152,74 @@ class BDT_tester:
             plt.yscale("log")
             ax.set_visible(False)
 
-            plt.subplot(2, 3, 4)
-            x = hist[1][:-1] + (hist[1][1] - hist[1][0]) / 2.0
-            y = hist[0][0] / hist[0][3]
-            yerr = y * np.sqrt(
-                (np.sqrt(hist[0][0]) / hist[0][0]) ** 2
-                + (np.sqrt(hist[0][3]) / hist[0][3]) ** 2
-            )
-            y *= np.sum(hist[0][3]) / np.sum(hist[0][0])
-            plt.errorbar(
-                x,
-                y,
-                yerr=yerr,
-                label="MC",
-                color="tab:blue",
-                marker="o",
-                fmt=" ",
-                capsize=2,
-                linewidth=1.75,
-            )
+            # plt.subplot(2, 3, 4)
+            # x = hist[1][:-1] + (hist[1][1] - hist[1][0]) / 2.0
+            # y = hist[0][0] / hist[0][3]
+            # yerr = y * np.sqrt(
+            #     (np.sqrt(hist[0][0]) / hist[0][0]) ** 2
+            #     + (np.sqrt(hist[0][3]) / hist[0][3]) ** 2
+            # )
+            # y *= np.sum(hist[0][3]) / np.sum(hist[0][0])
+            # plt.errorbar(
+            #     x,
+            #     y,
+            #     yerr=yerr,
+            #     label="MC",
+            #     color="tab:blue",
+            #     marker="o",
+            #     fmt=" ",
+            #     capsize=2,
+            #     linewidth=1.75,
+            # )
 
-            x = hist[1][:-1] + (hist[1][1] - hist[1][0]) / 2.0
-            y = hist[0][2] / hist[0][4]
-            yerr = y * np.sqrt(
-                (np.sqrt(hist[0][2]) / hist[0][2]) ** 2
-                + (np.sqrt(hist[0][4]) / hist[0][4]) ** 2
-            )
-            y *= np.sum(hist[0][4]) / np.sum(hist[0][2])
-            plt.errorbar(
-                x,
-                y,
-                yerr=yerr,
-                label="gen",
-                color="tab:red",
-                marker="o",
-                fmt=" ",
-                capsize=2,
-                linewidth=1.75,
-            )
+            # x = hist[1][:-1] + (hist[1][1] - hist[1][0]) / 2.0
+            # y = hist[0][2] / hist[0][4]
+            # yerr = y * np.sqrt(
+            #     (np.sqrt(hist[0][2]) / hist[0][2]) ** 2
+            #     + (np.sqrt(hist[0][4]) / hist[0][4]) ** 2
+            # )
+            # y *= np.sum(hist[0][4]) / np.sum(hist[0][2])
+            # plt.errorbar(
+            #     x,
+            #     y,
+            #     yerr=yerr,
+            #     label="gen",
+            #     color="tab:red",
+            #     marker="o",
+            #     fmt=" ",
+            #     capsize=2,
+            #     linewidth=1.75,
+            # )
 
-            plt.ylabel("Signal/prc")
-            plt.xlabel(f"BDT output")
-            plt.legend()
-            plt.axhline(y=1, c="k")
+            # plt.ylabel("Signal/prc")
+            # plt.xlabel(f"BDT output")
+            # plt.legend()
+            # plt.axhline(y=1, c="k")
 
-            plt.subplot(2, 3, 5)
+            plt.subplot(1, 4, 3)
 
             n_points = 50
 
             effs = {}
             x = np.linspace(0, 0.99, n_points)
 
-            if include_combinatorial:
-                sample_list = [
-                    self.signal_label,
-                    "sig - gen",
-                    "prc - MC",
-                    "prc - gen",
-                    self.background_label,
-                    "combi - gen",
-                ]
-            else:
-                sample_list = [self.signal_label, "sig - gen", "prc - MC", "prc - gen"]
+            # if include_combinatorial:
+            #     sample_list = [
+            #         self.signal_label,
+            #         "sig - gen",
+            #         "prc - MC",
+            #         "prc - gen",
+            #         self.background_label,
+            #         "combi - gen",
+            #     ]
+            # else:
+            #     sample_list = [self.signal_label, "sig - gen", "sig - gen (rapidsim)", "prc - MC", "prc - gen", "prc - gen (rapidsim)"]
+            sample_list = list(sample_values.keys())
 
             for sample in sample_list:
+                
+                if sample == self.background_label:
+                    continue
 
                 eff = np.empty(0)
                 for cut in x:
@@ -1163,7 +1235,10 @@ class BDT_tester:
                 else:
                     color = "tab:red"
                 if "gen" in sample:
-                    style = "--"
+                    if "rapidsim" in sample:
+                        style = "-."
+                    else:
+                        style = "--"
                 else:
                     style = "-"
 
@@ -1172,18 +1247,16 @@ class BDT_tester:
 
                 plt.plot(x, effs[sample], label=sample, color=color, linestyle=style)
 
-            pairs = [[0, 1], [2, 3]]
-            if include_combinatorial:
-                pairs.append([4, 5])
-
+            # pairs = [[0, 1], [2, 3]]
+            # if include_combinatorial:
+            #     pairs.append([4, 5])
             scores = []
-
-            colors = ["tab:blue", "tab:red", "tab:orange"]
-            for idx, pair in enumerate(pairs):
-                true = effs[list(effs.keys())[pair[0]]]
-                false = effs[list(effs.keys())[pair[1]]]
-                plt.fill_between(x, true, false, color=colors[idx], alpha=0.1)
-                scores.append(np.sum(np.abs(true - false)) / n_points)
+            # colors = ["tab:blue", "tab:red", "tab:orange"]
+            # for idx, pair in enumerate(pairs):
+            #     true = effs[list(effs.keys())[pair[0]]]
+            #     false = effs[list(effs.keys())[pair[1]]]
+            #     plt.fill_between(x, true, false, color=colors[idx], alpha=0.1)
+            #     scores.append(np.sum(np.abs(true - false)) / n_points)
 
             plt.legend()
             plt.ylabel(f"Selection efficiency")

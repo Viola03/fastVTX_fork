@@ -137,7 +137,9 @@ print(f"Loading data...")
 training_data_loader = data_loader.load_data(
     [
         # "datasets/Kee_cut_more_vars.root",
-        "datasets/Kstee_cut_more_vars.root",
+        # "datasets/Kstee_cut_more_vars.root",
+        # "datasets/Kstee_cut_more_vars.root",
+        "datasets/dedicated_BuD0enuKenu_MC_hierachy_cut_more_vars.root",
     ],
     convert_to_RK_branch_names=True,
     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
@@ -145,7 +147,10 @@ training_data_loader = data_loader.load_data(
 	transformers=transformers
 )
 # training_data_loader.cut('B_plus_TRUEP_Z>0')
+# training_data_loader.cut('pass_stripping')
 training_data_loader.cut('abs(K_Kst_TRUEID)==321')
+training_data_loader.cut('abs(e_plus_TRUEID)==11')
+training_data_loader.cut('abs(e_minus_TRUEID)==11')
 
 conditions_notrapdsim = {}
 conditions_notrapdsim["processed"] = training_data_loader.get_branches(conditions, processed=True)
@@ -156,7 +161,8 @@ training_data_loader_rapidsim = data_loader.load_data(
     [
         # "rapidsim/Kee/Signal_tree_more_vars.root",
         # "rapidsim/Kee/Signal_tree_NNvertex_more_vars.root",
-        "rapidsim/Kstree/Partreco_tree_NNvertex_more_vars.root",
+        # "rapidsim/Kstree/Partreco_tree_NNvertex_more_vars.root",
+        "rapidsim/BuD0enuKenu/BuD0enuKenu_tree_NNvertex_more_vars.root",
     ],
     convert_to_RK_branch_names=True,
     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
@@ -166,6 +172,8 @@ training_data_loader_rapidsim = data_loader.load_data(
 training_data_loader_rapidsim.cut('K_Kst_PT>400')
 training_data_loader_rapidsim.cut('e_minus_PT>300')
 training_data_loader_rapidsim.cut('e_plus_PT>300')
+
+training_data_loader_rapidsim.cut('m_12>3.674')
 # training_data_loader_rapidsim.cut('B_plus_TRUEP_Z>0')
 
 
@@ -269,7 +277,8 @@ def compare_in_2d(filename, var_1, var_2, processed=False):
 # quit()
 
 # with PdfPages('conditions_distances.pdf') as pdf:
-with PdfPages('conditions_distances_NNvertex_Kstr.pdf') as pdf:
+# with PdfPages('conditions_distances_NNvertex_Kstr.pdf') as pdf:
+with PdfPages('conditions_distances_NNvertex_D0.pdf') as pdf:
 
 	for variable in list(conditions):
 		

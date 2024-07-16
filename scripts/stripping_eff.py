@@ -12,8 +12,8 @@ transformers = pickle.load(open("networks/vertex_job_WGANcocktail_distances_newc
 loader = data_loader.load_data(
     [
         # "datasets/B2KEE_three_body_cut_more_vars.root",
-        # "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
-        "datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
+        "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
+        # "datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
     ],
     transformers=transformers,
     convert_to_RK_branch_names=True,

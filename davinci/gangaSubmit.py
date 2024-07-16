@@ -19,8 +19,10 @@ i = 0
 # decay_name = "Kstee"
 # PATH_name = "/MC/2015/Beam6500GeV-2015-MagUp-Nu1.6-25ns-Pythia8/Sim09i/Trig0x411400a2/Reco15a/Turbo02/Stripping24r1NoPrescalingFlagged/11124002/ALLSTREAMS.DST"
 # BuD0enuKenu
-decay_name = "BuD0enuKenu"
-PATH_name = "/MC/2018/Beam6500GeV-2018-MagDown-Nu1.6-25ns-Pythia8/Sim09k/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/12583023/ALLSTREAMS.DST"
+# decay_name = "BuD0enuKenu" # THIS HAS high q2 CUT!!!
+# PATH_name = "/MC/2018/Beam6500GeV-2018-MagDown-Nu1.6-25ns-Pythia8/Sim09k/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/12583023/ALLSTREAMS.DST"
+decay_name = "BuD0piKenu" 
+PATH_name = "/MC/2018/Beam6500GeV-2018-MagDown-Nu1.6-25ns-Pythia8/Sim09m/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/12583040/ALLSTREAMS.DST"
 print(PATH_name)
 job_name = (
     f"{decay_name}_20"

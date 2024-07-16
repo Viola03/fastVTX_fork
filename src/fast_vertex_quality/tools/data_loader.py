@@ -346,10 +346,12 @@ class dataset:
             cut_array = self.all_data['physical'].query(cuts)
             self.all_data["physical"].loc[cut_array.index,"pass_stripping"] = 1.
         except Exception as e:
+            # for key in list(self.all_data['physical'].keys()): print(key)
             print(f"\n\nAn error occurred: {e}")
             print("continuing with pass_stripping = 1\n")
             self.all_data["physical"]["pass_stripping"] = np.ones(self.all_data["physical"].shape[0])
 
+        # print('\n pass_stripping',self.all_data["physical"]["pass_stripping"])
 
     def print_branches(self):
         for key in list(self.all_data["physical"].keys()):
@@ -632,7 +634,14 @@ class dataset:
         
         gen_tot_val = self.all_data['physical'].shape[0]
         gen_tot_err = np.sqrt(gen_tot_val)
-        self.all_data['physical'] = self.all_data['physical'].query(cut)
+
+        if cut=='pass_stripping': # couldnt fix bug with query, this is work around
+            self.all_data['physical'].reset_index(drop=True, inplace=True)
+            self.all_data['processed'].reset_index(drop=True, inplace=True)
+            passes = np.where(self.all_data['physical']['pass_stripping']>0.5)
+            self.all_data['physical'] = self.all_data['physical'].iloc[passes]
+        else:
+            self.all_data['physical'] = self.all_data['physical'].query(cut)
         index = self.all_data['physical'].index
         
         if not self.turn_off_processing:

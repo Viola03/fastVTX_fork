@@ -109,8 +109,8 @@ vertex_quality_trainer_obj = vertex_quality_trainer(
 )
 
 vertex_quality_trainer_obj.load_state(tag=f"networks/vertex_job_{network_option}cocktail_distances_newconditions")
-vertex_quality_trainer_obj.gen_data(f'saved_output_WGANcocktail_hierarchy_{network_option}.root')
-quit()
+# vertex_quality_trainer_obj.gen_data(f'saved_output_WGANcocktail_hierarchy_{network_option}.root')
+# quit()
 
 print(f"Initialising BDT tester...")
 BDT_tester_obj = BDT_tester(

@@ -16,8 +16,8 @@ masses[211] = 139.57039
 masses[13] = 105.66
 masses[11] = 0.51099895000 * 1e-3
 
-# file_name = 'Kee/Signal_tree.root'
-file_name = 'Kstree/Partreco_tree.root'
+# file_name = 'Kstree/Partreco_tree.root'
+file_name = 'BuD0enuKenu/BuD0enuKenu_tree.root'
 particles = ["DAUGHTER1", "DAUGHTER2", "DAUGHTER3"]
 mother = 'MOTHER'
 intermediate = 'INTERMEDIATE'
