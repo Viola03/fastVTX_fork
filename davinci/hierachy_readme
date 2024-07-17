@@ -1,0 +1,12 @@
+
+davinci job cuts on motherID, which is close to a BKGCAT cut
+
+ganga jobs put small root files in local gangadir
+
+Hadd these by hand
+
+cut_hierarchy.py to sort structure and save correct columns
+
+play_hierarchy.py to sort mother mass and width condtions
+
+then scripts/variables_root
