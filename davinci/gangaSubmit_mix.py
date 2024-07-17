@@ -72,13 +72,12 @@ LFNs = pickle.load(filehandler)
 
 extend = False
 
-# nfiles_per = 25
-# filesPerJob = 4
 
-nfiles_per = 30
+# nfiles_per_event_typs = 30
+# filesPerJob = 5
+nfiles_per_event_typs = 150
 filesPerJob = 5
-# nfiles_per = 1
-# filesPerJob = 1
+
 
 total = 0
 for target in list(LFNs.keys()):
@@ -86,10 +85,10 @@ for target in list(LFNs.keys()):
 	files = []
 	LFNs[target] = np.asarray(LFNs[target])
 	np.random.shuffle(LFNs[target])
-	if len(LFNs[target]) < nfiles_per:
+	if len(LFNs[target]) < nfiles_per_event_typs:
 		files = LFNs[target]
 	else:
-		for n in range(nfiles_per):
+		for n in range(nfiles_per_event_typs):
 			files.append(LFNs[target][n])
 	
 	total += len(files)
