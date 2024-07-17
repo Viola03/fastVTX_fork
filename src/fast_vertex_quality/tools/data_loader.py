@@ -127,6 +127,7 @@ class Transformer:
             f"{rd.daughter_particles[0]}_IPCHI2_OWNPV",
             f"{rd.daughter_particles[1]}_IPCHI2_OWNPV",
             f"{rd.daughter_particles[2]}_IPCHI2_OWNPV",
+            f"{rd.intermediate_particle}_IPCHI2_OWNPV",
             f"{rd.daughter_particles[0]}_PZ",
             f"{rd.daughter_particles[1]}_PZ",
             f"{rd.daughter_particles[2]}_PZ",
@@ -560,7 +561,7 @@ class dataset:
             )
 
             if len(missing) > 0:
-                print(f"missing branches: {missing}\n")
+                print(f"missing branches: {missing}\n {self.filenames} \n")
 
             output = self.all_data["processed"][branches]
 
@@ -573,7 +574,7 @@ class dataset:
             )
 
             if len(missing) > 0:
-                print(f"missing branches: {missing}\n")
+                print(f"missing branches: {missing}\n {self.filenames} \n")
 
             output = self.all_data["physical"][branches]
 
@@ -676,6 +677,11 @@ class dataset:
 
         gen_tot_val = self.all_data['physical'].shape[0]
         gen_tot_err = np.sqrt(gen_tot_val)
+
+        if 'B_plus_ENDVERTEX_NDOF' in cut:
+            if 'B_plus_ENDVERTEX_NDOF' not in list(self.all_data['physical'].keys()):
+                self.all_data['physical']['B_plus_ENDVERTEX_NDOF'] = 3
+
         cut_array = self.all_data['physical'].query(cut)
         pass_tot_val = cut_array.shape[0]
         pass_tot_err = np.sqrt(pass_tot_val)

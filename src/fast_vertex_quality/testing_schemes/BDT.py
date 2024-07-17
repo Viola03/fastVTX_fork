@@ -110,7 +110,10 @@ class BDT_tester:
                     signal,
                 ],
                 transformers=self.transformers,
+                convert_to_RK_branch_names=True,
+                conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
             )
+            stripping_eff_signal = self.get_stripping_eff(event_loader_MC)
             event_loader_MC.select_randomly(Nevents=50000)
 
             events_MC = event_loader_MC.get_branches(
@@ -173,6 +176,7 @@ class BDT_tester:
                 self.BDTs[kFold]["BDT"] = clf
                 self.BDTs[kFold]["signal_sample"] = real_training_data
                 self.BDTs[kFold]["bkg_sample"] = fake_training_data
+                self.BDTs[kFold]["signal_stripping_eff"] = stripping_eff_signal
 
                 break
 
@@ -1395,3 +1399,502 @@ class BDT_tester:
             plt.close()
 
         return scores
+
+    def get_stripping_eff(self, loader):
+        
+        self.cuts = {}
+        self.cuts['B_plus_FDCHI2_OWNPV'] = ">100."
+        self.cuts['B_plus_DIRA_OWNPV'] = ">0.9995"
+        self.cuts['B_plus_IPCHI2_OWNPV'] = "<25"
+        self.cuts['(B_plus_ENDVERTEX_CHI2/B_plus_ENDVERTEX_NDOF)'] = "<9"
+        # cuts['J_psi_1S_PT'] = ">0"
+        self.cuts['J_psi_1S_FDCHI2_OWNPV'] = ">16"
+        self.cuts['J_psi_1S_IPCHI2_OWNPV'] = ">0"
+        for lepton in ['e_minus', 'e_plus']:
+            self.cuts[f'{lepton}_IPCHI2_OWNPV'] = ">9"
+            # cuts[f'{lepton}_PT'] = ">300"
+        for hadron in ['K_Kst']:
+            self.cuts[f'{hadron}_IPCHI2_OWNPV'] = ">9"
+            # cuts[f'{hadron}_PT'] = ">400"
+        # cuts['m_12'] = "<5500"
+        # cuts['B_plus_M_Kee_reco'] = ">(5279.34-1500)"
+        # cuts['B_plus_M_Kee_reco'] = "<(5279.34+1500)"
+
+        effs_true = np.empty((0,2))
+        eff_true, effErr_true = loader.getEff(self.cuts)
+        effs_true = np.append(effs_true, [[eff_true, effErr_true]], axis=0)
+        for cut in list(self.cuts.keys()):
+            eff_true, effErr_true = loader.getEff(f'{cut}{self.cuts[cut]}')
+            effs_true = np.append(effs_true, [[eff_true, effErr_true]], axis=0)
+
+        return effs_true
+
+
+
+    def get_sample_and_stripping_eff(
+        self,
+        sample_loc,
+        vertex_quality_trainer_obj,
+        generate,
+        cut=None,
+        convert_branches=False,
+        N=10000,
+        rapidsim=False,
+        return_data_loader=False
+    ):
+
+
+        if rapidsim:
+            event_loader = data_loader.load_data(
+                [
+                    sample_loc,
+                ],
+                transformers=self.transformers,
+                convert_to_RK_branch_names=True,
+                conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
+            )
+
+            if "Partreco" in sample_loc:
+                event_loader_target = data_loader.load_data(
+                    [
+                        "datasets/Kstee_cut_more_vars.root",
+                    ],
+                    transformers=self.transformers,
+                    convert_to_RK_branch_names=True,
+                    conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
+                )
+                event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['m_01','m_02','m_12'])
+            if "BuD0enuKenu" in sample_loc:
+                # event_loader_target = data_loader.load_data(
+                #     [
+                #         "datasets/dedicated_BuD0enuKenu_MC_hierachy_cut_more_vars.root",
+                #     ],
+                #     transformers=self.transformers,
+                #     convert_to_RK_branch_names=True,
+                #     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
+                # )
+                # event_loader_target.cut("pass_stripping")
+                event_loader.cut('m_12>3.674')
+                # event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['FD_B_plus_true_vertex'])
+            # if "BuD0piKenu" in sample_loc:
+
+        else:
+            if convert_branches:
+                event_loader = data_loader.load_data(
+                    [
+                        sample_loc,
+                    ],
+                    transformers=self.transformers,
+                    convert_to_RK_branch_names=True,
+                    conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
+                )
+            else:
+                event_loader = data_loader.load_data(
+                    [
+                        sample_loc,
+                    ],
+                    transformers=self.transformers,
+                )
+
+        if cut is not None:
+            print(event_loader.shape())
+            event_loader.cut(cut)
+            print(event_loader.shape())
+        
+        try:
+            event_loader.select_randomly(Nevents=N)
+        except:
+            pass
+        
+
+        if generate:
+
+            event_loader = vertex_quality_trainer_obj.predict_from_data_loader(
+                event_loader
+            )
+            # print(event_loader.print_branches())
+            stripping_effs = self.get_stripping_eff(event_loader)
+            event_loader.fill_stripping_bool()
+            event_loader.cut("pass_stripping")
+            sample_after_stripping = event_loader.get_branches(self.BDT_vars_gen, processed=False)
+            sample_after_stripping = np.squeeze(np.asarray(sample_after_stripping[self.BDT_vars_gen]))
+
+        else:  
+            
+            stripping_effs = self.get_stripping_eff(event_loader)
+            event_loader.fill_stripping_bool()
+            event_loader.cut("pass_stripping")
+            sample_after_stripping = event_loader.get_branches(self.BDT_vars, processed=False)
+            sample_after_stripping = np.squeeze(np.asarray(sample_after_stripping[self.BDT_vars]))
+
+        if return_data_loader:
+            return sample_after_stripping, stripping_effs, event_loader
+        else:
+            return sample_after_stripping, stripping_effs
+        
+        
+        
+    def plot_detailed_metrics(
+        self,
+        conditions,
+        targets,
+        vertex_quality_trainer_obj,
+        filename
+    ):  
+        self.conditions = conditions
+        self.targets = targets
+        
+
+        with PdfPages(filename) as pdf:
+
+            signal_gen, signal_gen_stripping_eff = self.get_sample_and_stripping_eff(
+                "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
+                vertex_quality_trainer_obj,
+                generate=True,
+                N=10000,
+                convert_branches=True,
+            )  
+
+            signal_gen_rapidsim, signal_gen_rapidsim_stripping_eff = self.get_sample_and_stripping_eff(
+                "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root",
+                vertex_quality_trainer_obj,
+                generate=True,
+                N=10000,
+                rapidsim=True,
+            )  
+
+            part_reco_gen, part_reco_gen_stripping_eff = self.get_sample_and_stripping_eff(
+                "datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
+                vertex_quality_trainer_obj,
+                generate=True,
+                N=10000,
+                rapidsim=False,
+                convert_branches=True,
+            )  
+            part_reco_gen_rapidsim, part_reco_gen_rapidsim_stripping_eff = self.get_sample_and_stripping_eff(
+                "/users/am13743/fast_vertexing_variables/rapidsim/Kstree/Partreco_tree_NNvertex_more_vars.root",
+                vertex_quality_trainer_obj,
+                generate=True,
+                N=10000,
+                rapidsim=True,
+            )  
+            part_reco_MC, part_reco_MC_stripping_eff = self.get_sample_and_stripping_eff(
+                "datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
+                vertex_quality_trainer_obj,
+                generate=False,
+                N=10000,
+                convert_branches=True,
+            ) 
+
+            samples = [signal_gen, signal_gen_rapidsim]
+            labels = [self.signal_label, self.background_label, "sig - gen", "sig - gen (rapidsim)"]
+            colours = ["tab:blue", "tab:red", "tab:green", "tab:orange"]
+
+            self.query_and_plot_samples_pages(
+                pdf,
+                samples,
+                labels,
+                colours=colours,
+                filename=filename,
+                only_hists=True,
+            )
+
+            plt.title("Kee")
+            plt.errorbar(np.arange(np.shape(self.BDTs[0]["signal_stripping_eff"])[0]), self.BDTs[0]["signal_stripping_eff"][:,0], yerr=self.BDTs[0]["signal_stripping_eff"][:,1],label='MC',color='tab:red',linestyle='-')
+            plt.errorbar(np.arange(np.shape(signal_gen_stripping_eff)[0]), signal_gen_stripping_eff[:,0], yerr=signal_gen_stripping_eff[:,1],label='gen',color='tab:red',linestyle='--')
+            plt.errorbar(np.arange(np.shape(signal_gen_rapidsim_stripping_eff)[0]), signal_gen_rapidsim_stripping_eff[:,0], yerr=signal_gen_rapidsim_stripping_eff[:,1],label='gen (rapidsim)',color='tab:red',linestyle='-.')
+            plt.ylim(0,1)
+            cuts_ticks = ['All']+list(self.cuts.keys())
+            plt.xticks(np.arange(len(cuts_ticks)), cuts_ticks, rotation=90)
+            for i in np.arange(len(cuts_ticks)):
+                plt.axvline(x=i, alpha=0.5, ls='--',c='k')
+            plt.legend()
+            pdf.savefig(bbox_inches="tight")
+            plt.close()
+
+
+            samples = [signal_gen, signal_gen_rapidsim, part_reco_gen, part_reco_gen_rapidsim, part_reco_MC]
+            labels = [self.signal_label, self.background_label, "sig - gen", "sig - gen (rapidsim)", "prc - gen", "prc - gen (rapidsim)", "prc - MC"]
+            colours = ["tab:blue", "tab:red", "tab:green", "tab:orange", "k", "violet", "tab:purple"]
+
+            self.query_and_plot_samples_pages(
+                pdf,
+                samples,
+                labels,
+                colours=colours,
+                filename=filename,
+                only_hists=True,
+            )
+
+
+
+            plt.title("K*ee")
+            plt.errorbar(np.arange(np.shape(part_reco_MC_stripping_eff)[0]), part_reco_MC_stripping_eff[:,0], yerr=part_reco_MC_stripping_eff[:,1],label='MC',color='tab:red',linestyle='-')
+            plt.errorbar(np.arange(np.shape(part_reco_gen_stripping_eff)[0]), part_reco_gen_stripping_eff[:,0], yerr=part_reco_gen_stripping_eff[:,1],label='gen',color='tab:red',linestyle='--')
+            plt.errorbar(np.arange(np.shape(part_reco_gen_rapidsim_stripping_eff)[0]), part_reco_gen_rapidsim_stripping_eff[:,0], yerr=part_reco_gen_rapidsim_stripping_eff[:,1],label='gen (rapidsim)',color='tab:red',linestyle='-.')
+            plt.ylim(0,1)
+            cuts_ticks = ['All']+list(self.cuts.keys())
+            plt.xticks(np.arange(len(cuts_ticks)), cuts_ticks, rotation=90)
+            for i in np.arange(len(cuts_ticks)):
+                plt.axvline(x=i, alpha=0.5, ls='--',c='k')
+            plt.legend()
+            pdf.savefig(bbox_inches="tight")
+            plt.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            BuD0enuKenu_gen, BuD0enuKenu_gen_stripping_eff = self.get_sample_and_stripping_eff(
+                "datasets/dedicated_BuD0enuKenu_MC_hierachy_cut_more_vars.root",
+                vertex_quality_trainer_obj,
+                generate=True,
+                N=10000,
+                rapidsim=False,
+                convert_branches=True,
+            )  
+            
+            BuD0enuKenu_gen_rapidsim, BuD0enuKenu_gen_rapidsim_stripping_eff = self.get_sample_and_stripping_eff(
+                "/users/am13743/fast_vertexing_variables/rapidsim/BuD0enuKenu/BuD0enuKenu_tree_NNvertex_more_vars.root",
+                vertex_quality_trainer_obj,
+                generate=True,
+                N=10000,
+                rapidsim=True,
+            )  
+            
+            BuD0enuKenu_MC, BuD0enuKenu_MC_stripping_eff = self.get_sample_and_stripping_eff(
+                "datasets/dedicated_BuD0enuKenu_MC_hierachy_cut_more_vars.root",
+                vertex_quality_trainer_obj,
+                generate=False,
+                N=10000,
+                convert_branches=True,
+            )  
+
+
+            samples = [signal_gen, signal_gen_rapidsim, BuD0enuKenu_gen, BuD0enuKenu_gen_rapidsim, BuD0enuKenu_MC]
+            labels = [self.signal_label, self.background_label, "sig - gen", "sig - gen (rapidsim)", "BuD0enuKenu - gen", "BuD0enuKenu - gen (rapidsim)", "BuD0enuKenu - MC"]
+            colours = ["tab:blue", "tab:red", "tab:green", "tab:orange", "k", "violet", "tab:purple"]
+
+            self.query_and_plot_samples_pages(
+                pdf,
+                samples,
+                labels,
+                colours=colours,
+                filename=filename.replace('.pdf','_BuD0enuKenu.pdf'),
+                only_hists=True,
+            )
+
+
+            plt.title("BuD0enuKenu")
+            plt.errorbar(np.arange(np.shape(BuD0enuKenu_MC_stripping_eff)[0]), BuD0enuKenu_MC_stripping_eff[:,0], yerr=BuD0enuKenu_MC_stripping_eff[:,1],label='MC',color='tab:red',linestyle='-')
+            plt.errorbar(np.arange(np.shape(BuD0enuKenu_gen_stripping_eff)[0]), BuD0enuKenu_gen_stripping_eff[:,0], yerr=BuD0enuKenu_gen_stripping_eff[:,1],label='gen',color='tab:red',linestyle='--')
+            plt.errorbar(np.arange(np.shape(BuD0enuKenu_gen_rapidsim_stripping_eff)[0]), BuD0enuKenu_gen_rapidsim_stripping_eff[:,0], yerr=BuD0enuKenu_gen_rapidsim_stripping_eff[:,1],label='gen (rapidsim)',color='tab:red',linestyle='-.')
+            plt.ylim(0,1)
+            cuts_ticks = ['All']+list(self.cuts.keys())
+            plt.xticks(np.arange(len(cuts_ticks)), cuts_ticks, rotation=90)
+            for i in np.arange(len(cuts_ticks)):
+                plt.axvline(x=i, alpha=0.5, ls='--',c='k')
+            plt.legend()
+            pdf.savefig(bbox_inches="tight")
+            plt.close()
+
+
+
+
+
+
+
+            BuD0piKenu_gen, BuD0piKenu_gen_stripping_eff = self.get_sample_and_stripping_eff(
+                "datasets/dedicated_BuD0piKenu_MC_hierachy_cut_more_vars.root",
+                vertex_quality_trainer_obj,
+                generate=True,
+                N=10000,
+                rapidsim=False,
+                convert_branches=True,
+            )  
+            
+            BuD0piKenu_gen_rapidsim, BuD0piKenu_gen_rapidsim_stripping_eff = self.get_sample_and_stripping_eff(
+                "/users/am13743/fast_vertexing_variables/rapidsim/BuD0piKenu/BuD0piKenu_tree_NNvertex_more_vars.root",
+                vertex_quality_trainer_obj,
+                generate=True,
+                N=10000,
+                rapidsim=True,
+            )  
+            
+            BuD0piKenu_MC, BuD0piKenu_MC_stripping_eff = self.get_sample_and_stripping_eff(
+                "datasets/dedicated_BuD0piKenu_MC_hierachy_cut_more_vars.root",
+                vertex_quality_trainer_obj,
+                generate=False,
+                N=10000,
+                convert_branches=True,
+            )  
+
+            
+            samples = [signal_gen, signal_gen_rapidsim, BuD0piKenu_gen, BuD0piKenu_gen_rapidsim, BuD0piKenu_MC]
+            labels = [self.signal_label, self.background_label, "sig - gen", "sig - gen (rapidsim)", "BuD0piKenu - gen", "BuD0piKenu - gen (rapidsim)", "BuD0piKenu - MC"]
+            colours = ["tab:blue", "tab:red", "tab:green", "tab:orange", "k", "violet", "tab:purple"]
+
+            self.query_and_plot_samples_pages(
+                pdf,
+                samples,
+                labels,
+                colours=colours,
+                filename=filename.replace('.pdf','_BuD0piKenu.pdf'),
+                only_hists=True,
+            )
+
+            plt.title("BuD0piKenu")
+            plt.errorbar(np.arange(np.shape(BuD0piKenu_MC_stripping_eff)[0]), BuD0piKenu_MC_stripping_eff[:,0], yerr=BuD0piKenu_MC_stripping_eff[:,1],label='MC',color='tab:red',linestyle='-')
+            plt.errorbar(np.arange(np.shape(BuD0piKenu_gen_stripping_eff)[0]), BuD0piKenu_gen_stripping_eff[:,0], yerr=BuD0piKenu_gen_stripping_eff[:,1],label='gen',color='tab:red',linestyle='--')
+            plt.errorbar(np.arange(np.shape(BuD0piKenu_gen_rapidsim_stripping_eff)[0]), BuD0piKenu_gen_rapidsim_stripping_eff[:,0], yerr=BuD0piKenu_gen_rapidsim_stripping_eff[:,1],label='gen (rapidsim)',color='tab:red',linestyle='-.')
+            plt.ylim(0,1)
+            cuts_ticks = ['All']+list(self.cuts.keys())
+            plt.xticks(np.arange(len(cuts_ticks)), cuts_ticks, rotation=90)
+            for i in np.arange(len(cuts_ticks)):
+                plt.axvline(x=i, alpha=0.5, ls='--',c='k')
+            plt.legend()
+            pdf.savefig(bbox_inches="tight")
+            plt.close()
+
+
+
+
+
+    def query_and_plot_samples_pages(
+            self,
+            pdf,
+            samples,
+            labels,
+            colours=["tab:blue", "tab:red", "tab:green", "tab:purple", "k"],
+            filename="BDT.pdf",
+            kFold=0,
+            include_combinatorial=False,
+            only_hists=False,
+            plot_training=True,
+        ):
+
+            sample_values = {}
+            if plot_training:
+                sample_values[self.signal_label] = self.BDTs[kFold]["values_sig"]
+                sample_values[self.background_label] = self.BDTs[kFold]["values_bkg"]
+
+            clf = self.BDTs[kFold]["BDT"]
+
+            for idx, sample in enumerate(samples):
+                sample_values[labels[idx+2]] = clf.predict_proba(sample)[:, 1]
+
+
+            # plt.figure(figsize=(26, 7))
+            # plt.subplot(1, 4, 1)
+
+            hist = plt.hist(
+                sample_values.values(),
+                bins=50,
+                color=colours,
+                alpha=0.25,
+                label=list(sample_values.keys()),
+                density=True,
+                histtype="stepfilled",
+                range=[0, 1],
+            )
+            plt.hist(
+                sample_values.values(),
+                bins=50,
+                color=colours,
+                density=True,
+                histtype="step",
+                range=[0, 1],
+            )
+            plt.xlabel(f"BDT output")
+            plt.yscale("log")
+            pdf.savefig(bbox_inches="tight")
+            plt.close()
+
+
+            plt.hist(
+                sample_values.values(),
+                bins=50,
+                color=colours,
+                alpha=0.25,
+                label=list(sample_values.keys()),
+                density=True,
+                histtype="stepfilled",
+                range=[0, 1],
+            )
+            plt.hist(
+                sample_values.values(),
+                bins=50,
+                color=colours,
+                density=True,
+                histtype="step",
+                range=[0, 1],
+            )
+            plt.legend(loc="upper left")
+            plt.xlabel(f"BDT output")
+            pdf.savefig(bbox_inches="tight")
+            plt.close()
+
+
+         
+            n_points = 50
+
+            effs = {}
+            x = np.linspace(0, 0.99, n_points)
+
+            sample_list = list(sample_values.keys())
+
+            for sample in sample_list:
+                
+                if sample == self.background_label:
+                    continue
+
+                eff = np.empty(0)
+                for cut in x:
+
+                    values = sample_values[sample]
+
+                    pass_i = np.shape(np.where(values > cut))[1]
+                    eff = np.append(eff, pass_i / np.shape(values)[0])
+                effs[sample] = eff
+
+                if "sig" in sample or sample == self.signal_label:
+                    color = "tab:blue"
+                else:
+                    color = "tab:red"
+                if "gen" in sample:
+                    if "rapidsim" in sample:
+                        style = "-."
+                    else:
+                        style = "--"
+                else:
+                    style = "-"
+
+                if "combi" in sample or sample == self.background_label:
+                    color = "tab:orange"
+
+                plt.plot(x, effs[sample], label=sample, color=color, linestyle=style)
+
+            plt.legend()
+            plt.ylabel(f"Selection efficiency")
+            plt.xlabel(f"BDT cut")
+
+            pdf.savefig(bbox_inches="tight")
+            plt.close()
+
+
+
+
+
+
+    
+    
+    

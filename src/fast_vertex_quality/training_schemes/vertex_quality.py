@@ -573,6 +573,14 @@ class vertex_quality_trainer:
         elif self.network_option == 'GAN' or self.network_option == 'WGAN':
             images = np.squeeze(self.generator.predict([gen_noise, events_gen]))
 
+        # # add B_plus_ENDVERTEX_NDOF
+        # # print(np.shape(images))
+        # if 'B_plus_ENDVERTEX_NDOF' not in self.targets:
+        #     images = np.concatenate((images, np.expand_dims(np.ones(np.shape(images)[0])*3,1)),axis=1)
+        #     self.targets.append('B_plus_ENDVERTEX_NDOF')
+        #     # print(np.shape(images))
+        #     # print(len(self.targets))
+
         data_loader_obj.fill_target(images, self.targets)
 
         return data_loader_obj

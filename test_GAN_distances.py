@@ -14,7 +14,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-
 from particle import Particle
 
 
@@ -51,12 +50,6 @@ conditions = [
     "K_Kst_eta",
     "e_plus_eta",
     "e_minus_eta",
-    # "IP_B_plus",
-    # "IP_K_Kst",
-    # "IP_e_plus",
-    # "IP_e_minus",
-    # "FD_B_plus",
-    # "DIRA_B_plus",
     "IP_B_plus_true_vertex",
     "IP_K_Kst_true_vertex",
     "IP_e_plus_true_vertex",
@@ -70,12 +63,9 @@ conditions = [
     "m_01",
     "m_02",
     "m_12",
-
-    # "B_plus_FLIGHT",
     "K_Kst_FLIGHT",
     "e_plus_FLIGHT",
     "e_minus_FLIGHT",
-
 ]
 
 targets = [
@@ -90,10 +80,11 @@ targets = [
     "e_plus_IPCHI2_OWNPV",
     "e_plus_TRACK_CHI2NDOF",
     "J_psi_1S_FDCHI2_OWNPV",
+    "J_psi_1S_IPCHI2_OWNPV",
 ]
 
-# network_option = 'WGAN'
-network_option = 'VAE'
+network_option = 'WGAN'
+# network_option = 'VAE'
 
 vertex_quality_trainer_obj = vertex_quality_trainer(
     training_data_loader,
@@ -103,35 +94,23 @@ vertex_quality_trainer_obj = vertex_quality_trainer(
     beta=float(rd.beta),
     latent_dim=rd.latent,
     batch_size=64,
-    D_architecture=[1000,2000,2000,1000],
-    G_architecture=[1000,2000,2000,1000],
+    D_architecture=[1000,2000,2000,2000,1000],
+    G_architecture=[1000,2000,2000,2000,1000],
     network_option=network_option,
 )
 
-vertex_quality_trainer_obj.load_state(tag=f"networks/vertex_job_{network_option}cocktail_distances_newconditions")
+vertex_quality_trainer_obj.load_state(tag=f"networks/vertex_job_{network_option}cocktail_distances_newconditions2")
 # vertex_quality_trainer_obj.gen_data(f'saved_output_WGANcocktail_hierarchy_{network_option}.root')
 # quit()
-
-print(f"Initialising BDT tester...")
-# BDT_tester_obj = BDT_tester(
-#     transformers=transformers,
-#     tag="networks/BDT_sig_comb_WGANcocktail_newconditions",
-#     train=False,
-#     BDT_vars=targets[:-1],
-#     signal="datasets/Kee_2018_truthed_more_vars.csv",
-#     background="datasets/B2Kee_2018_CommonPresel.csv",
-#     signal_label="Train - sig",
-#     background_label="Train - comb",
-#     gen_track_chi2=False
-# )
 
 print(f"Initialising BDT tester...")
 BDT_tester_obj = BDT_tester(
     transformers=transformers,
     tag="networks/BDT_sig_comb_WGANcocktail_newconditions",
-    train=False,
+    train=True,
     BDT_vars=targets,
-    signal="datasets/Kee_2018_truthed_more_vars.csv",
+    # signal="datasets/Kee_2018_truthed_more_vars.csv",
+    signal="datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
     background="datasets/B2Kee_2018_CommonPresel.csv",
     signal_label="Train - sig",
     background_label="Train - comb",
@@ -142,6 +121,8 @@ BDT_tester_obj = BDT_tester(
 #     vertex_quality_trainer_obj, conditions, save=True, filename="BuD0enuKenu_passing_BDT.root")
 # quit()
 
-scores = BDT_tester_obj.make_BDT_plot_hierarchy(
-    vertex_quality_trainer_obj, f"BDT_job_WGANcocktail_newconditions{network_option}.pdf", include_combinatorial=False, include_jpsiX=False
+scores = BDT_tester_obj.plot_detailed_metrics(
+    conditions,
+    targets,
+    vertex_quality_trainer_obj, f"metrics_{network_option}.pdf"
 )
