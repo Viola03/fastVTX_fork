@@ -78,16 +78,16 @@ conditions = [
     "m_12",
 
 
-	# "B_plus_TRUEENDVERTEX_X",
-	# "B_plus_TRUEENDVERTEX_Y",
-	# "B_plus_TRUEENDVERTEX_Z",
-	# "B_plus_TRUEORIGINVERTEX_X",
-	# "B_plus_TRUEORIGINVERTEX_Y",
-	# "B_plus_TRUEORIGINVERTEX_Z",
+	"B_plus_TRUEENDVERTEX_X",
+	"B_plus_TRUEENDVERTEX_Y",
+	"B_plus_TRUEENDVERTEX_Z",
+	"B_plus_TRUEORIGINVERTEX_X",
+	"B_plus_TRUEORIGINVERTEX_Y",
+	"B_plus_TRUEORIGINVERTEX_Z",
 
-	# "e_plus_TRUEORIGINVERTEX_X",
-	# "e_plus_TRUEORIGINVERTEX_Y",
-	# "e_plus_TRUEORIGINVERTEX_Z",
+	"e_plus_TRUEORIGINVERTEX_X",
+	"e_plus_TRUEORIGINVERTEX_Y",
+	"e_plus_TRUEORIGINVERTEX_Z",
 
 
     # "B_plus_TRUEP_X",
@@ -139,18 +139,24 @@ training_data_loader = data_loader.load_data(
         # "datasets/Kee_cut_more_vars.root",
         # "datasets/Kstee_cut_more_vars.root",
         # "datasets/Kstee_cut_more_vars.root",
-        "datasets/dedicated_BuD0enuKenu_MC_hierachy_cut_more_vars.root",
+        # "datasets/dedicated_BuD0enuKenu_MC_hierachy_cut_more_vars.root",
+        "datasets/dedicated_BuD0piKenu_MC_hierachy_cut_more_vars.root",
     ],
     convert_to_RK_branch_names=True,
     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
     # N=2500,
 	transformers=transformers
 )
+training_data_loader.cut('K_Kst_PT>400')
+training_data_loader.cut('e_minus_PT>300')
+training_data_loader.cut('e_plus_PT>300')
+
 # training_data_loader.cut('B_plus_TRUEP_Z>0')
 # training_data_loader.cut('pass_stripping')
-training_data_loader.cut('abs(K_Kst_TRUEID)==321')
-training_data_loader.cut('abs(e_plus_TRUEID)==11')
-training_data_loader.cut('abs(e_minus_TRUEID)==11')
+# training_data_loader.cut('abs(K_Kst_TRUEID)==321')
+# training_data_loader.cut('abs(e_plus_TRUEID)==11')
+# training_data_loader.cut('abs(e_minus_TRUEID)==11')
+
 
 conditions_notrapdsim = {}
 conditions_notrapdsim["processed"] = training_data_loader.get_branches(conditions, processed=True)
@@ -162,7 +168,8 @@ training_data_loader_rapidsim = data_loader.load_data(
         # "rapidsim/Kee/Signal_tree_more_vars.root",
         # "rapidsim/Kee/Signal_tree_NNvertex_more_vars.root",
         # "rapidsim/Kstree/Partreco_tree_NNvertex_more_vars.root",
-        "rapidsim/BuD0enuKenu/BuD0enuKenu_tree_NNvertex_more_vars.root",
+        # "rapidsim/BuD0enuKenu/BuD0enuKenu_tree_NNvertex_more_vars.root",
+        "rapidsim/BuD0piKenu/BuD0piKenu_tree_NNvertex_more_vars.root",
     ],
     convert_to_RK_branch_names=True,
     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
@@ -173,12 +180,12 @@ training_data_loader_rapidsim.cut('K_Kst_PT>400')
 training_data_loader_rapidsim.cut('e_minus_PT>300')
 training_data_loader_rapidsim.cut('e_plus_PT>300')
 
-training_data_loader_rapidsim.cut('m_12>3.674')
-# training_data_loader_rapidsim.cut('B_plus_TRUEP_Z>0')
+# training_data_loader_rapidsim.cut('m_12>3.674')
 
 
 # training_data_loader_rapidsim.sample_with_replacement_with_reweight(target_loader=training_data_loader, reweight_vars=['K_Kst_eta','e_minus_eta','e_plus_eta'])
 # training_data_loader_rapidsim.sample_with_replacement_with_reweight(target_loader=training_data_loader, reweight_vars=['m_01','m_02','m_12'])
+# training_data_loader_rapidsim.sample_with_replacement_with_reweight(target_loader=training_data_loader, reweight_vars=['FD_B_plus_true_vertex'])
 
 
 conditions_rapdsim = {}
@@ -193,38 +200,66 @@ conditions_rapdsim["physical"] = training_data_loader_rapidsim.get_branches(cond
 # 												 (conditions_notrapdsim["physical"]["B_plus_TRUEENDVERTEX_Y"]-conditions_notrapdsim["physical"]["B_plus_TRUEORIGINVERTEX_Y"])**2+
 # 												 (conditions_notrapdsim["physical"]["B_plus_TRUEENDVERTEX_Z"]-conditions_notrapdsim["physical"]["B_plus_TRUEORIGINVERTEX_Z"])**2
 # 												 )
-def compare_in_2d(filename, var_1, var_2, processed=False):
+def compare_in_2d(filename, var_1, var_2, df_A, df_B, tag_A, tag_B):
+	
 
-	if processed:
-		tag = "processed"
-	else:
-		tag = "physical"
+	plt.figure(figsize=(16,8))
 
-	max_var_1 = np.amax([np.amax(conditions_rapdsim[tag][var_1]), np.amax(conditions_notrapdsim[tag][var_1])])
-	min_var_1 = np.amin([np.amin(conditions_rapdsim[tag][var_1]), np.amin(conditions_notrapdsim[tag][var_1])])
-	max_var_2 = np.amax([np.amax(conditions_rapdsim[tag][var_2]), np.amax(conditions_notrapdsim[tag][var_2])])
-	min_var_2 = np.amin([np.amin(conditions_rapdsim[tag][var_2]), np.amin(conditions_notrapdsim[tag][var_2])])
+	tag = "physical"
 
-	plt.figure(figsize=(8,8))
-	plt.subplot(2,2,1)
-	plt.title("Rapidsim")
-	plt.hist2d(conditions_rapdsim[tag][var_1], conditions_rapdsim[tag][var_2], bins=100, norm=LogNorm(), range=[[min_var_1, max_var_1],[min_var_2, max_var_2]])
+	max_var_1 = np.amax([np.amax(df_A[tag][var_1]), np.amax(df_B[tag][var_1])])
+	min_var_1 = np.amin([np.amin(df_A[tag][var_1]), np.amin(df_B[tag][var_1])])
+	max_var_2 = np.amax([np.amax(df_A[tag][var_2]), np.amax(df_B[tag][var_2])])
+	min_var_2 = np.amin([np.amin(df_A[tag][var_2]), np.amin(df_B[tag][var_2])])
+
+	plt.subplot(2,4,1)
+	plt.title(f"{tag_A}")
+	plt.hist2d(df_A[tag][var_1], df_A[tag][var_2], bins=50, norm=LogNorm(), range=[[min_var_1, max_var_1],[min_var_2, max_var_2]])
 	plt.xlabel(var_1)
 	plt.ylabel(var_2)
 
-	plt.subplot(2,2,2)
-	plt.title("Not rapidsim")
-	plt.hist2d(conditions_notrapdsim[tag][var_1], conditions_notrapdsim[tag][var_2], bins=100, norm=LogNorm(), range=[[min_var_1, max_var_1],[min_var_2, max_var_2]])
+	plt.subplot(2,4,2)
+	plt.title(f"{tag_B}")
+	plt.hist2d(df_B[tag][var_1], df_B[tag][var_2], bins=50, norm=LogNorm(), range=[[min_var_1, max_var_1],[min_var_2, max_var_2]])
 	plt.xlabel(var_1)
 	plt.ylabel(var_2)
 
-	plt.subplot(2,2,3)
+	plt.subplot(2,4,5)
 	plt.xlabel(var_1)
-	plt.hist([conditions_rapdsim[tag][var_1], conditions_notrapdsim[tag][var_1]], bins=100, range=[min_var_1, max_var_1], label=['Rapidsim','Not rapdisim'], histtype='step', density=True)
+	plt.hist([df_A[tag][var_1], df_B[tag][var_1]], bins=100, range=[min_var_1, max_var_1], label=[tag_A,tag_B], histtype='step', density=True)
 	plt.legend()
-	plt.subplot(2,2,4)
+	plt.subplot(2,4,6)
 	plt.xlabel(var_2)
-	plt.hist([conditions_rapdsim[tag][var_2], conditions_notrapdsim[tag][var_2]], bins=100, range=[min_var_2, max_var_2], label=['Rapidsim','Not rapdisim'], histtype='step', density=True)
+	plt.hist([df_A[tag][var_2], df_B[tag][var_2]], bins=100, range=[min_var_2, max_var_2], label=[tag_A,tag_B], histtype='step', density=True)
+	plt.legend()
+
+
+	tag = "processed"
+
+	max_var_1 = np.amax([np.amax(df_A[tag][var_1]), np.amax(df_B[tag][var_1])])
+	min_var_1 = np.amin([np.amin(df_A[tag][var_1]), np.amin(df_B[tag][var_1])])
+	max_var_2 = np.amax([np.amax(df_A[tag][var_2]), np.amax(df_B[tag][var_2])])
+	min_var_2 = np.amin([np.amin(df_A[tag][var_2]), np.amin(df_B[tag][var_2])])
+
+	plt.subplot(2,4,3)
+	plt.title(f"{tag_A} (processed)")
+	plt.hist2d(df_A[tag][var_1], df_A[tag][var_2], bins=50, norm=LogNorm(), range=[[min_var_1, max_var_1],[min_var_2, max_var_2]])
+	plt.xlabel(var_1)
+	plt.ylabel(var_2)
+
+	plt.subplot(2,4,4)
+	plt.title(f"{tag_B} (processed)")
+	plt.hist2d(df_B[tag][var_1], df_B[tag][var_2], bins=50, norm=LogNorm(), range=[[min_var_1, max_var_1],[min_var_2, max_var_2]])
+	plt.xlabel(var_1)
+	plt.ylabel(var_2)
+
+	plt.subplot(2,4,7)
+	plt.xlabel(var_1)
+	plt.hist([df_A[tag][var_1], df_B[tag][var_1]], bins=100, range=[min_var_1, max_var_1], label=[tag_A,tag_B], histtype='step', density=True)
+	plt.legend()
+	plt.subplot(2,4,8)
+	plt.xlabel(var_2)
+	plt.hist([df_A[tag][var_2], df_B[tag][var_2]], bins=100, range=[min_var_2, max_var_2], label=[tag_A,tag_B], histtype='step', density=True)
 	plt.legend()
 
 	plt.savefig(filename)
@@ -276,8 +311,8 @@ def compare_in_2d(filename, var_1, var_2, processed=False):
 # 		# 	pass
 # quit()
 
-# with PdfPages('conditions_distances.pdf') as pdf:
-# with PdfPages('conditions_distances_NNvertex_Kstr.pdf') as pdf:
+# # with PdfPages('conditions_distances.pdf') as pdf:
+# # with PdfPages('conditions_distances_NNvertex_Kstr.pdf') as pdf:
 with PdfPages('conditions_distances_NNvertex_D0.pdf') as pdf:
 
 	for variable in list(conditions):
@@ -307,5 +342,61 @@ with PdfPages('conditions_distances_NNvertex_D0.pdf') as pdf:
 			plt.close()
 		except:
 			pass
+quit()
 
                 
+
+
+BuD0enuKenu_passing_BDT = data_loader.load_data(
+    [
+        "BuD0enuKenu_passing_BDT.root",
+    ],
+    convert_to_RK_branch_names=True,
+    conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
+	transformers=transformers,
+	avoid_physics_variables=True,
+)
+conditions_BuD0enuKenu_passing_BDT = {}
+conditions_BuD0enuKenu_passing_BDT["processed"] = BuD0enuKenu_passing_BDT.get_branches(conditions, processed=True)
+conditions_BuD0enuKenu_passing_BDT["physical"] = BuD0enuKenu_passing_BDT.get_branches(conditions, processed=False)
+
+
+with PdfPages('conditions_distances_NNvertex_D0_overlay_pass.pdf') as pdf:
+
+	for variable in list(conditions):
+		
+		try:
+
+			plt.figure(figsize=(10,8))
+
+			plt.subplot(2,2,1)
+			plt.title(variable)
+			plt.hist([conditions_BuD0enuKenu_passing_BDT['physical'][variable], conditions_rapdsim["physical"][variable], conditions_notrapdsim["physical"][variable], conditions_cocktail["physical"][variable]], bins=50, density=True, histtype='step', label=['pass', 'Rapidsim','Kee MC','Cocktail MC'], color=['k','tab:red','tab:blue','tab:grey'])
+			plt.legend()
+			
+			plt.subplot(2,2,2)
+			plt.title(f'{variable} processed')
+			plt.hist([conditions_BuD0enuKenu_passing_BDT['processed'][variable], conditions_rapdsim["processed"][variable], conditions_notrapdsim["processed"][variable], conditions_cocktail["processed"][variable]], bins=50, density=True, histtype='step', range=[-1,1], color=['k','tab:red','tab:blue','tab:grey'])
+
+			plt.subplot(2,2,3)
+			plt.hist([conditions_BuD0enuKenu_passing_BDT['physical'][variable], conditions_rapdsim["physical"][variable], conditions_notrapdsim["physical"][variable], conditions_cocktail["physical"][variable]], bins=50, density=True, histtype='step', color=['k','tab:red','tab:blue','tab:grey'])
+			plt.yscale('log')
+			
+			plt.subplot(2,2,4)
+			plt.hist([conditions_BuD0enuKenu_passing_BDT['processed'][variable], conditions_rapdsim["processed"][variable], conditions_notrapdsim["processed"][variable], conditions_cocktail["processed"][variable]], bins=50, density=True, histtype='step', range=[-1,1], color=['k','tab:red','tab:blue','tab:grey'])
+			plt.yscale('log')
+
+			pdf.savefig(bbox_inches="tight")
+			plt.close()
+		except:
+			pass
+
+for i in range(len(conditions)):
+	print(i, len(conditions))
+	for j in range(i+1, len(conditions)):
+		try:
+			compare_in_2d(f'2d_{conditions[i]}_{conditions[j]}.png', conditions[i], conditions[j], conditions_BuD0enuKenu_passing_BDT, conditions_rapdsim, tag_A='Pass', tag_B='Rapidsim')
+		except:
+			pass
+
+# compare_in_2d('2d_DIRA_B_plus_true_vertex_DIRA_B_plus_true_vertex.png', 'DIRA_B_plus_true_vertex', 'DIRA_B_plus_true_vertex', conditions_BuD0enuKenu_passing_BDT, conditions_rapdsim, tag_A='Pass', tag_B='Rapidsim')

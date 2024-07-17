@@ -113,18 +113,35 @@ vertex_quality_trainer_obj.load_state(tag=f"networks/vertex_job_{network_option}
 # quit()
 
 print(f"Initialising BDT tester...")
+# BDT_tester_obj = BDT_tester(
+#     transformers=transformers,
+#     tag="networks/BDT_sig_comb_WGANcocktail_newconditions",
+#     train=False,
+#     BDT_vars=targets[:-1],
+#     signal="datasets/Kee_2018_truthed_more_vars.csv",
+#     background="datasets/B2Kee_2018_CommonPresel.csv",
+#     signal_label="Train - sig",
+#     background_label="Train - comb",
+#     gen_track_chi2=False
+# )
+
+print(f"Initialising BDT tester...")
 BDT_tester_obj = BDT_tester(
     transformers=transformers,
     tag="networks/BDT_sig_comb_WGANcocktail_newconditions",
     train=False,
-    BDT_vars=targets[:-1],
+    BDT_vars=targets,
     signal="datasets/Kee_2018_truthed_more_vars.csv",
     background="datasets/B2Kee_2018_CommonPresel.csv",
     signal_label="Train - sig",
     background_label="Train - comb",
     gen_track_chi2=False
 )
+
+# BDT_tester_obj.get_vars_of_samples_that_pass_a_cut(
+#     vertex_quality_trainer_obj, conditions, save=True, filename="BuD0enuKenu_passing_BDT.root")
+# quit()
+
 scores = BDT_tester_obj.make_BDT_plot_hierarchy(
     vertex_quality_trainer_obj, f"BDT_job_WGANcocktail_newconditions{network_option}.pdf", include_combinatorial=False, include_jpsiX=False
 )
-

@@ -361,9 +361,9 @@ class dataset:
 
         original = []
         for var in reweight_vars:
-            original.append(self.all_data['physical'][var])
+            original.append(self.all_data['processed'][var])
         
-        target_branches = target_loader.get_branches(reweight_vars, processed=False)
+        target_branches = target_loader.get_branches(reweight_vars, processed=True)
 
         target = []
         for var in reweight_vars:
@@ -377,18 +377,19 @@ class dataset:
         reweighter = FoldingReweighter(reweighter_base, n_folds=3)
         reweighter.fit(original=original, target=target)
         MC_weights = reweighter.predict_weights(original)
-
-        N = self.all_data['physical'].shape[0]
+        MC_weights = np.clip(MC_weights, a_min=0, a_max=5.)
+        
+        N = self.all_data['processed'].shape[0]
         indexes = np.random.choice(np.arange(N), size=N, replace=True, p=MC_weights/np.sum(MC_weights))
 
-        self.all_data['physical'] = self.all_data['physical'].iloc[indexes]
         self.all_data['processed'] = self.all_data['processed'].iloc[indexes]
+        self.all_data['physical'] = self.all_data['physical'].iloc[indexes]
 
-        self.all_data['physical'].reset_index(drop=True, inplace=True)
         self.all_data['processed'].reset_index(drop=True, inplace=True)
+        self.all_data['physical'].reset_index(drop=True, inplace=True)
 
 
-    def fill(self, data, turn_off_processing=False):
+    def fill(self, data, turn_off_processing=False, avoid_physics_variables=False):
 
         self.turn_off_processing = turn_off_processing
 
@@ -398,29 +399,31 @@ class dataset:
         self.all_data["physical"] = data
         if self.turn_off_processing:
             return
-        self.physics_variables = produce_physics_variables(self.all_data["physical"])
-        shared = list(
-            set(list(self.physics_variables.keys())).intersection(
-                set(list(self.all_data["physical"].keys()))
+        
+        if not avoid_physics_variables:
+            self.physics_variables = produce_physics_variables(self.all_data["physical"])
+            shared = list(
+                set(list(self.physics_variables.keys())).intersection(
+                    set(list(self.all_data["physical"].keys()))
+                )
             )
-        )
-        difference = list(
-            set(list(self.physics_variables.keys())).difference(
-                set(list(self.all_data["physical"].keys()))
+            difference = list(
+                set(list(self.physics_variables.keys())).difference(
+                    set(list(self.all_data["physical"].keys()))
+                )
             )
-        )
-        if len(shared) > 0:
-            for key in shared:
-                self.all_data["physical"][key] = self.physics_variables[key]
-        if len(difference) > 0:
-            self.physics_variables = self.physics_variables[difference]
-            self.all_data["physical"] = pd.concat(
-                (self.all_data["physical"], self.physics_variables), axis=1
-            )
+            if len(shared) > 0:
+                for key in shared:
+                    self.all_data["physical"][key] = self.physics_variables[key]
+            if len(difference) > 0:
+                self.physics_variables = self.physics_variables[difference]
+                self.all_data["physical"] = pd.concat(
+                    (self.all_data["physical"], self.physics_variables), axis=1
+                )
 
-        self.all_data["physical"] = self.all_data["physical"].loc[
-            :, ~self.all_data["physical"].columns.str.contains("^Unnamed")
-        ]
+            self.all_data["physical"] = self.all_data["physical"].loc[
+                :, ~self.all_data["physical"].columns.str.contains("^Unnamed")
+            ]
 
         self.fill_stripping_bool()
 
@@ -792,7 +795,7 @@ def convert_branches_to_RK_branch_names(columns, conversions):
 
     return new_columns
 
-def load_data(path, equal_sizes=True, N=-1, transformers=None, convert_to_RK_branch_names=False, conversions=None, turn_off_processing=False):
+def load_data(path, equal_sizes=True, N=-1, transformers=None, convert_to_RK_branch_names=False, conversions=None, turn_off_processing=False,avoid_physics_variables=False):
 
     if isinstance(path, list):
         for i in range(0, len(path)):
@@ -842,6 +845,6 @@ def load_data(path, equal_sizes=True, N=-1, transformers=None, convert_to_RK_bra
     events = events.loc[:, ~events.columns.str.contains("^Unnamed")]
 
     events_dataset = dataset(filenames=path, transformers=transformers)
-    events_dataset.fill(events, turn_off_processing)
+    events_dataset.fill(events, turn_off_processing, avoid_physics_variables=avoid_physics_variables)
 
     return events_dataset

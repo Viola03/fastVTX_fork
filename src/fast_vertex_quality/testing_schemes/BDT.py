@@ -11,6 +11,28 @@ from sklearn.ensemble import GradientBoostingClassifier
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from particle import Particle
+import uproot3
+import pandas as pd
+
+def write_df_to_root(df, output_name):
+	branch_dict = {}
+	data_dict = {}
+	dtypes = df.dtypes
+	used_columns = [] # stop repeat columns, kpipi_correction was getting repeated
+	for dtype, branch in enumerate(df.keys()):
+		if branch not in used_columns:
+			if dtypes[dtype] == 'uint32': dtypes[dtype] = 'int32'
+			if dtypes[dtype] == 'uint64': dtypes[dtype] = 'int64'
+			branch_dict[branch] = dtypes[dtype]
+			# stop repeat columns, kpipi_correction was getting repeated
+			if np.shape(df[branch].shape)[0] > 1:
+				data_dict[branch] = df[branch].iloc[:, 0]
+			else:
+				data_dict[branch] = df[branch]
+		used_columns.append(branch)
+	with uproot3.recreate(output_name) as f:
+		f["DecayTree"] = uproot3.newtree(branch_dict)
+		f["DecayTree"].extend(data_dict)
 
 class BDT_tester:
 
@@ -326,6 +348,7 @@ class BDT_tester:
         convert_branches=False,
         N=10000,
         rapidsim=False,
+        return_data_loader=False
     ):
 
         conditions = [
@@ -370,9 +393,9 @@ class BDT_tester:
             # A = event_loader.get_branches(['pass_stripping'])
             # print(np.asarray(A), np.shape(np.where(A!=1)))
             # quit()
-            event_loader.cut('K_Kst_PT>400')
-            event_loader.cut('e_minus_PT>300')
-            event_loader.cut('e_plus_PT>300')
+            # event_loader.cut('K_Kst_PT>400')
+            # event_loader.cut('e_minus_PT>300')
+            # event_loader.cut('e_plus_PT>300')
 
             if "Partreco" in sample_loc:
                 event_loader_target = data_loader.load_data(
@@ -385,22 +408,27 @@ class BDT_tester:
                 )
                 # event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['K_Kst_eta','e_minus_eta','e_plus_eta'])
                 # event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['B_plus_P','B_plus_PT'])
-                event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['B_plus_P','B_plus_PT','K_Kst_eta','e_minus_eta','e_plus_eta','m_01','m_02','m_12'])
+                # event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['B_plus_P','B_plus_PT','K_Kst_eta','e_minus_eta','e_plus_eta','m_01','m_02','m_12'])
                 # best
+                event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['m_01','m_02','m_12'])
+            if "BuD0enuKenu" in sample_loc:
+                # event_loader_target = data_loader.load_data(
+                #     [
+                #         "datasets/dedicated_BuD0enuKenu_MC_hierachy_cut_more_vars.root",
+                #     ],
+                #     transformers=self.transformers,
+                #     convert_to_RK_branch_names=True,
+                #     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
+                # )
+                # event_loader_target.cut("pass_stripping")
+                event_loader.cut('m_12>3.674')
                 # event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['m_01','m_02','m_12'])
-            # if "BuD0enuKenu" in sample_loc:
-            #     event_loader_target = data_loader.load_data(
-            #         [
-            #             "datasets/dedicated_BuD0enuKenu_MC_hierachy_cut_more_vars.root",
-            #         ],
-            #         transformers=self.transformers,
-            #         convert_to_RK_branch_names=True,
-            #         conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
-            #     )
-            #     event_loader_target.cut("pass_stripping")
-            #     event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['m_01','m_02','m_12'])
-
-
+                # event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['FD_B_plus_true_vertex','IP_e_minus_true_vertex','IP_e_plus_true_vertex','IP_K_Kst_true_vertex'])
+                # event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['B_plus_P','B_plus_PT'])
+                # event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['angle_K_Kst','angle_e_plus','angle_e_minus'])
+                # event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['K_Kst_eta','e_plus_eta','e_minus_eta'])
+                # event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['FD_B_plus_true_vertex'])
+            # if "BuD0piKenu" in sample_loc:
 
         else:
             if convert_branches:
@@ -489,8 +517,55 @@ class BDT_tester:
 
             query = np.squeeze(np.asarray(query[self.BDT_vars]))
 
-        return query
+        if return_data_loader:
+            return query, event_loader
+        else:
+            return query
     
+
+    def get_vars_of_samples_that_pass_a_cut(self,
+                                vertex_quality_trainer_obj,
+                                target_vars,save=False,filename=''):
+        
+        BuD0enuKenu_MC, BuD0enuKenu_MC_event_loader = self.get_sample_Kee(
+            "datasets/dedicated_BuD0enuKenu_MC_hierachy_cut_more_vars.root",
+            vertex_quality_trainer_obj,
+            generate=True,
+            N=10000,
+            rapidsim=False,
+            convert_branches=True,
+            return_data_loader=True,
+        )  
+        # event_loader
+
+        query = BuD0enuKenu_MC_event_loader.get_branches(self.BDT_vars, processed=False)
+        target_vars_set = BuD0enuKenu_MC_event_loader.get_branches(target_vars, processed=False)
+
+        kFold = 0
+        clf = self.BDTs[kFold]["BDT"]
+
+        query = np.squeeze(np.asarray(query[self.BDT_vars]))
+        target_vars_set = np.squeeze(np.asarray(target_vars_set[target_vars]))
+
+        sample_values = clf.predict_proba(query)[:, 1]
+
+        where = np.where(sample_values>0.95)
+        target_vars_set = target_vars_set[where]
+
+        data = {}
+        for var_idx, var in enumerate(target_vars):
+            data[var] = target_vars_set[:,var_idx]
+        data = pd.DataFrame.from_dict(data)
+
+        if save:
+            if filename == '':
+                print("BDT.py, get_vars_of_samples_that_pass_a_cut, Must set filename.. quitting..")
+                quit()
+            
+            write_df_to_root(data, filename)
+
+        return data
+
     def make_BDT_plot_hierarchy(
         self,
         vertex_quality_trainer_obj,
@@ -499,6 +574,8 @@ class BDT_tester:
         include_jpsiX=False,
     ):  
         
+        
+
 
 
         signal_gen = self.get_sample_Kee(
@@ -545,9 +622,20 @@ class BDT_tester:
 
 
 
+        
 
+        samples = [signal_gen, signal_gen_rapidsim, part_reco_gen, part_reco_gen_rapidsim, part_reco_MC]
+        labels = [self.signal_label, self.background_label, "sig - gen", "sig - gen (rapidsim)", "prc - gen", "prc - gen (rapidsim)", "prc - MC"]
+        colours = ["tab:blue", "tab:red", "tab:green", "tab:orange", "k", "violet", "tab:purple"]
 
-
+        scores = self.query_and_plot_samples(
+            samples,
+            labels,
+            colours=colours,
+            filename=filename,
+            include_combinatorial=include_combinatorial,
+            only_hists=True,
+        )
 
 
         BuD0enuKenu_gen = self.get_sample_Kee(
@@ -574,20 +662,7 @@ class BDT_tester:
             N=10000,
             convert_branches=True,
         )  
-        
 
-        samples = [signal_gen, signal_gen_rapidsim, part_reco_gen, part_reco_gen_rapidsim, part_reco_MC]
-        labels = [self.signal_label, self.background_label, "sig - gen", "sig - gen (rapidsim)", "prc - gen", "prc - gen (rapidsim)", "prc - MC"]
-        colours = ["tab:blue", "tab:red", "tab:green", "tab:orange", "k", "violet", "tab:purple"]
-
-        scores = self.query_and_plot_samples(
-            samples,
-            labels,
-            colours=colours,
-            filename=filename,
-            include_combinatorial=include_combinatorial,
-            only_hists=True,
-        )
 
         samples = [signal_gen, signal_gen_rapidsim, BuD0enuKenu_gen, BuD0enuKenu_gen_rapidsim, BuD0enuKenu_MC]
         labels = [self.signal_label, self.background_label, "sig - gen", "sig - gen (rapidsim)", "BuD0enuKenu - gen", "BuD0enuKenu - gen (rapidsim)", "BuD0enuKenu - MC"]
@@ -598,6 +673,48 @@ class BDT_tester:
             labels,
             colours=colours,
             filename=filename.replace('.pdf','_BuD0enuKenu.pdf'),
+            include_combinatorial=include_combinatorial,
+            only_hists=True,
+        )
+
+
+
+
+        BuD0piKenu_gen = self.get_sample_Kee(
+            "datasets/dedicated_BuD0piKenu_MC_hierachy_cut_more_vars.root",
+            vertex_quality_trainer_obj,
+            generate=True,
+            N=10000,
+            rapidsim=False,
+            convert_branches=True,
+        )  
+        
+        BuD0piKenu_gen_rapidsim = self.get_sample_Kee(
+            "/users/am13743/fast_vertexing_variables/rapidsim/BuD0piKenu/BuD0piKenu_tree_NNvertex_more_vars.root",
+            vertex_quality_trainer_obj,
+            generate=True,
+            N=10000,
+            rapidsim=True,
+        )  
+        
+        BuD0piKenu_MC = self.get_sample_Kee(
+            "datasets/dedicated_BuD0piKenu_MC_hierachy_cut_more_vars.root",
+            vertex_quality_trainer_obj,
+            generate=False,
+            N=10000,
+            convert_branches=True,
+        )  
+
+        
+        samples = [signal_gen, signal_gen_rapidsim, BuD0piKenu_gen, BuD0piKenu_gen_rapidsim, BuD0piKenu_MC]
+        labels = [self.signal_label, self.background_label, "sig - gen", "sig - gen (rapidsim)", "BuD0piKenu - gen", "BuD0piKenu - gen (rapidsim)", "BuD0piKenu - MC"]
+        colours = ["tab:blue", "tab:red", "tab:green", "tab:orange", "k", "violet", "tab:purple"]
+
+        scores = self.query_and_plot_samples(
+            samples,
+            labels,
+            colours=colours,
+            filename=filename.replace('.pdf','_BuD0piKenu.pdf'),
             include_combinatorial=include_combinatorial,
             only_hists=True,
         )
@@ -1072,6 +1189,16 @@ class BDT_tester:
         for idx, sample in enumerate(samples):
             # print(idx, sample, np.where(np.isinf(sample)), np.where(np.isnan(sample)))
             sample_values[labels[idx+2]] = clf.predict_proba(sample)[:, 1]
+
+            # if labels[idx+2] == 'BuD0enuKenu - MC':
+                
+            #     sample = np.asarray(sample)[np.where(sample_values[labels[idx+2]]>0.9)]
+            #     data_for_root = {}
+            #     for var_idx, var in enumerate(self.BDT_vars):
+            #         data_for_root[var] = sample[:,var_idx]
+            #     data_for_root = pd.DataFrame.from_dict(data_for_root)
+            #     write_df_to_root(data_for_root, 'BuD0enuKenu_passing_BDT.root')
+            #     quit()
 
         with PdfPages(f"{filename}") as pdf:
 
