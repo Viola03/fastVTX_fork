@@ -83,13 +83,13 @@ primary_vertex_trainer_obj = primary_vertex_trainer(
 
 steps_for_plot = 2500
 primary_vertex_trainer_obj.train(steps=steps_for_plot)
-primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job")
-primary_vertex_trainer_obj.make_plots(filename=f'plots_0.pdf',testing_file=training_data_loader.get_file_names())
+primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job2")
+primary_vertex_trainer_obj.make_plots(filename=f'vertex_plots_0.pdf',testing_file=training_data_loader.get_file_names())
 
 for i in range(10):
     primary_vertex_trainer_obj.train_more_steps(steps=steps_for_plot)
-    primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job")
-    primary_vertex_trainer_obj.make_plots(filename=f'plots_{i+1}.pdf',testing_file=training_data_loader.get_file_names())
+    primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job2")
+    primary_vertex_trainer_obj.make_plots(filename=f'vertex_plots_{i+1}.pdf',testing_file=training_data_loader.get_file_names())
 
 
 
