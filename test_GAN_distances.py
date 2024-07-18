@@ -17,7 +17,21 @@ from matplotlib.backends.backend_pdf import PdfPages
 from particle import Particle
 
 
-transformers = pickle.load(open("networks/vertex_job_WGANcocktail_distances_newconditions_transfomers.pkl", "rb"))
+network_option = 'VAE'
+load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions3"
+D_architecture=[1000,2000,2000,1000]
+G_architecture=[1000,2000,2000,1000]
+
+# network_option = 'WGAN'
+# load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions2"
+# D_architecture=[1000,2000,2000,2000,1000]
+# G_architecture=[1000,2000,2000,2000,1000]
+
+
+
+####################################################################################################################################
+
+transformers = pickle.load(open(f"{load_state}_transfomers.pkl", "rb"))
 
 rd.latent = 50 # noise dims
 
@@ -83,8 +97,6 @@ targets = [
     "J_psi_1S_IPCHI2_OWNPV",
 ]
 
-network_option = 'WGAN'
-# network_option = 'VAE'
 
 vertex_quality_trainer_obj = vertex_quality_trainer(
     training_data_loader,
@@ -94,12 +106,12 @@ vertex_quality_trainer_obj = vertex_quality_trainer(
     beta=float(rd.beta),
     latent_dim=rd.latent,
     batch_size=64,
-    D_architecture=[1000,2000,2000,2000,1000],
-    G_architecture=[1000,2000,2000,2000,1000],
+    D_architecture=D_architecture,
+    G_architecture=G_architecture,
     network_option=network_option,
 )
 
-vertex_quality_trainer_obj.load_state(tag=f"networks/vertex_job_{network_option}cocktail_distances_newconditions2")
+vertex_quality_trainer_obj.load_state(tag=load_state)
 # vertex_quality_trainer_obj.gen_data(f'saved_output_WGANcocktail_hierarchy_{network_option}.root')
 # quit()
 
@@ -107,7 +119,7 @@ print(f"Initialising BDT tester...")
 BDT_tester_obj = BDT_tester(
     transformers=transformers,
     tag="networks/BDT_sig_comb_WGANcocktail_newconditions",
-    train=True,
+    train=False,
     BDT_vars=targets,
     # signal="datasets/Kee_2018_truthed_more_vars.csv",
     signal="datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
@@ -124,5 +136,8 @@ BDT_tester_obj = BDT_tester(
 scores = BDT_tester_obj.plot_detailed_metrics(
     conditions,
     targets,
-    vertex_quality_trainer_obj, f"metrics_{network_option}.pdf"
+    vertex_quality_trainer_obj, f"metrics_{network_option}.pdf",
 )
+
+
+

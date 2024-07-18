@@ -7,3 +7,5 @@ save_state/
 networks/
 networks_saved/
 checkpoints/
+*.root
+*.pickle

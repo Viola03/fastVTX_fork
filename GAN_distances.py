@@ -23,7 +23,8 @@ rd.intermediate_particle = 'J_psi_1S'
 print(f"Loading data...")
 training_data_loader = data_loader.load_data(
     [
-        "datasets/cocktail_hierarchy_cut_more_vars.root",
+        # "datasets/cocktail_hierarchy_cut_more_vars.root",
+        "datasets/cocktail_x5_MC_hierachy_cut_more_vars.root",
     ],
     convert_to_RK_branch_names=True,
     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
@@ -91,8 +92,8 @@ targets = [
 # training_data_loader.plot('conditions.pdf',conditions)
 # quit()
 
-network_option = 'WGAN'
-# network_option = 'VAE'
+# network_option = 'WGAN'
+network_option = 'VAE'
 
 vertex_quality_trainer_obj = vertex_quality_trainer(
     training_data_loader,
@@ -102,19 +103,19 @@ vertex_quality_trainer_obj = vertex_quality_trainer(
     beta=float(rd.beta),
     latent_dim=rd.latent,
     batch_size=64,
-    D_architecture=[1000,2000,2000,2000,1000],
-    G_architecture=[1000,2000,2000,2000, 1000],
+    D_architecture=[1000,2000,2000,1000],
+    G_architecture=[1000,2000,2000,1000],
     network_option=network_option,
 )
 
 steps_for_plot = 5000
 vertex_quality_trainer_obj.train(steps=steps_for_plot)
-vertex_quality_trainer_obj.save_state(tag=f"networks/vertex_job_{network_option}cocktail_distances_newconditions2")
+vertex_quality_trainer_obj.save_state(tag=f"networks/vertex_job_{network_option}cocktail_distances_newconditions3")
 vertex_quality_trainer_obj.make_plots(filename=f'plots_0.pdf',testing_file=training_data_loader.get_file_names())
 
 for i in range(70):
     vertex_quality_trainer_obj.train_more_steps(steps=steps_for_plot)
-    vertex_quality_trainer_obj.save_state(tag=f"networks/vertex_job_{network_option}cocktail_distances_newconditions2")
+    vertex_quality_trainer_obj.save_state(tag=f"networks/vertex_job_{network_option}cocktail_distances_newconditions3")
     vertex_quality_trainer_obj.make_plots(filename=f'plots_{i+1}.pdf',testing_file=training_data_loader.get_file_names())
 
 

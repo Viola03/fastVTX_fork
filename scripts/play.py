@@ -7,44 +7,8 @@ from fast_vertex_quality.tools.config import read_definition, rd
 import fast_vertex_quality.tools.data_loader as data_loader
 import numpy as np
 
-# rd.latent = 50 # noise dims
-
-# rd.daughter_particles = ["K_Kst", "e_plus", "e_minus"] # K e e
-# rd.mother_particle = 'B_plus'
-# rd.intermediate_particle = 'J_psi_1S'
-
-
-# transformers = pickle.load(open("networks/vertex_job_WGANcocktail_distances_newconditions_transfomers.pkl", "rb"))
-
-# Kstee_data_loader = data_loader.load_data(
-#     [
-#         "datasets/Kstee_cut_more_vars.root",
-#     ],
-#     convert_to_RK_branch_names=True,
-#     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
-# 	transformers=transformers
-# )
-# Kstee_data_loader.cut('abs(K_Kst_TRUEID)==321')
-
-
-# event_loader = data_loader.load_data(
-# 	[
-# 		"/users/am13743/fast_vertexing_variables/rapidsim/Kstree/Partreco_tree_NNvertex_more_vars.root",
-# 	],
-# 	transformers=transformers,
-# 	convert_to_RK_branch_names=True,
-# 	conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
-# )
-# event_loader.cut('K_Kst_PT>400')
-# event_loader.cut('e_minus_PT>300')
-# event_loader.cut('e_plus_PT>300')
-
-# event_loader.sample_with_replacement_with_reweight(target_loader=Kstee_data_loader, reweight_vars=['K_Kst_eta','e_minus_eta','e_plus_eta'])
-
-
-
-
-# quit()
+network_option = 'VAE'
+load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions3"
 
 
 conditions = [
@@ -117,6 +81,10 @@ rd.daughter_particles = ["K_Kst", "e_plus", "e_minus"] # K e e
 rd.mother_particle = 'B_plus'
 rd.intermediate_particle = 'J_psi_1S'
 
+
+transformers = pickle.load(open(f"{load_state}_transfomers.pkl", "rb"))
+
+
 print(f"Loading data...")
 training_data_loader_cocktail = data_loader.load_data(
     [
@@ -124,10 +92,14 @@ training_data_loader_cocktail = data_loader.load_data(
     ],
     convert_to_RK_branch_names=True,
     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
+	transformers=transformers
     # N=2500,
 )
+training_data_loader_cocktail.cut('K_Kst_PT>400')
+training_data_loader_cocktail.cut('e_minus_PT>300')
+training_data_loader_cocktail.cut('e_plus_PT>300')
 # training_data_loader_cocktail.cut('B_plus_TRUEP_Z>0')
-transformers = training_data_loader_cocktail.get_transformers()
+# transformers = training_data_loader_cocktail.get_transformers()
 
 conditions_cocktail = {}
 conditions_cocktail["processed"] = training_data_loader_cocktail.get_branches(conditions, processed=True)
@@ -140,7 +112,8 @@ training_data_loader = data_loader.load_data(
         # "datasets/Kstee_cut_more_vars.root",
         # "datasets/Kstee_cut_more_vars.root",
         # "datasets/dedicated_BuD0enuKenu_MC_hierachy_cut_more_vars.root",
-        "datasets/dedicated_BuD0piKenu_MC_hierachy_cut_more_vars.root",
+        # "datasets/dedicated_BuD0piKenu_MC_hierachy_cut_more_vars.root",
+        "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
     ],
     convert_to_RK_branch_names=True,
     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
@@ -166,10 +139,10 @@ conditions_notrapdsim["physical"] = training_data_loader.get_branches(conditions
 training_data_loader_rapidsim = data_loader.load_data(
     [
         # "rapidsim/Kee/Signal_tree_more_vars.root",
-        # "rapidsim/Kee/Signal_tree_NNvertex_more_vars.root",
+        "rapidsim/Kee/Signal_tree_NNvertex_more_vars.root",
         # "rapidsim/Kstree/Partreco_tree_NNvertex_more_vars.root",
         # "rapidsim/BuD0enuKenu/BuD0enuKenu_tree_NNvertex_more_vars.root",
-        "rapidsim/BuD0piKenu/BuD0piKenu_tree_NNvertex_more_vars.root",
+        # "rapidsim/BuD0piKenu/BuD0piKenu_tree_NNvertex_more_vars.root",
     ],
     convert_to_RK_branch_names=True,
     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
@@ -311,9 +284,9 @@ def compare_in_2d(filename, var_1, var_2, df_A, df_B, tag_A, tag_B):
 # 		# 	pass
 # quit()
 
-# # with PdfPages('conditions_distances.pdf') as pdf:
+with PdfPages('conditions_distances.pdf') as pdf:
 # # with PdfPages('conditions_distances_NNvertex_Kstr.pdf') as pdf:
-with PdfPages('conditions_distances_NNvertex_D0.pdf') as pdf:
+# with PdfPages('conditions_distances_NNvertex_D0.pdf') as pdf:
 
 	for variable in list(conditions):
 		

@@ -1463,7 +1463,7 @@ class BDT_tester:
                     convert_to_RK_branch_names=True,
                     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
                 )
-                event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['m_01','m_02','m_12'])
+                # event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['m_01','m_02','m_12'])
             if "BuD0enuKenu" in sample_loc:
                 # event_loader_target = data_loader.load_data(
                 #     [
@@ -1533,13 +1533,108 @@ class BDT_tester:
             return sample_after_stripping, stripping_effs
         
         
-        
+    def compare_stripping_eff_plots(
+        self,
+        pdf,
+        sample_loc,
+        vertex_quality_trainer_obj,
+        generate,
+        convert_branches=False,
+        N=10000,
+        rapidsim=False,
+        return_data_loader=False,
+        extra_labels=[]
+    ):
+        loaders = []
+        for index, sample_loc_i in enumerate(sample_loc):
+            if rapidsim[index]:
+                event_loader = data_loader.load_data(
+                    [
+                        sample_loc_i,
+                    ],
+                    transformers=self.transformers,
+                    convert_to_RK_branch_names=True,
+                    conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
+                )
+            else:
+                if convert_branches[index]:
+                    event_loader = data_loader.load_data(
+                        [
+                            sample_loc_i,
+                        ],
+                        transformers=self.transformers,
+                        convert_to_RK_branch_names=True,
+                        conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
+                    )
+                else:
+                    event_loader = data_loader.load_data(
+                        [
+                            sample_loc_i,
+                        ],
+                        transformers=self.transformers,
+                    )
+
+            
+            if generate[index]:
+
+                event_loader = vertex_quality_trainer_obj.predict_from_data_loader(
+                    event_loader
+                )
+
+            loaders.append(event_loader)
+
+        for cut in list(self.cuts.keys()):
+            
+            results = []
+            results_physical = []
+            if cut == '(B_plus_ENDVERTEX_CHI2/B_plus_ENDVERTEX_NDOF)':
+                continue
+            else:    
+                for loader in loaders:
+                    results.append(loader.get_branches(cut, processed=True))
+                    results_physical.append(loader.get_branches(cut, processed=False))
+            
+            cut_value = self.cuts[cut].replace('>','').replace('<','')
+
+            for index in range(len(results)):
+                results[index] = np.asarray(results[index]).flatten()
+                results[index] = results[index][np.isfinite(results[index])]
+
+                results_physical[index] = np.asarray(results_physical[index]).flatten()
+                results_physical[index] = results_physical[index][np.isfinite(results_physical[index])]
+
+            labels = []
+            for index in range(len(results)):
+
+                eff, effErr = loaders[index].getEff(f'{cut}{self.cuts[cut]}')
+                if len(extra_labels)==0:
+                    labels.append(f'{eff:.3f}+-{effErr:.3f}')
+                else:
+                    labels.append(f'{extra_labels[index]} {eff:.3f}+-{effErr:.3f}')
+
+            # plt.subplot(1,2,1)
+            plt.hist(results, bins=75, density=True, histtype='step', label=labels)
+            plt.legend()
+            plt.xlabel(cut)
+            plt.xlim(-1,1)
+            plt.axvline(x=loader.convert_value_to_processed(cut, cut_value),c='k')
+
+            # plt.subplot(1,2,2)
+            # plt.hist(results_physical, bins=75, density=True, histtype='step', label=labels)
+            # plt.legend()
+            # plt.xlabel(cut)
+
+            pdf.savefig(bbox_inches="tight")
+            plt.close()
+
+
+
     def plot_detailed_metrics(
         self,
         conditions,
         targets,
         vertex_quality_trainer_obj,
-        filename
+        filename,
     ):  
         self.conditions = conditions
         self.targets = targets
@@ -1561,6 +1656,46 @@ class BDT_tester:
                 generate=True,
                 N=10000,
                 rapidsim=True,
+            )  
+
+            samples = [signal_gen, signal_gen_rapidsim]
+            labels = [self.signal_label, self.background_label, "sig - gen", "sig - gen (rapidsim)"]
+            colours = ["tab:blue", "tab:red", "tab:green", "tab:orange"]
+
+            self.query_and_plot_samples_pages(
+                pdf,
+                samples,
+                labels,
+                colours=colours,
+                filename=filename,
+                only_hists=True,
+            )
+
+            plt.title("Kee")
+            plt.errorbar(np.arange(np.shape(self.BDTs[0]["signal_stripping_eff"])[0]), self.BDTs[0]["signal_stripping_eff"][:,0], yerr=self.BDTs[0]["signal_stripping_eff"][:,1],label='MC',color='tab:blue',linestyle='-')
+            plt.errorbar(np.arange(np.shape(signal_gen_stripping_eff)[0]), signal_gen_stripping_eff[:,0], yerr=signal_gen_stripping_eff[:,1],label='gen',color='tab:blue',linestyle='--')
+            plt.errorbar(np.arange(np.shape(signal_gen_rapidsim_stripping_eff)[0]), signal_gen_rapidsim_stripping_eff[:,0], yerr=signal_gen_rapidsim_stripping_eff[:,1],label='gen (rapidsim)',color='tab:blue',linestyle='-.')
+            plt.ylim(0,1)
+            cuts_ticks = ['All']+list(self.cuts.keys())
+            plt.xticks(np.arange(len(cuts_ticks)), cuts_ticks, rotation=90)
+            for i in np.arange(len(cuts_ticks)):
+                if i ==0:
+                    plt.axvline(x=i, alpha=0.5, ls='-',c='k')
+                else:
+                    plt.axvline(x=i, alpha=0.5, ls='--',c='k')
+            plt.legend()
+            pdf.savefig(bbox_inches="tight")
+            plt.close()
+
+            self.compare_stripping_eff_plots(
+                pdf,
+                ["datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root", "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root", "datasets/cocktail_hierarchy_cut_more_vars.root", "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root"],
+                vertex_quality_trainer_obj,
+                generate=[False, True, False, True],
+                convert_branches=[True, True, True, True],
+                rapidsim=[False, True, False, False],
+                N=10000,
+                extra_labels=['MC','Rapidsim','Cocktail','MC - gen'],
             )  
 
             part_reco_gen, part_reco_gen_stripping_eff = self.get_sample_and_stripping_eff(
@@ -1586,36 +1721,9 @@ class BDT_tester:
                 convert_branches=True,
             ) 
 
-            samples = [signal_gen, signal_gen_rapidsim]
-            labels = [self.signal_label, self.background_label, "sig - gen", "sig - gen (rapidsim)"]
-            colours = ["tab:blue", "tab:red", "tab:green", "tab:orange"]
-
-            self.query_and_plot_samples_pages(
-                pdf,
-                samples,
-                labels,
-                colours=colours,
-                filename=filename,
-                only_hists=True,
-            )
-
-            plt.title("Kee")
-            plt.errorbar(np.arange(np.shape(self.BDTs[0]["signal_stripping_eff"])[0]), self.BDTs[0]["signal_stripping_eff"][:,0], yerr=self.BDTs[0]["signal_stripping_eff"][:,1],label='MC',color='tab:red',linestyle='-')
-            plt.errorbar(np.arange(np.shape(signal_gen_stripping_eff)[0]), signal_gen_stripping_eff[:,0], yerr=signal_gen_stripping_eff[:,1],label='gen',color='tab:red',linestyle='--')
-            plt.errorbar(np.arange(np.shape(signal_gen_rapidsim_stripping_eff)[0]), signal_gen_rapidsim_stripping_eff[:,0], yerr=signal_gen_rapidsim_stripping_eff[:,1],label='gen (rapidsim)',color='tab:red',linestyle='-.')
-            plt.ylim(0,1)
-            cuts_ticks = ['All']+list(self.cuts.keys())
-            plt.xticks(np.arange(len(cuts_ticks)), cuts_ticks, rotation=90)
-            for i in np.arange(len(cuts_ticks)):
-                plt.axvline(x=i, alpha=0.5, ls='--',c='k')
-            plt.legend()
-            pdf.savefig(bbox_inches="tight")
-            plt.close()
-
-
-            samples = [signal_gen, signal_gen_rapidsim, part_reco_gen, part_reco_gen_rapidsim, part_reco_MC]
-            labels = [self.signal_label, self.background_label, "sig - gen", "sig - gen (rapidsim)", "prc - gen", "prc - gen (rapidsim)", "prc - MC"]
-            colours = ["tab:blue", "tab:red", "tab:green", "tab:orange", "k", "violet", "tab:purple"]
+            samples = [part_reco_gen, part_reco_gen_rapidsim, part_reco_MC]
+            labels = [self.signal_label, self.background_label, "prc - gen", "prc - gen (rapidsim)", "prc - MC"]
+            colours = ["tab:blue", "tab:red", "k", "violet", "tab:purple"]
 
             self.query_and_plot_samples_pages(
                 pdf,
@@ -1629,6 +1737,7 @@ class BDT_tester:
 
 
             plt.title("K*ee")
+            plt.errorbar(np.arange(np.shape(self.BDTs[0]["signal_stripping_eff"])[0]), self.BDTs[0]["signal_stripping_eff"][:,0], yerr=self.BDTs[0]["signal_stripping_eff"][:,1],label='MC',color='tab:blue',linestyle='-')
             plt.errorbar(np.arange(np.shape(part_reco_MC_stripping_eff)[0]), part_reco_MC_stripping_eff[:,0], yerr=part_reco_MC_stripping_eff[:,1],label='MC',color='tab:red',linestyle='-')
             plt.errorbar(np.arange(np.shape(part_reco_gen_stripping_eff)[0]), part_reco_gen_stripping_eff[:,0], yerr=part_reco_gen_stripping_eff[:,1],label='gen',color='tab:red',linestyle='--')
             plt.errorbar(np.arange(np.shape(part_reco_gen_rapidsim_stripping_eff)[0]), part_reco_gen_rapidsim_stripping_eff[:,0], yerr=part_reco_gen_rapidsim_stripping_eff[:,1],label='gen (rapidsim)',color='tab:red',linestyle='-.')
@@ -1636,7 +1745,10 @@ class BDT_tester:
             cuts_ticks = ['All']+list(self.cuts.keys())
             plt.xticks(np.arange(len(cuts_ticks)), cuts_ticks, rotation=90)
             for i in np.arange(len(cuts_ticks)):
-                plt.axvline(x=i, alpha=0.5, ls='--',c='k')
+                if i ==0:
+                    plt.axvline(x=i, alpha=0.5, ls='-',c='k')
+                else:
+                    plt.axvline(x=i, alpha=0.5, ls='--',c='k')
             plt.legend()
             pdf.savefig(bbox_inches="tight")
             plt.close()
@@ -1680,9 +1792,9 @@ class BDT_tester:
             )  
 
 
-            samples = [signal_gen, signal_gen_rapidsim, BuD0enuKenu_gen, BuD0enuKenu_gen_rapidsim, BuD0enuKenu_MC]
-            labels = [self.signal_label, self.background_label, "sig - gen", "sig - gen (rapidsim)", "BuD0enuKenu - gen", "BuD0enuKenu - gen (rapidsim)", "BuD0enuKenu - MC"]
-            colours = ["tab:blue", "tab:red", "tab:green", "tab:orange", "k", "violet", "tab:purple"]
+            samples = [BuD0enuKenu_gen, BuD0enuKenu_gen_rapidsim, BuD0enuKenu_MC]
+            labels = [self.signal_label, self.background_label, "BuD0enuKenu - gen", "BuD0enuKenu - gen (rapidsim)", "BuD0enuKenu - MC"]
+            colours = ["tab:blue", "tab:red", "k", "violet", "tab:purple"]
 
             self.query_and_plot_samples_pages(
                 pdf,
@@ -1695,6 +1807,7 @@ class BDT_tester:
 
 
             plt.title("BuD0enuKenu")
+            plt.errorbar(np.arange(np.shape(self.BDTs[0]["signal_stripping_eff"])[0]), self.BDTs[0]["signal_stripping_eff"][:,0], yerr=self.BDTs[0]["signal_stripping_eff"][:,1],label='MC',color='tab:blue',linestyle='-')
             plt.errorbar(np.arange(np.shape(BuD0enuKenu_MC_stripping_eff)[0]), BuD0enuKenu_MC_stripping_eff[:,0], yerr=BuD0enuKenu_MC_stripping_eff[:,1],label='MC',color='tab:red',linestyle='-')
             plt.errorbar(np.arange(np.shape(BuD0enuKenu_gen_stripping_eff)[0]), BuD0enuKenu_gen_stripping_eff[:,0], yerr=BuD0enuKenu_gen_stripping_eff[:,1],label='gen',color='tab:red',linestyle='--')
             plt.errorbar(np.arange(np.shape(BuD0enuKenu_gen_rapidsim_stripping_eff)[0]), BuD0enuKenu_gen_rapidsim_stripping_eff[:,0], yerr=BuD0enuKenu_gen_rapidsim_stripping_eff[:,1],label='gen (rapidsim)',color='tab:red',linestyle='-.')
@@ -1702,7 +1815,10 @@ class BDT_tester:
             cuts_ticks = ['All']+list(self.cuts.keys())
             plt.xticks(np.arange(len(cuts_ticks)), cuts_ticks, rotation=90)
             for i in np.arange(len(cuts_ticks)):
-                plt.axvline(x=i, alpha=0.5, ls='--',c='k')
+                if i ==0:
+                    plt.axvline(x=i, alpha=0.5, ls='-',c='k')
+                else:
+                    plt.axvline(x=i, alpha=0.5, ls='--',c='k')
             plt.legend()
             pdf.savefig(bbox_inches="tight")
             plt.close()
@@ -1739,9 +1855,9 @@ class BDT_tester:
             )  
 
             
-            samples = [signal_gen, signal_gen_rapidsim, BuD0piKenu_gen, BuD0piKenu_gen_rapidsim, BuD0piKenu_MC]
-            labels = [self.signal_label, self.background_label, "sig - gen", "sig - gen (rapidsim)", "BuD0piKenu - gen", "BuD0piKenu - gen (rapidsim)", "BuD0piKenu - MC"]
-            colours = ["tab:blue", "tab:red", "tab:green", "tab:orange", "k", "violet", "tab:purple"]
+            samples = [BuD0piKenu_gen, BuD0piKenu_gen_rapidsim, BuD0piKenu_MC]
+            labels = [self.signal_label, self.background_label, "BuD0piKenu - gen", "BuD0piKenu - gen (rapidsim)", "BuD0piKenu - MC"]
+            colours = ["tab:blue", "tab:red", "k", "violet", "tab:purple"]
 
             self.query_and_plot_samples_pages(
                 pdf,
@@ -1753,6 +1869,7 @@ class BDT_tester:
             )
 
             plt.title("BuD0piKenu")
+            plt.errorbar(np.arange(np.shape(self.BDTs[0]["signal_stripping_eff"])[0]), self.BDTs[0]["signal_stripping_eff"][:,0], yerr=self.BDTs[0]["signal_stripping_eff"][:,1],label='MC',color='tab:blue',linestyle='-')
             plt.errorbar(np.arange(np.shape(BuD0piKenu_MC_stripping_eff)[0]), BuD0piKenu_MC_stripping_eff[:,0], yerr=BuD0piKenu_MC_stripping_eff[:,1],label='MC',color='tab:red',linestyle='-')
             plt.errorbar(np.arange(np.shape(BuD0piKenu_gen_stripping_eff)[0]), BuD0piKenu_gen_stripping_eff[:,0], yerr=BuD0piKenu_gen_stripping_eff[:,1],label='gen',color='tab:red',linestyle='--')
             plt.errorbar(np.arange(np.shape(BuD0piKenu_gen_rapidsim_stripping_eff)[0]), BuD0piKenu_gen_rapidsim_stripping_eff[:,0], yerr=BuD0piKenu_gen_rapidsim_stripping_eff[:,1],label='gen (rapidsim)',color='tab:red',linestyle='-.')
@@ -1760,7 +1877,10 @@ class BDT_tester:
             cuts_ticks = ['All']+list(self.cuts.keys())
             plt.xticks(np.arange(len(cuts_ticks)), cuts_ticks, rotation=90)
             for i in np.arange(len(cuts_ticks)):
-                plt.axvline(x=i, alpha=0.5, ls='--',c='k')
+                if i == 0:
+                    plt.axvline(x=i, alpha=0.5, ls='-',c='k')
+                else:
+                    plt.axvline(x=i, alpha=0.5, ls='--',c='k')
             plt.legend()
             pdf.savefig(bbox_inches="tight")
             plt.close()

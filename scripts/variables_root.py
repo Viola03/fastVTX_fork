@@ -37,7 +37,12 @@ masses[11] = 0.51099895000 * 1e-3
 # mother = 'MOTHER'
 # intermediate = 'INTERMEDIATE'
 
-file_name = 'dedicated_BuD0piKenu_MC_hierachy_cut.root'
+# file_name = 'dedicated_BuD0piKenu_MC_hierachy_cut.root'
+# particles = ["DAUGHTER1", "DAUGHTER2", "DAUGHTER3"]
+# mother = 'MOTHER'
+# intermediate = 'INTERMEDIATE'
+
+file_name = 'cocktail_x5_MC_hierachy_cut.root'
 particles = ["DAUGHTER1", "DAUGHTER2", "DAUGHTER3"]
 mother = 'MOTHER'
 intermediate = 'INTERMEDIATE'
