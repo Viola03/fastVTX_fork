@@ -137,6 +137,8 @@ class Transformer:
             f"{rd.intermediate_particle}_FDCHI2_OWNPV",
             f"{rd.intermediate_particle}_FLIGHT",
 
+            f"{rd.mother_particle}_TRUE_FD",
+
             f"{rd.mother_particle}_P",
             f"{rd.mother_particle}_PT",
             f"IP_{rd.daughter_particles[0]}",

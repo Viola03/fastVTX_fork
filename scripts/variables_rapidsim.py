@@ -199,7 +199,8 @@ if use_network_to_adapt_vertex_locations:
 		for coordinate in ["X", "Y", "Z"]:
 			distance_buffer[f"{particle}_{coordinate}"] = np.asarray(events[f"{particle}_TRUEORIGINVERTEX_{coordinate}"]-events[f"{mother}_TRUEENDVERTEX_{coordinate}"])
 
-	rd.latent = 50 
+	# rd.latent = 50 
+	rd.latent = 2 
 
 	primary_vertex_trainer_obj = primary_vertex_trainer(
 		None,
@@ -208,11 +209,11 @@ if use_network_to_adapt_vertex_locations:
 		beta=float(rd.beta),
 		latent_dim=rd.latent,
 		batch_size=64,
-		D_architecture=[100,200,100],
-		G_architecture=[100,200,100],
+		D_architecture=[1000,2000,1000],
+		G_architecture=[1000,2000,1000],
 		network_option='VAE',
 	)
-	primary_vertex_trainer_obj.load_state(tag=f"networks/primary_vertex_job")
+	primary_vertex_trainer_obj.load_state(tag=f"networks/primary_vertex_job2")
 
 	# BUG FIX?!
 	events[f"{mother}_P"] *= 1./1000.

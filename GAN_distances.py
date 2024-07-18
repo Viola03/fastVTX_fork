@@ -14,7 +14,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-rd.latent = 50 # noise dims
+# network_option = 'WGAN'
+# rd.latent = 50 # noise dims
+
+network_option = 'VAE'
+rd.latent = 6 # VAE latent dims
+
 
 rd.daughter_particles = ["K_Kst", "e_plus", "e_minus"] # K e e
 rd.mother_particle = 'B_plus'
@@ -92,8 +97,6 @@ targets = [
 # training_data_loader.plot('conditions.pdf',conditions)
 # quit()
 
-# network_option = 'WGAN'
-network_option = 'VAE'
 
 vertex_quality_trainer_obj = vertex_quality_trainer(
     training_data_loader,
@@ -110,12 +113,12 @@ vertex_quality_trainer_obj = vertex_quality_trainer(
 
 steps_for_plot = 5000
 vertex_quality_trainer_obj.train(steps=steps_for_plot)
-vertex_quality_trainer_obj.save_state(tag=f"networks/vertex_job_{network_option}cocktail_distances_newconditions3")
+vertex_quality_trainer_obj.save_state(tag=f"networks/vertex_job_{network_option}cocktail_distances_newconditions4")
 vertex_quality_trainer_obj.make_plots(filename=f'plots_0.pdf',testing_file=training_data_loader.get_file_names())
 
 for i in range(70):
     vertex_quality_trainer_obj.train_more_steps(steps=steps_for_plot)
-    vertex_quality_trainer_obj.save_state(tag=f"networks/vertex_job_{network_option}cocktail_distances_newconditions3")
+    vertex_quality_trainer_obj.save_state(tag=f"networks/vertex_job_{network_option}cocktail_distances_newconditions4")
     vertex_quality_trainer_obj.make_plots(filename=f'plots_{i+1}.pdf',testing_file=training_data_loader.get_file_names())
 
 

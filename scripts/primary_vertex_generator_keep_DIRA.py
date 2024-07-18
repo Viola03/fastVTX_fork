@@ -10,7 +10,8 @@ import numpy as np
 import tensorflow as tf
 from fast_vertex_quality.training_schemes.primary_vertex import primary_vertex_trainer
 
-rd.latent = 50 # noise dims
+rd.latent = 2 # noise dims
+# rd.beta = 1000
 
 rd.daughter_particles = ["K_Kst", "e_plus", "e_minus"] # K e e
 rd.mother_particle = 'B_plus'
@@ -19,7 +20,8 @@ rd.intermediate_particle = 'J_psi_1S'
 print(f"Loading data...")
 training_data_loader = data_loader.load_data(
     [
-        "datasets/cocktail_hierarchy_cut_more_vars.root",
+        # "datasets/cocktail_hierarchy_cut_more_vars.root",
+        "datasets/cocktail_x5_MC_hierachy_cut_more_vars.root",
     ],
     convert_to_RK_branch_names=True,
     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
@@ -75,18 +77,18 @@ primary_vertex_trainer_obj = primary_vertex_trainer(
     beta=float(rd.beta),
     latent_dim=rd.latent,
     batch_size=64,
-    D_architecture=[100,200,100],
-    G_architecture=[100,200,100],
+    D_architecture=[1000,2000,1000],
+    G_architecture=[1000,2000,1000],
     network_option='VAE',
     # network_option='WGAN',
 )
 
-steps_for_plot = 2500
+steps_for_plot = 5000
 primary_vertex_trainer_obj.train(steps=steps_for_plot)
 primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job2")
 primary_vertex_trainer_obj.make_plots(filename=f'vertex_plots_0.pdf',testing_file=training_data_loader.get_file_names())
 
-for i in range(10):
+for i in range(100):
     primary_vertex_trainer_obj.train_more_steps(steps=steps_for_plot)
     primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job2")
     primary_vertex_trainer_obj.make_plots(filename=f'vertex_plots_{i+1}.pdf',testing_file=training_data_loader.get_file_names())

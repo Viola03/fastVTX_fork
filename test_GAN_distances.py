@@ -17,13 +17,21 @@ from matplotlib.backends.backend_pdf import PdfPages
 from particle import Particle
 
 
+# network_option = 'VAE'
+# load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions3"
+# rd.latent = 50 # noise dims
+# D_architecture=[1000,2000,2000,1000]
+# G_architecture=[1000,2000,2000,1000]
+
 network_option = 'VAE'
-load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions3"
+load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions4"
+rd.latent = 6 # noise dims
 D_architecture=[1000,2000,2000,1000]
 G_architecture=[1000,2000,2000,1000]
 
 # network_option = 'WGAN'
 # load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions2"
+# rd.latent = 50 # noise dims
 # D_architecture=[1000,2000,2000,2000,1000]
 # G_architecture=[1000,2000,2000,2000,1000]
 
@@ -33,7 +41,6 @@ G_architecture=[1000,2000,2000,1000]
 
 transformers = pickle.load(open(f"{load_state}_transfomers.pkl", "rb"))
 
-rd.latent = 50 # noise dims
 
 rd.daughter_particles = ["K_Kst", "e_plus", "e_minus"] # K e e
 rd.mother_particle = 'B_plus'
