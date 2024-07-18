@@ -37,9 +37,9 @@ In `/davinci` run:
 ```
 python cut_hierarchy.py
 ```
-the options inside the file will need to be changed to point to the correct files. This script removes unecessary branches and repeats a `BKGCAT>60` cut.
+the options inside the file will need to be changed to point to the correct files. This script removes unnecessary branches and repeats a `BKGCAT>60` cut.
 
-To compute conditional varaibles run:
+To compute conditional variables run:
 ```
 python scripts/variables_root.py
 ```
@@ -60,9 +60,9 @@ On `gpu01` you can source Rapidsim with:
 cd
 source get_rapidsim.sh
 ```
-Example Rapidsim configuration files exist in `/rapidsim`.
+For example Rapidsim configuration files exist in `/rapidsim`.
 
-Once a sample is generated you can compute conditional varaibles with:
+Once a sample is generated you can compute conditional variables with:
 ```
 python scripts/variables_rapidsim.py
 ```
@@ -70,24 +70,24 @@ and
 ```
 python scripts/variables_rapidsim_PART_RECO.py
 ```
-options inside these files will need to be edited to ensure you are pointing to the correct files. It is important the correct particles are labelled as `B_plus`, `e_plus` and `e_minus`. These scripts load up the weights and transformers used to run the vertex smearing network (the architectures listed in the initialisation of the network must match). 
+options inside these files will need to be edited to ensure you are pointing to the correct files. It is important the correct particles are labelled as `B_plus`, `e_plus` and `e_minus`. These scripts load up the weights and transformers used to run the vertex-smearing network (the architectures listed in the initialisation of the network must match). 
 
-### Training the vertext quality network
+### Training the vertex quality network
 
 On `gpu01` run:
 ```
 python GAN_distances.py
 ```
-there are important paramters to check in the script, such as setting `rd.latent`. 
+there are important parameters to check in the script, such as setting `rd.latent`. 
 
 
-### Testing the vertext quality network
+### Testing the vertex quality network
 
 On `gpu01` run:
 ```
 python scripts/test_GAN_distances.py
 ```
-the architectures listed in the initialisation of the network must match that used in the training. 
+the architectures listed in the initialisation of the network must match those used in the training. 
 
 To debug or understand the workings behind the scenes you can use
 ```
