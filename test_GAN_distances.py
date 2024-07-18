@@ -17,12 +17,6 @@ from matplotlib.backends.backend_pdf import PdfPages
 from particle import Particle
 
 
-# network_option = 'VAE'
-# load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions3"
-# rd.latent = 50 # noise dims
-# D_architecture=[1000,2000,2000,1000]
-# G_architecture=[1000,2000,2000,1000]
-
 network_option = 'VAE'
 load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions4"
 rd.latent = 6 # noise dims

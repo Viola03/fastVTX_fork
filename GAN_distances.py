@@ -18,8 +18,12 @@ from matplotlib.backends.backend_pdf import PdfPages
 # rd.latent = 50 # noise dims
 
 network_option = 'VAE'
+load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions4"
 rd.latent = 6 # VAE latent dims
+D_architecture=[1000,2000,2000,1000]
+G_architecture=[1000,2000,2000,1000]
 
+# rd.beta = 750
 
 rd.daughter_particles = ["K_Kst", "e_plus", "e_minus"] # K e e
 rd.mother_particle = 'B_plus'
@@ -33,7 +37,6 @@ training_data_loader = data_loader.load_data(
     ],
     convert_to_RK_branch_names=True,
     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
-    # N=2500,
 )
 transformers = training_data_loader.get_transformers()
 print(training_data_loader.shape())
@@ -106,19 +109,19 @@ vertex_quality_trainer_obj = vertex_quality_trainer(
     beta=float(rd.beta),
     latent_dim=rd.latent,
     batch_size=64,
-    D_architecture=[1000,2000,2000,1000],
-    G_architecture=[1000,2000,2000,1000],
+    D_architecture=D_architecture,
+    G_architecture=G_architecture,
     network_option=network_option,
 )
 
 steps_for_plot = 5000
 vertex_quality_trainer_obj.train(steps=steps_for_plot)
-vertex_quality_trainer_obj.save_state(tag=f"networks/vertex_job_{network_option}cocktail_distances_newconditions4")
+vertex_quality_trainer_obj.save_state(tag=load_state)
 vertex_quality_trainer_obj.make_plots(filename=f'plots_0.pdf',testing_file=training_data_loader.get_file_names())
 
 for i in range(70):
     vertex_quality_trainer_obj.train_more_steps(steps=steps_for_plot)
-    vertex_quality_trainer_obj.save_state(tag=f"networks/vertex_job_{network_option}cocktail_distances_newconditions4")
+    vertex_quality_trainer_obj.save_state(tag=load_state)
     vertex_quality_trainer_obj.make_plots(filename=f'plots_{i+1}.pdf',testing_file=training_data_loader.get_file_names())
 
 
