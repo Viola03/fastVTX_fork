@@ -24,10 +24,10 @@ D_architecture=[1000,2000,2000,1000]
 G_architecture=[1000,2000,2000,1000]
 
 # network_option = 'WGAN'
-# load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions2"
+# load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions4"
 # rd.latent = 50 # noise dims
-# D_architecture=[1000,2000,2000,2000,1000]
-# G_architecture=[1000,2000,2000,2000,1000]
+# D_architecture=[1000,2000,2000,1000]
+# G_architecture=[1000,2000,2000,1000]
 
 
 
@@ -120,7 +120,7 @@ print(f"Initialising BDT tester...")
 BDT_tester_obj = BDT_tester(
     transformers=transformers,
     tag="networks/BDT_sig_comb_WGANcocktail_newconditions",
-    train=False,
+    train=True,
     BDT_vars=targets,
     # signal="datasets/Kee_2018_truthed_more_vars.csv",
     signal="datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
@@ -138,6 +138,7 @@ scores = BDT_tester_obj.plot_detailed_metrics(
     conditions,
     targets,
     vertex_quality_trainer_obj, f"metrics_{network_option}.pdf",
+    only_signal=False
 )
 
 

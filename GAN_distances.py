@@ -22,8 +22,18 @@ load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditi
 rd.latent = 6 # VAE latent dims
 D_architecture=[1000,2000,2000,1000]
 G_architecture=[1000,2000,2000,1000]
-
 # rd.beta = 750
+
+# network_option = 'WGAN'
+# load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions4"
+# rd.latent = 50 # VAE latent dims
+# D_architecture=[1000,2000,2000,1000]
+# G_architecture=[1000,2000,2000,1000]
+
+
+
+####################################################################################################################################
+
 
 rd.daughter_particles = ["K_Kst", "e_plus", "e_minus"] # K e e
 rd.mother_particle = 'B_plus'

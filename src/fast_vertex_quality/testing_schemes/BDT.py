@@ -114,6 +114,7 @@ class BDT_tester:
                 conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
             )
             stripping_eff_signal = self.get_stripping_eff(event_loader_MC)
+            event_loader_MC.cut("pass_stripping")
             event_loader_MC.select_randomly(Nevents=50000)
 
             events_MC = event_loader_MC.get_branches(
@@ -126,6 +127,7 @@ class BDT_tester:
                 ],
                 transformers=self.transformers,
             )
+            event_loader_data.cut("pass_stripping")
             event_loader_data.select_randomly(Nevents=50000)
 
             events_data = event_loader_data.get_branches(
@@ -205,6 +207,10 @@ class BDT_tester:
                 self.BDTs[kFold]["values_bkg"] = clf.predict_proba(fake_testing_data)[
                     :, 1
                 ]
+
+                self.BDTs[kFold]["data_sig"] = real_testing_data
+
+                self.BDTs[kFold]["data_bkg"] = fake_testing_data
 
                 break
 
@@ -1627,6 +1633,122 @@ class BDT_tester:
             pdf.savefig(bbox_inches="tight")
             plt.close()
 
+    def plot_BDT_input_distributions(self,
+                pdf,
+                samples,
+                labels,
+                colours):
+        
+        kFold = 0
+        sample_values = {}
+        sample_values[self.signal_label] = self.BDTs[kFold]["data_sig"]
+        sample_values[self.background_label] = self.BDTs[kFold]["data_bkg"]
+        for idx, sample in enumerate(samples):
+            sample_values[labels[idx+2]] = sample
+
+        
+        for key in list(sample_values.keys()):
+            print(np.shape(sample_values[key]))
+
+        print(len(self.targets))
+        # for key in 
+
+        for idx, target in enumerate(self.targets):
+            
+            values = []
+            log_values = []
+            for key in list(sample_values.keys()):
+                values.append(sample_values[key][:,idx])
+                log_values.append(np.log(sample_values[key][:,idx]))
+
+            plt.subplot(2,2,1)
+            hist = plt.hist(
+                values,
+                bins=50,
+                color=colours,
+                alpha=0.25,
+                label=list(sample_values.keys()),
+                density=True,
+                histtype="stepfilled",
+            )
+            plt.hist(
+                values,
+                bins=50,
+                color=colours,
+                density=True,
+                histtype="step",
+            )
+            plt.xlabel(target)
+            plt.legend()
+
+            plt.subplot(2,2,2)
+            hist = plt.hist(
+                values,
+                bins=50,
+                color=colours,
+                alpha=0.25,
+                label=list(sample_values.keys()),
+                density=True,
+                histtype="stepfilled",
+            )
+            plt.hist(
+                values,
+                bins=50,
+                color=colours,
+                density=True,
+                histtype="step",
+            )
+            plt.xlabel(target)
+            plt.yscale('log')
+
+
+
+            plt.subplot(2,2,3)
+            hist = plt.hist(
+                log_values,
+                bins=50,
+                color=colours,
+                alpha=0.25,
+                label=list(sample_values.keys()),
+                density=True,
+                histtype="stepfilled",
+            )
+            plt.hist(
+                log_values,
+                bins=50,
+                color=colours,
+                density=True,
+                histtype="step",
+            )
+            plt.xlabel(target)
+
+            plt.subplot(2,2,4)
+            hist = plt.hist(
+                log_values,
+                bins=50,
+                color=colours,
+                alpha=0.25,
+                label=list(sample_values.keys()),
+                density=True,
+                histtype="stepfilled",
+            )
+            plt.hist(
+                log_values,
+                bins=50,
+                color=colours,
+                density=True,
+                histtype="step",
+            )
+            plt.xlabel(target)
+            plt.yscale('log')
+
+
+            pdf.savefig(bbox_inches="tight")
+            plt.close()
+
+
+
+
 
 
     def plot_detailed_metrics(
@@ -1635,6 +1757,7 @@ class BDT_tester:
         targets,
         vertex_quality_trainer_obj,
         filename,
+        only_signal=False
     ):  
         self.conditions = conditions
         self.targets = targets
@@ -1671,6 +1794,15 @@ class BDT_tester:
                 only_hists=True,
             )
 
+
+            self.plot_BDT_input_distributions(
+                pdf,
+                samples,
+                labels,
+                colours=colours,
+            )  
+
+
             plt.title("Kee")
             plt.errorbar(np.arange(np.shape(self.BDTs[0]["signal_stripping_eff"])[0]), self.BDTs[0]["signal_stripping_eff"][:,0], yerr=self.BDTs[0]["signal_stripping_eff"][:,1],label='MC',color='tab:blue',linestyle='-')
             plt.errorbar(np.arange(np.shape(signal_gen_stripping_eff)[0]), signal_gen_stripping_eff[:,0], yerr=signal_gen_stripping_eff[:,1],label='gen',color='tab:blue',linestyle='--')
@@ -1697,6 +1829,13 @@ class BDT_tester:
                 N=10000,
                 extra_labels=['MC','Rapidsim','Cocktail','MC - gen'],
             )  
+
+            if only_signal:
+                return
+
+
+
+
 
             part_reco_gen, part_reco_gen_stripping_eff = self.get_sample_and_stripping_eff(
                 "datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
@@ -1752,18 +1891,6 @@ class BDT_tester:
             plt.legend()
             pdf.savefig(bbox_inches="tight")
             plt.close()
-
-
-
-
-
-
-
-
-
-
-
-
 
 
             BuD0enuKenu_gen, BuD0enuKenu_gen_stripping_eff = self.get_sample_and_stripping_eff(
@@ -1822,11 +1949,6 @@ class BDT_tester:
             plt.legend()
             pdf.savefig(bbox_inches="tight")
             plt.close()
-
-
-
-
-
 
 
             BuD0piKenu_gen, BuD0piKenu_gen_stripping_eff = self.get_sample_and_stripping_eff(
