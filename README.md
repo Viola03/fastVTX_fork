@@ -104,3 +104,4 @@ python scripts/plot_conditional_variables.py
 ### $B^+\to D^0(\to K^+\pi^-) K^+$
 
 [Paper](https://arxiv.org/pdf/2012.09903)
+[ANA](https://cds.cern.ch/record/2714688/files/LHCb-ANA-2020-024.pdf)

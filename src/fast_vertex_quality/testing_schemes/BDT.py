@@ -14,6 +14,55 @@ from particle import Particle
 import uproot3
 import pandas as pd
 
+import pkg_resources
+import alexPlot
+import mplhep
+mplhep.style.use('LHCb2')
+
+def poisson_asym_errors(y_points, avoid_errorbars_on_edges=True, blind=False, x_points=None):
+	# https://www.nikhef.nl/~ivov/Talks/2013_03_21_DESY_PoissonError.pdf option 4
+
+	compute_up_to_N = 150
+
+	poisson_asym_errors_lookup_table = pickle.load(open(f"{pkg_resources.resource_filename('fast_vertex_quality', 'number_storage/')}/poisson_asym_errors_lookup_table.pickle","rb"))
+
+	try:
+		first_bin = np.amin(np.where(y_points>0))-1
+		last_bin = np.amax(np.where(y_points>0))+1
+	except:
+		first_bin = 0
+		last_bin = 0
+		avoid_errorbars_on_edges = False
+
+	y_errors_asym = np.zeros((2,np.shape(y_points)[0]))
+
+	for y_point_idx, y_point in enumerate(y_points):
+		if blind and x_points[y_point_idx]>4900. and x_points[y_point_idx]<5380:
+			error_low = 0.
+			error_high = 0.
+		elif (y_point_idx < first_bin or y_point_idx > last_bin) and avoid_errorbars_on_edges:
+			error_low = 0.
+			error_high = 0.
+		elif y_point > compute_up_to_N:
+			y_err = np.sqrt(y_point)
+			error_low = y_err
+			error_high = y_err
+		else:
+			error_low = poisson_asym_errors_lookup_table[int(y_point)][0]
+			error_high = poisson_asym_errors_lookup_table[int(y_point)][1]
+
+		y_errors_asym[0][y_point_idx] = error_low
+		y_errors_asym[1][y_point_idx] = error_high
+
+	return y_errors_asym
+
+
+
+
+
+
+
+
 def write_df_to_root(df, output_name):
 	branch_dict = {}
 	data_dict = {}
@@ -55,8 +104,8 @@ class BDT_tester:
         ],
         signal="datasets/Kee_2018_truthed_more_vars.csv",
         background="datasets/B2Kee_2018_CommonPresel.csv",
-        signal_label="Train - sig",
-        background_label="Train - comb",
+        signal_label=f"Signal $B^+\to K^+e^+e^-$ MC",
+        background_label="Combinatorial",
         gen_track_chi2=True,
         signal_convert_branches=True,
         background_convert_branches=False,
@@ -656,7 +705,7 @@ class BDT_tester:
         
 
         samples = [signal_gen, signal_gen_rapidsim, part_reco_gen, part_reco_gen_rapidsim, part_reco_MC]
-        labels = [self.signal_label, self.background_label, "sig - gen", "sig - gen (rapidsim)", "prc - gen", "prc - gen (rapidsim)", "prc - MC"]
+        labels = [self.signal_label, self.background_label, r"Generated $B^+\to K^+e^+e^-$ (MC)", "Generated $B^+\to K^+e^+e^-$ (Rapidsim)", r"Generated $B^0\to K^{*0}e^+e^-$ (MC)", "Generated $B^0\to K^{*0}e^+e^-$ (Rapidsim)", "$B^0\to K^{*0}e^+e^-$ MC"]
         colours = ["tab:blue", "tab:red", "tab:green", "tab:orange", "k", "violet", "tab:purple"]
 
         scores = self.query_and_plot_samples(
@@ -811,7 +860,7 @@ class BDT_tester:
                 #     plt.xlabel(f'log(1-{self.BDT_vars[i]})')
                 else:
                     plt.xlabel(self.BDT_vars[i])
-                plt.legend()
+                plt.legend(frameon=False)
                 pdf.savefig(bbox_inches="tight")
                 plt.close()
 
@@ -1351,7 +1400,7 @@ class BDT_tester:
 
             # plt.ylabel("Signal/prc")
             # plt.xlabel(f"BDT output")
-            # plt.legend()
+            # plt.legend(frameon=False)
             # plt.axhline(y=1, c="k")
 
             plt.subplot(1, 4, 3)
@@ -1416,7 +1465,7 @@ class BDT_tester:
             #     plt.fill_between(x, true, false, color=colors[idx], alpha=0.1)
             #     scores.append(np.sum(np.abs(true - false)) / n_points)
 
-            plt.legend()
+            plt.legend(frameon=False)
             plt.ylabel(f"Selection efficiency")
             plt.xlabel(f"BDT cut")
 
@@ -1457,6 +1506,72 @@ class BDT_tester:
         return effs_true
 
 
+    def get_event_loader(
+        self,
+        sample_loc,
+        vertex_quality_trainer_obj,
+        generate,
+        cut=None,
+        convert_branches=False,
+        N=-1,
+        rapidsim=False,
+        return_data_loader=False
+    ):
+
+
+        if rapidsim:
+            event_loader = data_loader.load_data(
+                [
+                    sample_loc,
+                ],
+                transformers=self.transformers,
+                convert_to_RK_branch_names=True,
+                conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
+                N=N
+            )
+
+            if "Partreco" in sample_loc:
+                event_loader_target = data_loader.load_data(
+                    [
+                        "datasets/Kstee_cut_more_vars.root",
+                    ],
+                    transformers=self.transformers,
+                    convert_to_RK_branch_names=True,
+                    conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
+                N=N
+                )
+
+            if "BuD0enuKenu" in sample_loc:
+                event_loader.cut('m_12>3.674')
+
+
+        else:
+            if convert_branches:
+                event_loader = data_loader.load_data(
+                    [
+                        sample_loc,
+                    ],
+                    transformers=self.transformers,
+                    convert_to_RK_branch_names=True,
+                    conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
+                N=N
+                )
+            else:
+                event_loader = data_loader.load_data(
+                    [
+                        sample_loc,
+                    ],
+                    transformers=self.transformers,
+                )
+        
+        if generate:
+
+            event_loader = vertex_quality_trainer_obj.predict_from_data_loader(
+                event_loader
+            )
+
+        return event_loader
+    
 
     def get_sample_and_stripping_eff(
         self,
@@ -1570,7 +1685,8 @@ class BDT_tester:
         N=10000,
         rapidsim=False,
         return_data_loader=False,
-        extra_labels=[]
+        extra_labels=[],
+        colours=[]
     ):
         loaders = []
         for index, sample_loc_i in enumerate(sample_loc):
@@ -1640,15 +1756,20 @@ class BDT_tester:
                     labels.append(f'{extra_labels[index]} {eff:.3f}+-{effErr:.3f}')
 
             # plt.subplot(1,2,1)
-            plt.hist(results, bins=75, density=True, histtype='step', label=labels)
-            plt.legend()
-            plt.xlabel(cut)
+            plt.hist(results, bins=75, density=True, histtype='step', alpha=0, color=['k' for i in range(len(results))])
+            for index in range(len(results)):
+                if 'Cocktail' in labels[index]:
+                    plt.hist(results[index], bins=75, density=True, histtype='step', label=labels[index], alpha=0.25, color=colours[index])
+                else:
+                    plt.hist(results[index], bins=75, density=True, histtype='step', label=labels[index], color=colours[index])
+            plt.legend(loc='upper left', frameon=False)
+            plt.xlabel(f'Processed({cut})')
             plt.xlim(-1,1)
             plt.axvline(x=loader.convert_value_to_processed(cut, cut_value),c='k')
 
             # plt.subplot(1,2,2)
             # plt.hist(results_physical, bins=75, density=True, histtype='step', label=labels)
-            # plt.legend()
+            # plt.legend(frameon=False)
             # plt.xlabel(cut)
 
             pdf.savefig(bbox_inches="tight")
@@ -1675,7 +1796,7 @@ class BDT_tester:
                 values.append(sample_values[key][:,idx])
                 log_values.append(np.log(sample_values[key][:,idx]))
 
-            plt.subplot(2,2,1)
+            # plt.subplot(2,2,1)
             hist = plt.hist(
                 values,
                 bins=50,
@@ -1693,72 +1814,262 @@ class BDT_tester:
                 histtype="step",
             )
             plt.xlabel(target)
-            plt.legend()
-
-            plt.subplot(2,2,2)
-            hist = plt.hist(
-                values,
-                bins=50,
-                color=colours,
-                alpha=0.25,
-                label=list(sample_values.keys()),
-                density=True,
-                histtype="stepfilled",
-            )
-            plt.hist(
-                values,
-                bins=50,
-                color=colours,
-                density=True,
-                histtype="step",
-            )
-            plt.xlabel(target)
-            plt.yscale('log')
-
-
-
-            plt.subplot(2,2,3)
-            hist = plt.hist(
-                log_values,
-                bins=50,
-                color=colours,
-                alpha=0.25,
-                label=list(sample_values.keys()),
-                density=True,
-                histtype="stepfilled",
-            )
-            plt.hist(
-                log_values,
-                bins=50,
-                color=colours,
-                density=True,
-                histtype="step",
-            )
-            plt.xlabel(target)
-
-            plt.subplot(2,2,4)
-            hist = plt.hist(
-                log_values,
-                bins=50,
-                color=colours,
-                alpha=0.25,
-                label=list(sample_values.keys()),
-                density=True,
-                histtype="stepfilled",
-            )
-            plt.hist(
-                log_values,
-                bins=50,
-                color=colours,
-                density=True,
-                histtype="step",
-            )
-            plt.xlabel(target)
-            plt.yscale('log')
-
+            plt.legend(frameon=False)
 
             pdf.savefig(bbox_inches="tight")
             plt.close()
+
+            # plt.subplot(2,2,2)
+            # hist = plt.hist(
+            #     values,
+            #     bins=50,
+            #     color=colours,
+            #     alpha=0.25,
+            #     label=list(sample_values.keys()),
+            #     density=True,
+            #     histtype="stepfilled",
+            # )
+            # plt.hist(
+            #     values,
+            #     bins=50,
+            #     color=colours,
+            #     density=True,
+            #     histtype="step",
+            # )
+            # plt.xlabel(target)
+            # plt.yscale('log')
+
+            # # pdf.savefig(bbox_inches="tight")
+            # # plt.close()
+
+            # plt.subplot(2,2,3)
+            # hist = plt.hist(
+            #     log_values,
+            #     bins=50,
+            #     color=colours,
+            #     alpha=0.25,
+            #     label=list(sample_values.keys()),
+            #     density=True,
+            #     histtype="stepfilled",
+            # )
+            # plt.hist(
+            #     log_values,
+            #     bins=50,
+            #     color=colours,
+            #     density=True,
+            #     histtype="step",
+            # )
+            # plt.xlabel(f'log({target})')
+
+            # # pdf.savefig(bbox_inches="tight")
+            # # plt.close()
+
+            # plt.subplot(2,2,4)
+            # hist = plt.hist(
+            #     log_values,
+            #     bins=50,
+            #     color=colours,
+            #     alpha=0.25,
+            #     label=list(sample_values.keys()),
+            #     density=True,
+            #     histtype="stepfilled",
+            # )
+            # plt.hist(
+            #     log_values,
+            #     bins=50,
+            #     color=colours,
+            #     density=True,
+            #     histtype="step",
+            # )
+            # plt.xlabel(f'log({target})')
+            # plt.yscale('log')
+
+
+            # pdf.savefig(bbox_inches="tight")
+            # plt.close()
+
+
+    def get_BDT_scores(self, event_loader, generate):
+
+        if generate:
+            sample = event_loader.get_branches(self.BDT_vars_gen, processed=False)
+            sample = np.squeeze(np.asarray(sample[self.BDT_vars_gen]))
+
+        else:  
+            sample = event_loader.get_branches(self.BDT_vars, processed=False)
+            sample = np.squeeze(np.asarray(sample[self.BDT_vars]))
+        
+        kFold = 0
+        clf = self.BDTs[kFold]["BDT"]
+
+        return clf.predict_proba(sample)[:, 1]
+
+
+    def get_efficiency_as_a_function_of_variable(self, event_loader, cut, variable, variable_range=[]):
+
+        # print(cut)
+
+        branches = event_loader.get_branches([variable],processed=False)
+
+        if len(variable_range)>0:
+            hist_pre = np.histogram(branches[variable], bins=50, range=variable_range)
+        else:
+            hist_pre = np.histogram(branches[variable], bins=50)
+
+        # plt.subplot(1,3,1)
+        # plt.hist(branches[variable], bins=hist_pre[1])
+
+        event_loader.cut(cut)
+        branches = event_loader.get_branches([variable],processed=False)
+
+        hist_post = np.histogram(branches[variable], bins=hist_pre[1])
+
+        # plt.subplot(1,3,2)
+        # plt.hist(branches[variable], bins=hist_pre[1])
+
+        # plt.subplot(1,3,3)
+        x = hist_pre[1][:-1]+(hist_pre[1][1]-hist_pre[1][0])/2.
+        # plt.plot(x, hist_post[0]/hist_pre[0])
+
+        pass_tot_val = hist_post[0]
+        gen_tot_val = hist_pre[0]
+        pass_tot_err = np.sqrt(hist_post[0])
+        gen_tot_err = np.sqrt(hist_pre[0])
+
+        eff, effErr = event_loader.getBinomialEff(pass_tot_val, gen_tot_val,
+                                     pass_tot_err, gen_tot_err)
+        
+        # plt.errorbar(x, eff, yerr=effErr,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.)
+        # plt.savefig('eff.png')
+
+        return x, eff, effErr
+
+    def plot_differential_metrics(
+        self,
+        conditions,
+        targets,
+        vertex_quality_trainer_obj,
+        filename,
+        only_signal=False
+    ):  
+        self.conditions = conditions
+        self.targets = targets
+        
+
+        with PdfPages(filename) as pdf:
+            
+            ###############
+            event_loader_MC = self.get_event_loader(
+                "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
+                vertex_quality_trainer_obj,
+                generate=False,
+                # N=10000,
+                N=-1,
+                convert_branches=True,
+            )  
+            print("Cutting pass_stripping for MC")
+            event_loader_MC.fill_stripping_bool()
+            event_loader_MC.cut("pass_stripping")
+            print("Cut")
+            BDT_scores = self.get_BDT_scores(
+                event_loader_MC,
+                generate=False
+            )  
+            event_loader_MC.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
+
+
+            ###############
+            event_loader_gen_MC = self.get_event_loader(
+                "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
+                vertex_quality_trainer_obj,
+                generate=True,
+                # N=10000,
+                N=-1,
+                convert_branches=True,
+                rapidsim=False,
+            )  
+            print("Cutting pass_stripping for gen MC")
+            event_loader_gen_MC.fill_stripping_bool()
+            event_loader_gen_MC.cut("pass_stripping")
+            print("Cut")
+            BDT_scores = self.get_BDT_scores(
+                event_loader_gen_MC,
+                generate=True
+            )  
+            event_loader_gen_MC.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
+            
+            ###############
+            event_loader_RapidSim = self.get_event_loader(
+                "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root",
+                vertex_quality_trainer_obj,
+                generate=True,
+                # N=10000,
+                N=-1,
+                convert_branches=True,
+                rapidsim=True,
+            )  
+            print("Cutting pass_stripping for rapidsim")
+            event_loader_RapidSim.fill_stripping_bool()
+            event_loader_RapidSim.cut("pass_stripping")
+            print("Cut")
+            BDT_scores = self.get_BDT_scores(
+                event_loader_RapidSim,
+                generate=True
+            )  
+            event_loader_RapidSim.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
+
+
+
+
+
+
+            BDT_cut = 0.9
+
+
+            # x, eff, effErr = self.get_efficiency_as_a_function_of_variable(event_loader_MC, cut=f"BDT_score>{BDT_cut}", variable="q2", variable_range=[0,25])
+            # plt.errorbar(x, eff, yerr=effErr,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='MC')
+
+            # x, eff, effErr = self.get_efficiency_as_a_function_of_variable(event_loader_gen_MC, cut=f"BDT_score>{BDT_cut}", variable="q2", variable_range=[0,25])
+            # plt.errorbar(x, eff, yerr=effErr,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='gen MC')
+            
+            # x, eff, effErr = self.get_efficiency_as_a_function_of_variable(event_loader_RapidSim, cut=f"BDT_score>{BDT_cut}", variable="q2", variable_range=[0,25])
+            # plt.errorbar(x, eff, yerr=effErr,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='gen rapidsim')
+
+            # plt.legend()
+            
+            # plt.savefig('eff_q2.png')
+            # plt.close('all')
+
+
+            x, eff, effErr = self.get_efficiency_as_a_function_of_variable(event_loader_MC, cut=f"BDT_score>{BDT_cut}", variable="B_plus_M", variable_range=[4,5.7])
+            plt.errorbar(x, eff, yerr=effErr,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='MC')
+
+            x, eff, effErr = self.get_efficiency_as_a_function_of_variable(event_loader_gen_MC, cut=f"BDT_score>{BDT_cut}", variable="B_plus_M", variable_range=[4,5.7])
+            plt.errorbar(x, eff, yerr=effErr,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='gen MC')
+
+            x, eff, effErr = self.get_efficiency_as_a_function_of_variable(event_loader_RapidSim, cut=f"BDT_score>{BDT_cut}", variable="B_plus_M", variable_range=[4,5.7])
+            plt.errorbar(x, eff, yerr=effErr,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='gen rapidsim')
+
+            plt.legend()
+
+            plt.savefig('eff_B_plus_M.png')
+            plt.close('all')
+
+
+            print('mkl next')
+            # event_loader_MC.print_branches()
+
+
+
+
+            quit()
+
+
+
+
+
+
+        
 
 
 
@@ -1796,7 +2107,7 @@ class BDT_tester:
             )  
 
             samples = [signal_gen, signal_gen_rapidsim]
-            labels = [self.signal_label, self.background_label, "sig - gen", "sig - gen (rapidsim)"]
+            labels = [self.signal_label, self.background_label, r"Generated $B^+\to K^+e^+e^-$ (MC)", r"Generated $B^+\to K^+e^+e^-$ (Rapidsim)"]
             colours = ["tab:blue", "tab:red", "tab:green", "tab:orange"]
 
             self.query_and_plot_samples_pages(
@@ -1806,8 +2117,12 @@ class BDT_tester:
                 colours=colours,
                 filename=filename,
                 only_hists=True,
+                all_effs_blue=True
             )
 
+
+
+        
 
             self.plot_BDT_input_distributions(
                 pdf,
@@ -1818,9 +2133,9 @@ class BDT_tester:
 
 
             plt.title("Kee")
-            plt.errorbar(np.arange(np.shape(self.BDTs[0]["signal_stripping_eff"])[0]), self.BDTs[0]["signal_stripping_eff"][:,0], yerr=self.BDTs[0]["signal_stripping_eff"][:,1],label='MC',color='tab:blue',linestyle='-')
-            plt.errorbar(np.arange(np.shape(signal_gen_stripping_eff)[0]), signal_gen_stripping_eff[:,0], yerr=signal_gen_stripping_eff[:,1],label='gen',color='tab:blue',linestyle='--')
-            plt.errorbar(np.arange(np.shape(signal_gen_rapidsim_stripping_eff)[0]), signal_gen_rapidsim_stripping_eff[:,0], yerr=signal_gen_rapidsim_stripping_eff[:,1],label='gen (rapidsim)',color='tab:blue',linestyle='-.')
+            plt.errorbar(np.arange(np.shape(self.BDTs[0]["signal_stripping_eff"])[0]), self.BDTs[0]["signal_stripping_eff"][:,0], yerr=self.BDTs[0]["signal_stripping_eff"][:,1],label=self.signal_label,color='tab:blue',linestyle='-')
+            plt.errorbar(np.arange(np.shape(signal_gen_stripping_eff)[0]), signal_gen_stripping_eff[:,0], yerr=signal_gen_stripping_eff[:,1],label=r"Generated $B^+\to K^+e^+e^-$ (MC)",color='tab:blue',linestyle='--')
+            plt.errorbar(np.arange(np.shape(signal_gen_rapidsim_stripping_eff)[0]), signal_gen_rapidsim_stripping_eff[:,0], yerr=signal_gen_rapidsim_stripping_eff[:,1],label=r"Generated $B^+\to K^+e^+e^-$ (Rapidsim)",color='tab:blue',linestyle='-.')
             plt.ylim(0,1)
             cuts_ticks = ['All']+list(self.cuts.keys())
             plt.xticks(np.arange(len(cuts_ticks)), cuts_ticks, rotation=90)
@@ -1829,7 +2144,7 @@ class BDT_tester:
                     plt.axvline(x=i, alpha=0.5, ls='-',c='k')
                 else:
                     plt.axvline(x=i, alpha=0.5, ls='--',c='k')
-            plt.legend()
+            plt.legend(frameon=False)
             pdf.savefig(bbox_inches="tight")
             plt.close()
 
@@ -1841,14 +2156,12 @@ class BDT_tester:
                 convert_branches=[True, True, True, True],
                 rapidsim=[False, True, False, False],
                 N=10000,
-                extra_labels=['MC','Rapidsim','Cocktail','MC - gen'],
+                extra_labels=[r'MC - $B^+\to K^+e^+e^-$','Generated (Rapidsim)','MC - Cocktail','Generated (MC)'],
+                colours=['tab:blue','tab:orange','tab:green','tab:red']
             )  
 
             if only_signal:
                 return
-
-
-
 
 
             part_reco_gen, part_reco_gen_stripping_eff = self.get_sample_and_stripping_eff(
@@ -1875,7 +2188,7 @@ class BDT_tester:
             ) 
 
             samples = [part_reco_gen, part_reco_gen_rapidsim, part_reco_MC]
-            labels = [self.signal_label, self.background_label, "prc - gen", "prc - gen (rapidsim)", "prc - MC"]
+            labels = [self.signal_label, self.background_label, r"Generated $B^0\to K^{*0}e^+e^-$ (MC)", r"Generated $B^0\to K^{*0}e^+e^-$ (Rapidsim)", r"$B^0\to K^{*0}e^+e^-$ MC"]
             colours = ["tab:blue", "tab:red", "k", "violet", "tab:purple"]
 
             self.query_and_plot_samples_pages(
@@ -1890,10 +2203,10 @@ class BDT_tester:
 
 
             plt.title("K*ee")
-            plt.errorbar(np.arange(np.shape(self.BDTs[0]["signal_stripping_eff"])[0]), self.BDTs[0]["signal_stripping_eff"][:,0], yerr=self.BDTs[0]["signal_stripping_eff"][:,1],label='MC',color='tab:blue',linestyle='-')
-            plt.errorbar(np.arange(np.shape(part_reco_MC_stripping_eff)[0]), part_reco_MC_stripping_eff[:,0], yerr=part_reco_MC_stripping_eff[:,1],label='MC',color='tab:red',linestyle='-')
-            plt.errorbar(np.arange(np.shape(part_reco_gen_stripping_eff)[0]), part_reco_gen_stripping_eff[:,0], yerr=part_reco_gen_stripping_eff[:,1],label='gen',color='tab:red',linestyle='--')
-            plt.errorbar(np.arange(np.shape(part_reco_gen_rapidsim_stripping_eff)[0]), part_reco_gen_rapidsim_stripping_eff[:,0], yerr=part_reco_gen_rapidsim_stripping_eff[:,1],label='gen (rapidsim)',color='tab:red',linestyle='-.')
+            plt.errorbar(np.arange(np.shape(self.BDTs[0]["signal_stripping_eff"])[0]), self.BDTs[0]["signal_stripping_eff"][:,0], yerr=self.BDTs[0]["signal_stripping_eff"][:,1],label=self.signal_label,color='tab:blue',linestyle='-')
+            plt.errorbar(np.arange(np.shape(part_reco_MC_stripping_eff)[0]), part_reco_MC_stripping_eff[:,0], yerr=part_reco_MC_stripping_eff[:,1],label=r"$B^0\to K^{*0}e^+e^-$ MC",color='tab:red',linestyle='-')
+            plt.errorbar(np.arange(np.shape(part_reco_gen_stripping_eff)[0]), part_reco_gen_stripping_eff[:,0], yerr=part_reco_gen_stripping_eff[:,1],label=r"Generated $B^0\to K^{*0}e^+e^-$ (MC)",color='tab:red',linestyle='--')
+            plt.errorbar(np.arange(np.shape(part_reco_gen_rapidsim_stripping_eff)[0]), part_reco_gen_rapidsim_stripping_eff[:,0], yerr=part_reco_gen_rapidsim_stripping_eff[:,1],label=r"Generated $B^0\to K^{*0}e^+e^-$ (Rapidsim)",color='tab:red',linestyle='-.')
             plt.ylim(0,1)
             cuts_ticks = ['All']+list(self.cuts.keys())
             plt.xticks(np.arange(len(cuts_ticks)), cuts_ticks, rotation=90)
@@ -1902,7 +2215,7 @@ class BDT_tester:
                     plt.axvline(x=i, alpha=0.5, ls='-',c='k')
                 else:
                     plt.axvline(x=i, alpha=0.5, ls='--',c='k')
-            plt.legend()
+            plt.legend(frameon=False)
             pdf.savefig(bbox_inches="tight")
             plt.close()
 
@@ -1934,7 +2247,7 @@ class BDT_tester:
 
 
             samples = [BuD0enuKenu_gen, BuD0enuKenu_gen_rapidsim, BuD0enuKenu_MC]
-            labels = [self.signal_label, self.background_label, "BuD0enuKenu - gen", "BuD0enuKenu - gen (rapidsim)", "BuD0enuKenu - MC"]
+            labels = [self.signal_label, self.background_label, r"Generated $B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$ (MC)", r"Generated $B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$ (Rapidsim)", r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$ MC"]
             colours = ["tab:blue", "tab:red", "k", "violet", "tab:purple"]
 
             self.query_and_plot_samples_pages(
@@ -1948,10 +2261,10 @@ class BDT_tester:
 
 
             plt.title("BuD0enuKenu")
-            plt.errorbar(np.arange(np.shape(self.BDTs[0]["signal_stripping_eff"])[0]), self.BDTs[0]["signal_stripping_eff"][:,0], yerr=self.BDTs[0]["signal_stripping_eff"][:,1],label='MC',color='tab:blue',linestyle='-')
-            plt.errorbar(np.arange(np.shape(BuD0enuKenu_MC_stripping_eff)[0]), BuD0enuKenu_MC_stripping_eff[:,0], yerr=BuD0enuKenu_MC_stripping_eff[:,1],label='MC',color='tab:red',linestyle='-')
-            plt.errorbar(np.arange(np.shape(BuD0enuKenu_gen_stripping_eff)[0]), BuD0enuKenu_gen_stripping_eff[:,0], yerr=BuD0enuKenu_gen_stripping_eff[:,1],label='gen',color='tab:red',linestyle='--')
-            plt.errorbar(np.arange(np.shape(BuD0enuKenu_gen_rapidsim_stripping_eff)[0]), BuD0enuKenu_gen_rapidsim_stripping_eff[:,0], yerr=BuD0enuKenu_gen_rapidsim_stripping_eff[:,1],label='gen (rapidsim)',color='tab:red',linestyle='-.')
+            plt.errorbar(np.arange(np.shape(self.BDTs[0]["signal_stripping_eff"])[0]), self.BDTs[0]["signal_stripping_eff"][:,0], yerr=self.BDTs[0]["signal_stripping_eff"][:,1],label=self.signal_label,color='tab:blue',linestyle='-')
+            plt.errorbar(np.arange(np.shape(BuD0enuKenu_MC_stripping_eff)[0]), BuD0enuKenu_MC_stripping_eff[:,0], yerr=BuD0enuKenu_MC_stripping_eff[:,1],label=r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$ MC",color='tab:red',linestyle='-')
+            plt.errorbar(np.arange(np.shape(BuD0enuKenu_gen_stripping_eff)[0]), BuD0enuKenu_gen_stripping_eff[:,0], yerr=BuD0enuKenu_gen_stripping_eff[:,1],label=r"Generated $B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$ (MC)",color='tab:red',linestyle='--')
+            plt.errorbar(np.arange(np.shape(BuD0enuKenu_gen_rapidsim_stripping_eff)[0]), BuD0enuKenu_gen_rapidsim_stripping_eff[:,0], yerr=BuD0enuKenu_gen_rapidsim_stripping_eff[:,1],label=r"Generated $B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$ (Rapidsim)",color='tab:red',linestyle='-.')
             plt.ylim(0,1)
             cuts_ticks = ['All']+list(self.cuts.keys())
             plt.xticks(np.arange(len(cuts_ticks)), cuts_ticks, rotation=90)
@@ -1960,7 +2273,7 @@ class BDT_tester:
                     plt.axvline(x=i, alpha=0.5, ls='-',c='k')
                 else:
                     plt.axvline(x=i, alpha=0.5, ls='--',c='k')
-            plt.legend()
+            plt.legend(frameon=False)
             pdf.savefig(bbox_inches="tight")
             plt.close()
 
@@ -1992,7 +2305,7 @@ class BDT_tester:
 
             
             samples = [BuD0piKenu_gen, BuD0piKenu_gen_rapidsim, BuD0piKenu_MC]
-            labels = [self.signal_label, self.background_label, "BuD0piKenu - gen", "BuD0piKenu - gen (rapidsim)", "BuD0piKenu - MC"]
+            labels = [self.signal_label, self.background_label, r"Generated $B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$ (MC)", r"Generated $B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$ (Rapidsim)", r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$ MC"]
             colours = ["tab:blue", "tab:red", "k", "violet", "tab:purple"]
 
             self.query_and_plot_samples_pages(
@@ -2005,10 +2318,10 @@ class BDT_tester:
             )
 
             plt.title("BuD0piKenu")
-            plt.errorbar(np.arange(np.shape(self.BDTs[0]["signal_stripping_eff"])[0]), self.BDTs[0]["signal_stripping_eff"][:,0], yerr=self.BDTs[0]["signal_stripping_eff"][:,1],label='MC',color='tab:blue',linestyle='-')
-            plt.errorbar(np.arange(np.shape(BuD0piKenu_MC_stripping_eff)[0]), BuD0piKenu_MC_stripping_eff[:,0], yerr=BuD0piKenu_MC_stripping_eff[:,1],label='MC',color='tab:red',linestyle='-')
-            plt.errorbar(np.arange(np.shape(BuD0piKenu_gen_stripping_eff)[0]), BuD0piKenu_gen_stripping_eff[:,0], yerr=BuD0piKenu_gen_stripping_eff[:,1],label='gen',color='tab:red',linestyle='--')
-            plt.errorbar(np.arange(np.shape(BuD0piKenu_gen_rapidsim_stripping_eff)[0]), BuD0piKenu_gen_rapidsim_stripping_eff[:,0], yerr=BuD0piKenu_gen_rapidsim_stripping_eff[:,1],label='gen (rapidsim)',color='tab:red',linestyle='-.')
+            plt.errorbar(np.arange(np.shape(self.BDTs[0]["signal_stripping_eff"])[0]), self.BDTs[0]["signal_stripping_eff"][:,0], yerr=self.BDTs[0]["signal_stripping_eff"][:,1],label=self.signal_label,color='tab:blue',linestyle='-')
+            plt.errorbar(np.arange(np.shape(BuD0piKenu_MC_stripping_eff)[0]), BuD0piKenu_MC_stripping_eff[:,0], yerr=BuD0piKenu_MC_stripping_eff[:,1],label=r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$ MC",color='tab:red',linestyle='-')
+            plt.errorbar(np.arange(np.shape(BuD0piKenu_gen_stripping_eff)[0]), BuD0piKenu_gen_stripping_eff[:,0], yerr=BuD0piKenu_gen_stripping_eff[:,1],label=r"Generated $B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$ (MC)",color='tab:red',linestyle='--')
+            plt.errorbar(np.arange(np.shape(BuD0piKenu_gen_rapidsim_stripping_eff)[0]), BuD0piKenu_gen_rapidsim_stripping_eff[:,0], yerr=BuD0piKenu_gen_rapidsim_stripping_eff[:,1],label=r"Generated $B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$ (Rapidsim)",color='tab:red',linestyle='-.')
             plt.ylim(0,1)
             cuts_ticks = ['All']+list(self.cuts.keys())
             plt.xticks(np.arange(len(cuts_ticks)), cuts_ticks, rotation=90)
@@ -2017,9 +2330,10 @@ class BDT_tester:
                     plt.axvline(x=i, alpha=0.5, ls='-',c='k')
                 else:
                     plt.axvline(x=i, alpha=0.5, ls='--',c='k')
-            plt.legend()
+            plt.legend(frameon=False)
             pdf.savefig(bbox_inches="tight")
             plt.close()
+
 
 
 
@@ -2036,6 +2350,7 @@ class BDT_tester:
             include_combinatorial=False,
             only_hists=False,
             plot_training=True,
+            all_effs_blue=False
         ):
 
             sample_values = {}
@@ -2070,10 +2385,42 @@ class BDT_tester:
                 histtype="step",
                 range=[0, 1],
             )
+            plt.legend(loc="upper left",frameon=False)
             plt.xlabel(f"BDT output")
             plt.yscale("log")
             pdf.savefig(bbox_inches="tight")
             plt.close()
+
+
+            ax = plt.subplot(1,1,1)
+            hist = plt.hist(
+                sample_values.values(),
+                bins=50,
+                color=colours,
+                alpha=0.25,
+                label=list(sample_values.keys()),
+                density=True,
+                histtype="stepfilled",
+                range=[0, 1],
+            )
+            plt.yscale('log')
+            ymin, ymax = ax.get_ylim()
+            values = []
+            for key in list(sample_values.keys()):
+                values.append(np.asarray(sample_values[key]))
+            alexPlot.plot_data(values, density=True, also_plot_hist=True, bins=50, color=colours, xmin=0, xmax=1, ymin=ymin, ymax=ymax, only_canvas=True, log=True)
+            plt.legend(loc='upper left',frameon=False)
+            plt.ylim(ymin, ymax)
+            plt.xlabel(f"BDT output")
+            pdf.savefig(bbox_inches="tight")
+            plt.close()
+            
+
+
+
+
+
+
 
 
             plt.hist(
@@ -2094,7 +2441,27 @@ class BDT_tester:
                 histtype="step",
                 range=[0, 1],
             )
-            plt.legend(loc="upper left")
+            plt.legend(loc="upper left",frameon=False)
+            plt.xlabel(f"BDT output")
+            pdf.savefig(bbox_inches="tight")
+            plt.close()
+
+
+            hist = plt.hist(
+                sample_values.values(),
+                bins=50,
+                color=colours,
+                alpha=0.25,
+                label=list(sample_values.keys()),
+                density=True,
+                histtype="stepfilled",
+                range=[0, 1],
+            )
+            values = []
+            for key in list(sample_values.keys()):
+                values.append(np.asarray(sample_values[key]))
+            alexPlot.plot_data(values, density=True, also_plot_hist=True, bins=50, color=colours, xmin=0, xmax=1, only_canvas=True)
+            plt.legend(loc='upper left',frameon=False)
             plt.xlabel(f"BDT output")
             pdf.savefig(bbox_inches="tight")
             plt.close()
@@ -2108,7 +2475,7 @@ class BDT_tester:
 
             sample_list = list(sample_values.keys())
 
-            for sample in sample_list:
+            for sample_idx, sample in enumerate(sample_list):
                 
                 if sample == self.background_label:
                     continue
@@ -2122,24 +2489,24 @@ class BDT_tester:
                     eff = np.append(eff, pass_i / np.shape(values)[0])
                 effs[sample] = eff
 
-                if "sig" in sample or sample == self.signal_label:
-                    color = "tab:blue"
-                else:
+
+                color = "tab:blue"
+                if sample_idx > 0 and not all_effs_blue:
                     color = "tab:red"
-                if "gen" in sample:
-                    if "rapidsim" in sample:
+                style = "-"
+                if "Gen" in sample:
+                    if "Rapidsim" in sample:
                         style = "-."
                     else:
                         style = "--"
-                else:
-                    style = "-"
+
 
                 if "combi" in sample or sample == self.background_label:
                     color = "tab:orange"
 
                 plt.plot(x, effs[sample], label=sample, color=color, linestyle=style)
 
-            plt.legend()
+            plt.legend(frameon=False)
             plt.ylabel(f"Selection efficiency")
             plt.xlabel(f"BDT cut")
 

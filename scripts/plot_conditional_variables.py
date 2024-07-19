@@ -95,9 +95,9 @@ training_data_loader_cocktail = data_loader.load_data(
 	transformers=transformers
     # N=2500,
 )
-training_data_loader_cocktail.cut('K_Kst_PT>400')
-training_data_loader_cocktail.cut('e_minus_PT>300')
-training_data_loader_cocktail.cut('e_plus_PT>300')
+# training_data_loader_cocktail.cut('K_Kst_PT>400')
+# training_data_loader_cocktail.cut('e_minus_PT>300')
+# training_data_loader_cocktail.cut('e_plus_PT>300')
 # training_data_loader_cocktail.cut('B_plus_TRUEP_Z>0')
 # transformers = training_data_loader_cocktail.get_transformers()
 
@@ -112,17 +112,18 @@ training_data_loader = data_loader.load_data(
         # "datasets/Kstee_cut_more_vars.root",
         # "datasets/Kstee_cut_more_vars.root",
         # "datasets/dedicated_BuD0enuKenu_MC_hierachy_cut_more_vars.root",
-        # "datasets/dedicated_BuD0piKenu_MC_hierachy_cut_more_vars.root",
-        "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
+        "datasets/dedicated_BuD0piKenu_MC_hierachy_cut_more_vars.root",
+        # "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
+        # "datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
     ],
     convert_to_RK_branch_names=True,
     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
     # N=2500,
 	transformers=transformers
 )
-training_data_loader.cut('K_Kst_PT>400')
-training_data_loader.cut('e_minus_PT>300')
-training_data_loader.cut('e_plus_PT>300')
+# training_data_loader.cut('K_Kst_PT>400')
+# training_data_loader.cut('e_minus_PT>300')
+# training_data_loader.cut('e_plus_PT>300')
 
 # training_data_loader.cut('B_plus_TRUEP_Z>0')
 # training_data_loader.cut('pass_stripping')
@@ -139,19 +140,19 @@ conditions_notrapdsim["physical"] = training_data_loader.get_branches(conditions
 training_data_loader_rapidsim = data_loader.load_data(
     [
         # "rapidsim/Kee/Signal_tree_more_vars.root",
-        "rapidsim/Kee/Signal_tree_NNvertex_more_vars.root",
+        # "rapidsim/Kee/Signal_tree_NNvertex_more_vars.root",
         # "rapidsim/Kstree/Partreco_tree_NNvertex_more_vars.root",
         # "rapidsim/BuD0enuKenu/BuD0enuKenu_tree_NNvertex_more_vars.root",
-        # "rapidsim/BuD0piKenu/BuD0piKenu_tree_NNvertex_more_vars.root",
+        "rapidsim/BuD0piKenu/BuD0piKenu_tree_NNvertex_more_vars.root",
     ],
     convert_to_RK_branch_names=True,
     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
     # N=2500,
 	transformers=transformers
 )
-training_data_loader_rapidsim.cut('K_Kst_PT>400')
-training_data_loader_rapidsim.cut('e_minus_PT>300')
-training_data_loader_rapidsim.cut('e_plus_PT>300')
+# training_data_loader_rapidsim.cut('K_Kst_PT>400')
+# training_data_loader_rapidsim.cut('e_minus_PT>300')
+# training_data_loader_rapidsim.cut('e_plus_PT>300')
 
 # training_data_loader_rapidsim.cut('m_12>3.674')
 
@@ -284,9 +285,9 @@ def compare_in_2d(filename, var_1, var_2, df_A, df_B, tag_A, tag_B):
 # 		# 	pass
 # quit()
 
-with PdfPages('conditions_distances.pdf') as pdf:
-# # with PdfPages('conditions_distances_NNvertex_Kstr.pdf') as pdf:
-# with PdfPages('conditions_distances_NNvertex_D0.pdf') as pdf:
+# with PdfPages('conditions_distances.pdf') as pdf:
+# with PdfPages('conditions_distances_NNvertex_Kstr.pdf') as pdf:
+with PdfPages('conditions_distances_NNvertex_D0.pdf') as pdf:
 
 	for variable in list(conditions):
 		
@@ -313,6 +314,18 @@ with PdfPages('conditions_distances.pdf') as pdf:
 
 			pdf.savefig(bbox_inches="tight")
 			plt.close()
+
+
+			plt.hist([conditions_rapdsim["processed"][variable], conditions_notrapdsim["processed"][variable], conditions_cocktail["processed"][variable]], bins=50, density=True, histtype='step', range=[-1,1], color=['tab:orange','tab:red','tab:green'],alpha=0)
+			plt.hist([conditions_rapdsim["processed"][variable], conditions_notrapdsim["processed"][variable]], bins=50, density=True, histtype='step', range=[-1,1], color=['tab:orange','tab:red'],alpha=1,label=['Rapidsim','MC'],linewidth=2)
+			plt.hist([conditions_rapdsim["processed"][variable], conditions_notrapdsim["processed"][variable]], bins=50, density=True, histtype='stepfilled', range=[-1,1], color=['tab:orange','tab:red'],alpha=0.3)
+			plt.hist(conditions_cocktail["processed"][variable], bins=50, density=True, histtype='step', range=[-1,1], color=['tab:green'],alpha=0.3,label='MC - Cocktail',linewidth=2)
+			plt.xlabel(f'Processed({variable})')
+			plt.legend(frameon=False)
+
+			pdf.savefig(bbox_inches="tight")
+			plt.close()
+
 		except:
 			pass
 quit()

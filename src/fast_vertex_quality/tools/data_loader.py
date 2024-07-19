@@ -315,6 +315,9 @@ class dataset:
 
         # print(self.all_data["physical"]["pass_stripping"])
 
+        if 'B_plus_ENDVERTEX_NDOF' not in list(self.all_data["physical"].keys()):
+            self.all_data["physical"]["B_plus_ENDVERTEX_NDOF"] = np.ones(self.all_data["physical"].shape[0])*3.
+
         cuts = {}
         cuts['B_plus_FDCHI2_OWNPV'] = ">100."
         cuts['B_plus_DIRA_OWNPV'] = ">0.9995"
@@ -343,7 +346,7 @@ class dataset:
                 else:
                     cut_string += f'{cut_i}{cuts[cut_i]}'
             cuts = cut_string   
-
+        
         # gen_tot_val = self.all_data['physical'].shape[0]
         try:
             cut_array = self.all_data['physical'].query(cuts)
