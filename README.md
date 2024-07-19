@@ -94,3 +94,13 @@ To debug or understand the workings behind the scenes you can use
 python scripts/plot_conditional_variables.py
 ```
 (was `play.py`). 
+
+
+## Testing the network in realistic scenarios
+
+### Inline equation: $B^+\toK^+e^+e^-$
+
+
+### Inline equation: $B^+\toD^0(\to K^+\pi^-) K^+$
+
+[Paper](https://arxiv.org/pdf/2012.09903)

@@ -58,6 +58,8 @@ class BDT_tester:
         signal_label="Train - sig",
         background_label="Train - comb",
         gen_track_chi2=True,
+        signal_convert_branches=True,
+        background_convert_branches=False,
     ):
 
         self.log_columns = [
@@ -105,14 +107,22 @@ class BDT_tester:
         self.transformers = transformers
 
         if train:
-            event_loader_MC = data_loader.load_data(
-                [
-                    signal,
-                ],
-                transformers=self.transformers,
-                convert_to_RK_branch_names=True,
-                conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
-            )
+            if signal_convert_branches:
+                event_loader_MC = data_loader.load_data(
+                    [
+                        signal,
+                    ],
+                    transformers=self.transformers,
+                    convert_to_RK_branch_names=True,
+                    conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
+                )
+            else:
+                event_loader_MC = data_loader.load_data(
+                    [
+                        signal,
+                    ],
+                    transformers=self.transformers,
+                )
             stripping_eff_signal = self.get_stripping_eff(event_loader_MC)
             event_loader_MC.cut("pass_stripping")
             event_loader_MC.select_randomly(Nevents=50000)
@@ -120,13 +130,24 @@ class BDT_tester:
             events_MC = event_loader_MC.get_branches(
                 self.BDT_vars + ["kFold"], processed=False
             )
+            
+            if background_convert_branches:
+                event_loader_data = data_loader.load_data(
+                    [
+                        background,
+                    ],
+                    transformers=self.transformers,
+                    convert_to_RK_branch_names=True,
+                    conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
+                )
+            else:
+                event_loader_data = data_loader.load_data(
+                    [
+                        background,
+                    ],
+                    transformers=self.transformers,
+                )
 
-            event_loader_data = data_loader.load_data(
-                [
-                    background,
-                ],
-                transformers=self.transformers,
-            )
             event_loader_data.cut("pass_stripping")
             event_loader_data.select_randomly(Nevents=50000)
 
@@ -1645,13 +1666,6 @@ class BDT_tester:
         sample_values[self.background_label] = self.BDTs[kFold]["data_bkg"]
         for idx, sample in enumerate(samples):
             sample_values[labels[idx+2]] = sample
-
-        
-        for key in list(sample_values.keys()):
-            print(np.shape(sample_values[key]))
-
-        print(len(self.targets))
-        # for key in 
 
         for idx, target in enumerate(self.targets):
             

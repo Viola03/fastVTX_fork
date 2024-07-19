@@ -30,7 +30,6 @@ G_architecture=[1000,2000,2000,1000]
 # G_architecture=[1000,2000,2000,1000]
 
 
-
 ####################################################################################################################################
 
 transformers = pickle.load(open(f"{load_state}_transfomers.pkl", "rb"))
@@ -113,8 +112,31 @@ vertex_quality_trainer_obj = vertex_quality_trainer(
 )
 
 vertex_quality_trainer_obj.load_state(tag=load_state)
-# vertex_quality_trainer_obj.gen_data(f'saved_output_WGANcocktail_hierarchy_{network_option}.root')
-# quit()
+
+print(f"Initialising BDT tester...")
+BDT_tester_obj = BDT_tester(
+    transformers=transformers,
+    tag="networks/BDT_sig_prc_WGANcocktail_newconditions",
+    train=True,
+    BDT_vars=targets,
+    # signal="datasets/Kee_2018_truthed_more_vars.csv",
+    signal="datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
+    background="datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
+    signal_label="Train - sig",
+    background_label="Train - prc",
+    gen_track_chi2=False,
+    signal_convert_branches=True,
+    background_convert_branches=True,
+)
+
+scores = BDT_tester_obj.plot_detailed_metrics(
+    conditions,
+    targets,
+    vertex_quality_trainer_obj, f"metrics_{network_option}_prcBDT.pdf",
+    only_signal=False
+)
+quit()
+
 
 print(f"Initialising BDT tester...")
 BDT_tester_obj = BDT_tester(
@@ -129,10 +151,6 @@ BDT_tester_obj = BDT_tester(
     background_label="Train - comb",
     gen_track_chi2=False
 )
-
-# BDT_tester_obj.get_vars_of_samples_that_pass_a_cut(
-#     vertex_quality_trainer_obj, conditions, save=True, filename="BuD0enuKenu_passing_BDT.root")
-# quit()
 
 scores = BDT_tester_obj.plot_detailed_metrics(
     conditions,
