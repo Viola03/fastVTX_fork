@@ -585,6 +585,39 @@ class dataset:
 
         return output
 
+    def virtual_get_branches(self, branches, processed=True):
+
+        if not isinstance(branches, list):
+            branches = [branches]
+
+        if processed:
+            missing = list(
+                set(branches).difference(set(list(self.all_data["processed_virtual"].keys())))
+            )
+            branches = list(
+                set(branches).intersection(set(list(self.all_data["processed_virtual"].keys())))
+            )
+
+            if len(missing) > 0:
+                print(f"missing branches: {missing}\n {self.filenames} \n")
+
+            output = self.all_data["processed_virtual"][branches]
+
+        else:
+            missing = list(
+                set(branches).difference(set(list(self.all_data["physical_virtual"].keys())))
+            )
+            branches = list(
+                set(branches).intersection(set(list(self.all_data["physical_virtual"].keys())))
+            )
+
+            if len(missing) > 0:
+                print(f"missing branches: {missing}\n {self.filenames} \n")
+
+            output = self.all_data["physical_virtual"][branches]
+
+        return output
+    
     def pre_process(self, physical_data):
 
         df = {}
@@ -638,6 +671,38 @@ class dataset:
         effErr = np.sqrt(abs(x + y)/(tot_sum**2))
 
         return eff, effErr
+
+    def virtual_cut(self, cut):
+        
+        self.all_data['physical_virtual'] = self.all_data['physical'].copy()
+        self.all_data['processed_virtual'] = self.all_data['processed'].copy()
+
+        gen_tot_val = self.all_data['physical'].shape[0]
+        gen_tot_err = np.sqrt(gen_tot_val)
+
+        if cut=='pass_stripping': # couldnt fix bug with query, this is work around
+            self.all_data['physical_virtual'].reset_index(drop=True, inplace=True)
+            self.all_data['processed_virtual'].reset_index(drop=True, inplace=True)
+            passes = np.where(self.all_data['physical_virtual']['pass_stripping']>0.5)
+            self.all_data['physical_virtual'] = self.all_data['physical_virtual'].iloc[passes]
+        else:
+            self.all_data['physical_virtual'] = self.all_data['physical_virtual'].query(cut)
+        index = self.all_data['physical_virtual'].index
+        
+        if not self.turn_off_processing:
+            self.all_data['processed_virtual'] = self.all_data['processed_virtual'].iloc[index]
+            self.all_data['processed_virtual'] = self.all_data['processed_virtual'].reset_index(drop=True)
+
+        self.all_data['physical_virtual'] = self.all_data['physical_virtual'].reset_index(drop=True)
+        pass_tot_val = self.all_data['physical_virtual'].shape[0]
+        pass_tot_err = np.sqrt(pass_tot_val)
+
+        eff, effErr = self.getBinomialEff(pass_tot_val, gen_tot_val,
+                                     pass_tot_err, gen_tot_err)
+
+
+        print(f'INFO cut(): {cut}, eff:{eff:.4f}+-{effErr:.4f}')
+
 
     def cut(self, cut):
         

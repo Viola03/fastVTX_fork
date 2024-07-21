@@ -1919,8 +1919,8 @@ class BDT_tester:
         # plt.subplot(1,3,1)
         # plt.hist(branches[variable], bins=hist_pre[1])
 
-        event_loader.cut(cut)
-        branches = event_loader.get_branches([variable],processed=False)
+        event_loader.virtual_cut(cut)
+        branches = event_loader.virtual_get_branches([variable],processed=False)
 
         hist_post = np.histogram(branches[variable], bins=hist_pre[1])
 
@@ -2026,19 +2026,19 @@ class BDT_tester:
             BDT_cut = 0.9
 
 
-            # x, eff, effErr = self.get_efficiency_as_a_function_of_variable(event_loader_MC, cut=f"BDT_score>{BDT_cut}", variable="q2", variable_range=[0,25])
-            # plt.errorbar(x, eff, yerr=effErr,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='MC')
+            x, eff, effErr = self.get_efficiency_as_a_function_of_variable(event_loader_MC, cut=f"BDT_score>{BDT_cut}", variable="q2", variable_range=[0,25])
+            plt.errorbar(x, eff, yerr=effErr,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='MC')
 
-            # x, eff, effErr = self.get_efficiency_as_a_function_of_variable(event_loader_gen_MC, cut=f"BDT_score>{BDT_cut}", variable="q2", variable_range=[0,25])
-            # plt.errorbar(x, eff, yerr=effErr,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='gen MC')
+            x, eff, effErr = self.get_efficiency_as_a_function_of_variable(event_loader_gen_MC, cut=f"BDT_score>{BDT_cut}", variable="q2", variable_range=[0,25])
+            plt.errorbar(x, eff, yerr=effErr,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='gen MC')
             
-            # x, eff, effErr = self.get_efficiency_as_a_function_of_variable(event_loader_RapidSim, cut=f"BDT_score>{BDT_cut}", variable="q2", variable_range=[0,25])
-            # plt.errorbar(x, eff, yerr=effErr,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='gen rapidsim')
+            x, eff, effErr = self.get_efficiency_as_a_function_of_variable(event_loader_RapidSim, cut=f"BDT_score>{BDT_cut}", variable="q2", variable_range=[0,25])
+            plt.errorbar(x, eff, yerr=effErr,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='gen rapidsim')
 
-            # plt.legend()
+            plt.legend()
             
-            # plt.savefig('eff_q2.png')
-            # plt.close('all')
+            plt.savefig('eff_q2.png')
+            plt.close('all')
 
 
             x, eff, effErr = self.get_efficiency_as_a_function_of_variable(event_loader_MC, cut=f"BDT_score>{BDT_cut}", variable="B_plus_M", variable_range=[4,5.7])
