@@ -139,7 +139,8 @@ scores = BDT_tester_obj.plot_differential_metrics(
     conditions,
     targets,
     vertex_quality_trainer_obj, f"differential_metrics_{network_option}.pdf",
-    only_signal=False
+    only_signal=True
+    # only_signal=False
 )
 
 quit()
