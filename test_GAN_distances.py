@@ -132,12 +132,12 @@ BDT_tester_obj = BDT_tester(
     tag="networks/BDT_sig_comb_WGANcocktail_newconditions",
     train=False,
     BDT_vars=targets,
-    # signal="datasets/Kee_2018_truthed_more_vars.csv",
     signal="datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
     background="datasets/B2Kee_2018_CommonPresel.csv",
-    signal_label="Train - sig",
-    background_label="Train - comb",
-    gen_track_chi2=False
+    signal_label=r"Signal $B^+\to K^+e^+e^-$ MC",
+    background_label=r"UMSB Combinatorial",
+    gen_track_chi2=False,
+    signal_convert_branches=True,
 )
 
 # scores = BDT_tester_obj.plot_detailed_metrics(
@@ -145,6 +145,7 @@ BDT_tester_obj = BDT_tester(
 #     targets,
 #     vertex_quality_trainer_obj, f"metrics_{network_option}.pdf",
 #     only_signal=False
+#     # only_signal=True
 # )
 
 scores = BDT_tester_obj.plot_differential_metrics(
@@ -154,11 +155,7 @@ scores = BDT_tester_obj.plot_differential_metrics(
     # only_signal=True
     only_signal=False
 )
-
 quit()
-
-
-
 
 print(f"Initialising BDT tester...")
 BDT_tester_obj = BDT_tester(
