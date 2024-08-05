@@ -187,6 +187,13 @@ class Transformer:
             f"{rd.daughter_particles[1]}_FLIGHT",
             f"{rd.daughter_particles[2]}_FLIGHT",
 
+            "delta_0_P",
+            "delta_0_PT",
+            "delta_1_P",
+            "delta_1_PT",
+            "delta_2_P",
+            "delta_2_PT",
+
         ]
 
         self.one_minus_log_columns = [f"{rd.mother_particle}_DIRA_OWNPV", f"DIRA_{rd.mother_particle}", f"DIRA_{rd.mother_particle}_true_vertex"]

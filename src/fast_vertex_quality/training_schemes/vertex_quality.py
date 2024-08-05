@@ -13,6 +13,8 @@ import pickle
 import fast_vertex_quality.tools.data_loader as data_loader
 import matplotlib.pyplot as plt
 import tensorflow_addons as tfa
+from tensorflow.keras.optimizers.legacy import Adam
+
 
 class vertex_quality_trainer:
 
@@ -72,10 +74,13 @@ class vertex_quality_trainer:
 
         self.network_option = network_option
 
-        self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.0005)
+        # self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.0005)
+        self.optimizer = Adam(learning_rate=0.0005)
         if self.network_option == 'GAN':
-            self.gen_optimizer = tf.keras.optimizers.Adam(learning_rate=0.0004, beta_1=0.5, amsgrad=True)
-            self.disc_optimizer = tf.keras.optimizers.Adam(learning_rate=0.0004, beta_1=0.5, amsgrad=True)
+            # self.gen_optimizer = tf.keras.optimizers.Adam(learning_rate=0.0004, beta_1=0.5, amsgrad=True)
+            # self.disc_optimizer = tf.keras.optimizers.Adam(learning_rate=0.0004, beta_1=0.5, amsgrad=True)
+            self.gen_optimizer = Adam(learning_rate=0.0004, beta_1=0.5, amsgrad=True)
+            self.disc_optimizer = Adam(learning_rate=0.0004, beta_1=0.5, amsgrad=True)
         elif self.network_option == 'WGAN':
             # self.gen_optimizer = tfa.optimizers.Yogi(learning_rate=0.00025, beta1=0.5)#tf.keras.optimizers.Adam(learning_rate=0.0002, beta_1=0.5, beta_2=0.9)
             # self.disc_optimizer = tfa.optimizers.Yogi(learning_rate=0.00025, beta1=0.5)#tf.keras.optimizers.Adam(learning_rate=0.0002, beta_1=0.5, beta_2=0.9)

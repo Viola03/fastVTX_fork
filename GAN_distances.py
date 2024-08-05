@@ -18,10 +18,14 @@ from matplotlib.backends.backend_pdf import PdfPages
 # rd.latent = 50 # noise dims
 
 network_option = 'VAE'
-load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions4"
-rd.latent = 6 # VAE latent dims
-D_architecture=[1000,2000,2000,1000]
-G_architecture=[1000,2000,2000,1000]
+# load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions4"
+# rd.latent = 6 # VAE latent dims
+# D_architecture=[1000,2000,2000,1000]
+# G_architecture=[1000,2000,2000,1000]
+load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions5"
+rd.latent = 7 # VAE latent dims
+D_architecture=[1600,2600,2600,1600]
+G_architecture=[1600,2600,2600,1600]
 # rd.beta = 750
 
 # network_option = 'WGAN'
@@ -88,6 +92,13 @@ conditions = [
     "K_Kst_FLIGHT",
     "e_plus_FLIGHT",
     "e_minus_FLIGHT",
+
+    "delta_0_P",
+    "delta_0_PT",
+    "delta_1_P",
+    "delta_1_PT",
+    "delta_2_P",
+    "delta_2_PT",
 
 ]
 

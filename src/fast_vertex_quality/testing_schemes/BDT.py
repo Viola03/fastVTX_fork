@@ -1904,44 +1904,48 @@ class BDT_tester:
 
         return clf.predict_proba(sample)[:, 1]
 
-    def plot_efficiency_as_a_function_of_variable(self, pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, variable, cut, range_array, title):
+    def plot_efficiency_as_a_function_of_variable(self, pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, variable, cut, range_array, title, xlabel):
         
         
         
-        x, eff, effErr, pass_tot_val, gen_tot_val, pass_tot_err, gen_tot_err = self.get_efficiency_as_a_function_of_variable(event_loader_MC, cut=cut, variable=variable, variable_range=range_array)
-        plt.errorbar(x, gen_tot_val, yerr=gen_tot_err,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='All',color='k')
-        plt.errorbar(x, pass_tot_val, yerr=pass_tot_err,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='Pass',color='tab:green')
-        plt.title('MC')
-        pdf.savefig(bbox_inches="tight")
-        plt.close()
+        # x, eff, effErr, pass_tot_val, gen_tot_val, pass_tot_err, gen_tot_err = self.get_efficiency_as_a_function_of_variable(event_loader_MC, cut=cut, variable=variable, variable_range=range_array)
+        # plt.errorbar(x, gen_tot_val, yerr=gen_tot_err,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='All',color='k')
+        # plt.errorbar(x, pass_tot_val, yerr=pass_tot_err,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='Pass',color='tab:green')
+        # plt.title('MC')
+        # plt.xlabel(xlabel)
+        # pdf.savefig(bbox_inches="tight")
+        # plt.close()
 
-        x, eff, effErr, pass_tot_val, gen_tot_val, pass_tot_err, gen_tot_err = self.get_efficiency_as_a_function_of_variable(event_loader_gen_MC, cut=cut, variable=variable, variable_range=range_array)
-        plt.errorbar(x, gen_tot_val, yerr=gen_tot_err,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='All',color='k')
-        plt.errorbar(x, pass_tot_val, yerr=pass_tot_err,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='Pass',color='tab:green')
-        plt.title('gen MC')
-        pdf.savefig(bbox_inches="tight")
-        plt.close()
+        # x, eff, effErr, pass_tot_val, gen_tot_val, pass_tot_err, gen_tot_err = self.get_efficiency_as_a_function_of_variable(event_loader_gen_MC, cut=cut, variable=variable, variable_range=range_array)
+        # plt.errorbar(x, gen_tot_val, yerr=gen_tot_err,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='All',color='k')
+        # plt.errorbar(x, pass_tot_val, yerr=pass_tot_err,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='Pass',color='tab:green')
+        # plt.title('gen MC')
+        # plt.xlabel(xlabel)
+        # pdf.savefig(bbox_inches="tight")
+        # plt.close()
 
-        x, eff, effErr, pass_tot_val, gen_tot_val, pass_tot_err, gen_tot_err = self.get_efficiency_as_a_function_of_variable(event_loader_RapidSim, cut=cut, variable=variable, variable_range=range_array)
-        plt.errorbar(x, gen_tot_val, yerr=gen_tot_err,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='All',color='k')
-        plt.errorbar(x, pass_tot_val, yerr=pass_tot_err,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='Pass',color='tab:green')
-        plt.title('gen rapidsim')
-        pdf.savefig(bbox_inches="tight")
-        plt.close()
+        # x, eff, effErr, pass_tot_val, gen_tot_val, pass_tot_err, gen_tot_err = self.get_efficiency_as_a_function_of_variable(event_loader_RapidSim, cut=cut, variable=variable, variable_range=range_array)
+        # plt.errorbar(x, gen_tot_val, yerr=gen_tot_err,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='All',color='k')
+        # plt.errorbar(x, pass_tot_val, yerr=pass_tot_err,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='Pass',color='tab:green')
+        # plt.title('gen rapidsim')
+        # plt.xlabel(xlabel)
+        # pdf.savefig(bbox_inches="tight")
+        # plt.close()
         
         
         x, eff, effErr, pass_tot_val, gen_tot_val, pass_tot_err, gen_tot_err = self.get_efficiency_as_a_function_of_variable(event_loader_MC, cut=cut, variable=variable, variable_range=range_array)
         plt.errorbar(x, eff, yerr=effErr,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='MC')
 
         x, eff, effErr, pass_tot_val, gen_tot_val, pass_tot_err, gen_tot_err = self.get_efficiency_as_a_function_of_variable(event_loader_gen_MC, cut=cut, variable=variable, variable_range=range_array)
-        plt.errorbar(x, eff, yerr=effErr,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='gen MC')
+        plt.errorbar(x, eff, yerr=effErr,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='Generated (MC)')
         
         x, eff, effErr, pass_tot_val, gen_tot_val, pass_tot_err, gen_tot_err = self.get_efficiency_as_a_function_of_variable(event_loader_RapidSim, cut=cut, variable=variable, variable_range=range_array)
-        plt.errorbar(x, eff, yerr=effErr,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='gen rapidsim')
+        plt.errorbar(x, eff, yerr=effErr,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='Generated (Rapidsim)')
 
-        plt.xlabel(variable)
+        plt.xlabel(xlabel)
         plt.title(title)
         plt.legend()    
+        plt.ylim(0,1)
     
         pdf.savefig(bbox_inches="tight")
         plt.close()
@@ -2070,11 +2074,11 @@ class BDT_tester:
             event_loader_RapidSim.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
 
 
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "q2", f"BDT_score>{BDT_cut}", [0,25], "Kee")
+            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "q2", f"BDT_score>{BDT_cut}", [0,25], r"$B^+\to K^+e^+e^-$", xlabel=r'$q^2$ (GeV$^2$)')
 
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M", f"BDT_score>{BDT_cut}", [4,5.7], "Kee")
+            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Kee)_{TRUE}$ (GeV)')
 
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], "Kee")
+            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Kee)$ (GeV)')
 
             print('mkl next')
 
@@ -2151,11 +2155,11 @@ class BDT_tester:
             event_loader_RapidSim.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
 
 
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "q2", f"BDT_score>{BDT_cut}", [0,25], "Kstee")
+            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "q2", f"BDT_score>{BDT_cut}", [0,25], r"$B^0\to K^{*0}e^+e^-$", xlabel=r'$q^2$ (GeV$^2$)')
 
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M", f"BDT_score>{BDT_cut}", [4,5.7], "Kstee")
+            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^0\to K^{*0}e^+e^-$", xlabel=r'$m(Kee)_{TRUE}$ (GeV)')
 
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], "Kstee")
+            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^0\to K^{*0}e^+e^-$", xlabel=r'$m(Kee)$ (GeV)')
 
 
 
@@ -2229,11 +2233,11 @@ class BDT_tester:
 
 
 
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "q2", f"BDT_score>{BDT_cut}", [0,25], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$")
+            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "q2", f"BDT_score>{BDT_cut}", [0,25], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$", xlabel=r'$q^2$ (GeV$^2$)')
 
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$")
+            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$", xlabel=r'$m(Kee)_{TRUE}$ (GeV)')
 
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$")
+            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$", xlabel=r'$m(Kee)$ (GeV)')
 
 
 
@@ -2302,11 +2306,11 @@ class BDT_tester:
 
 
 
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "q2", f"BDT_score>{BDT_cut}", [0,25], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$")
+            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "q2", f"BDT_score>{BDT_cut}", [0,25], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$", xlabel=r'$q^2$ (GeV$^2$)')
 
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$")
+            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$", xlabel=r'$m(Kee)_{TRUE}$ (GeV)')
 
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$")
+            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$", xlabel=r'$m(Kee)$ (GeV)')
 
 
          
@@ -2367,9 +2371,6 @@ class BDT_tester:
                 all_effs_blue=True
             )
 
-
-
-        
 
             self.plot_BDT_input_distributions(
                 pdf,
