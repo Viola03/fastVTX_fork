@@ -124,7 +124,7 @@ vertex_quality_trainer_obj = vertex_quality_trainer(
 )
 
 vertex_quality_trainer_obj.load_state(tag=load_state)
-vertex_quality_trainer_obj.make_plots(filename=f'example_training_plots',testing_file=training_data_loader.get_file_names())
+vertex_quality_trainer_obj.make_plots(filename=f'example_training_plots',testing_file=training_data_loader.get_file_names(),offline=True)
 
 
 print(f"Initialising BDT tester...")

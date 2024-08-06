@@ -438,7 +438,7 @@ class vertex_quality_trainer:
         plt.savefig("Losses.png")
         plt.close("all")
 
-    def make_plots(self, N=10000, filename=f"plots", testing_file="datasets/B2KEE_three_body_cut_more_vars.root"):
+    def make_plots(self, N=10000, filename=f"plots", testing_file="datasets/B2KEE_three_body_cut_more_vars.root", offline=False):
 
         self.set_trained_weights()
 
@@ -483,6 +483,7 @@ class vertex_quality_trainer:
             filename,
             self.targets,
             Nevents=10000,
+            offline=offline
         )
     
     def gen_data(self, filename, N=10000):
