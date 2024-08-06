@@ -4,7 +4,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LogNorm
-
+import alexPlot
 
 def loss_plot(loss_list, reco_factor, kl_factor, filename="LOSSES.png"):
 
@@ -145,31 +145,59 @@ def plot(data, gen_data, filename, targets, Nevents=10000):
 
         for column in targets:
 
-            plt.figure(figsize=(8, 4))
-            plt.subplot(1, 2, 1)
-            plt.hist(
-                [
+            plt.figure(figsize=(8, 7))
+
+            ax = plt.subplot(1, 1, 1)
+            colours = ['tab:blue', 'tab:red']
+            values = [
                     data_all[column][:Nevents],
                     np.asarray(gen_data_all[column])[:Nevents],
-                ],
+                ]
+            hist = plt.hist(
+                values,
                 bins=75,
-                histtype="step",
-                label=["truth", "gen"],
-                density=True
+                alpha=0.25,
+                color=colours,
+                # label=["Training sample", "Generated sample"],
+                density=True,
+                histtype="stepfilled",
             )
+            plt.yscale('log')
+            ymin, ymax = ax.get_ylim()
+            xmin, xmax = hist[1][0], hist[1][-1]
+            alexPlot.plot_data(values, density=True, also_plot_hist=True, bins=75, color=colours, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, only_canvas=True, label=["Training sample", "Generated sample"])
+            plt.xlim(xmin, xmax)
             plt.xlabel(column)
             plt.legend()
-            plt.subplot(1, 2, 2)
-            plt.hist(
-                [
+
+            pdf.savefig(bbox_inches="tight")
+            plt.close()
+
+
+            plt.figure(figsize=(8, 7))
+            
+            ax = plt.subplot(1, 1, 1)
+            colours = ['tab:blue', 'tab:red']
+            values = [
                     data_all_pp[column][:Nevents],
                     np.asarray(gen_data_all_pp[column])[:Nevents],
-                ],
+                ]
+            hist = plt.hist(
+                values,
                 bins=75,
-                histtype="step",
+                alpha=0.25,
+                color=colours,
+                # label=["Training sample", "Generated sample"],
+                density=True,
+                histtype="stepfilled",
                 range=[-1, 1],
-                density=True
             )
-            plt.xlabel(column)
+            # plt.yscale('log')
+            ymin, ymax = ax.get_ylim()
+            alexPlot.plot_data(values, density=True, also_plot_hist=True, bins=75, color=colours, xmin=-1, xmax=1, ymin=ymin, ymax=ymax, only_canvas=True, label=["Training sample", "Generated sample"])
+            plt.xlim(-1, 1)
+            plt.xlabel(f'Processed({column})')
+            plt.legend()
+
             pdf.savefig(bbox_inches="tight")
             plt.close()
