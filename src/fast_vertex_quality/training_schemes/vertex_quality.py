@@ -236,6 +236,28 @@ class vertex_quality_trainer:
                 toggle_kl,
             )
 
+            plot_out_to = 5000
+            if self.iteration == 0:
+                self.annealing_history = np.empty((0,2))
+                if self.toggle_kl_value == 0:
+                    self.toggle_kl_value = 1E-6
+                self.annealing_history = np.append(self.annealing_history, [[self.reco_factor, self.kl_factor*self.toggle_kl_value]], axis=0)
+            elif self.iteration < plot_out_to:
+                if self.toggle_kl_value == 0:
+                    self.toggle_kl_value = 1E-6
+                self.annealing_history = np.append(self.annealing_history, [[self.reco_factor, self.kl_factor*self.toggle_kl_value]], axis=0)
+            if self.iteration == plot_out_to:
+                y = self.annealing_history[:,0]/self.annealing_history[:,1]
+                plt.plot(np.arange(plot_out_to), self.annealing_history[:,0]/self.annealing_history[:,1], label='Reco/KL')
+                plt.ylabel(r'$\beta$')
+                plt.xlabel("Iteration")
+                plt.ylim(100,500000)
+                plt.xlim(0,plot_out_to)
+                plt.yscale('log')
+                plt.savefig('annealing')
+                plt.close('all')
+
+
             return [self.iteration, kl_loss_np, reco_loss_np, reco_loss_np_raw]
         
         elif self.network_option == 'GAN':
