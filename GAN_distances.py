@@ -22,8 +22,7 @@ network_option = 'VAE'
 # rd.latent = 6 # VAE latent dims
 # D_architecture=[1000,2000,2000,1000]
 # G_architecture=[1000,2000,2000,1000]
-# load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions5"
-load_state = f"networks/vertex_job_{network_option}_TEST"
+load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions5"
 rd.latent = 7 # VAE latent dims
 D_architecture=[1600,2600,2600,1600]
 G_architecture=[1600,2600,2600,1600]
@@ -138,13 +137,13 @@ vertex_quality_trainer_obj = vertex_quality_trainer(
 
 steps_for_plot = 5000
 vertex_quality_trainer_obj.train(steps=steps_for_plot)
-# vertex_quality_trainer_obj.save_state(tag=load_state)
-# vertex_quality_trainer_obj.make_plots(filename=f'plots_0.pdf',testing_file=training_data_loader.get_file_names())
+vertex_quality_trainer_obj.save_state(tag=load_state)
+vertex_quality_trainer_obj.make_plots(filename=f'plots_0.pdf',testing_file=training_data_loader.get_file_names())
 
-# for i in range(70):
-#     vertex_quality_trainer_obj.train_more_steps(steps=steps_for_plot)
-#     vertex_quality_trainer_obj.save_state(tag=load_state)
-#     vertex_quality_trainer_obj.make_plots(filename=f'plots_{i+1}.pdf',testing_file=training_data_loader.get_file_names())
+for i in range(70):
+    vertex_quality_trainer_obj.train_more_steps(steps=steps_for_plot)
+    vertex_quality_trainer_obj.save_state(tag=load_state)
+    vertex_quality_trainer_obj.make_plots(filename=f'plots_{i+1}.pdf',testing_file=training_data_loader.get_file_names())
 
 
 
