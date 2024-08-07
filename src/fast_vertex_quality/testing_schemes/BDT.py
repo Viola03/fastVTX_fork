@@ -2077,276 +2077,276 @@ class BDT_tester:
 
         with PdfPages(filename) as pdf:
             
-            ###############
-            event_loader_MC = self.get_event_loader(
-                "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
-                vertex_quality_trainer_obj,
-                generate=False,
-                # N=10000,
-                N=-1,
-                convert_branches=True,
-            )  
-            print("Cutting pass_stripping for MC")
-            event_loader_MC.fill_stripping_bool()
-            event_loader_MC.cut("pass_stripping")
-            print("Cut")
-            BDT_scores = self.get_BDT_scores(
-                event_loader_MC,
-                generate=False
-            )  
-            event_loader_MC.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
+            # ###############
+            # event_loader_MC = self.get_event_loader(
+            #     "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
+            #     vertex_quality_trainer_obj,
+            #     generate=False,
+            #     # N=10000,
+            #     N=-1,
+            #     convert_branches=True,
+            # )  
+            # print("Cutting pass_stripping for MC")
+            # event_loader_MC.fill_stripping_bool()
+            # event_loader_MC.cut("pass_stripping")
+            # print("Cut")
+            # BDT_scores = self.get_BDT_scores(
+            #     event_loader_MC,
+            #     generate=False
+            # )  
+            # event_loader_MC.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
 
-            event_loader_MC.cut("abs(K_Kst_TRUEID)==321")
-            event_loader_MC.cut("abs(e_plus_TRUEID)==11")
-            event_loader_MC.cut("abs(e_minus_TRUEID)==11")
-            event_loader_MC.add_dalitz_masses()
+            # event_loader_MC.cut("abs(K_Kst_TRUEID)==321")
+            # event_loader_MC.cut("abs(e_plus_TRUEID)==11")
+            # event_loader_MC.cut("abs(e_minus_TRUEID)==11")
+            # event_loader_MC.add_dalitz_masses()
 
-            # branches = ["e_plus_PX", "e_plus_TRACK_PX"]
-            # compute_variables = event_loader_MC.get_branches(branches, processed=False)
-            # print(compute_variables)
-            # quit()
-
-
+            # # branches = ["e_plus_PX", "e_plus_TRACK_PX"]
+            # # compute_variables = event_loader_MC.get_branches(branches, processed=False)
+            # # print(compute_variables)
+            # # quit()
 
 
 
-            ###############
-            event_loader_gen_MC = self.get_event_loader(
-                "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
-                vertex_quality_trainer_obj,
-                generate=True,
-                # N=10000,
-                N=-1,
-                convert_branches=True,
-                rapidsim=False,
-            )  
-            print("Cutting pass_stripping for gen MC")
-            event_loader_gen_MC.fill_stripping_bool()
-            event_loader_gen_MC.cut("pass_stripping")
-            print("Cut")
-            BDT_scores = self.get_BDT_scores(
-                event_loader_gen_MC,
-                generate=True
-            )  
-            event_loader_gen_MC.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
-            event_loader_gen_MC.cut("abs(K_Kst_TRUEID)==321")
-            event_loader_gen_MC.cut("abs(e_plus_TRUEID)==11")
-            event_loader_gen_MC.cut("abs(e_minus_TRUEID)==11")
-            event_loader_gen_MC.add_dalitz_masses()
 
 
-            ###############
-            event_loader_RapidSim = self.get_event_loader(
-                # "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root",
-                "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_LARGE_NNvertex_more_vars.root",
-                vertex_quality_trainer_obj,
-                generate=True,
-                # N=10000,
-                N=-1,
-                convert_branches=True,
-                rapidsim=True,
-            )  
-            print("Cutting pass_stripping for rapidsim")
-            event_loader_RapidSim.fill_stripping_bool()
-            event_loader_RapidSim.cut("pass_stripping")
-            print("Cut")
-            BDT_scores = self.get_BDT_scores(
-                event_loader_RapidSim,
-                generate=True
-            )  
-            event_loader_RapidSim.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
-            event_loader_RapidSim.add_dalitz_masses()
+            # ###############
+            # event_loader_gen_MC = self.get_event_loader(
+            #     "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
+            #     vertex_quality_trainer_obj,
+            #     generate=True,
+            #     # N=10000,
+            #     N=-1,
+            #     convert_branches=True,
+            #     rapidsim=False,
+            # )  
+            # print("Cutting pass_stripping for gen MC")
+            # event_loader_gen_MC.fill_stripping_bool()
+            # event_loader_gen_MC.cut("pass_stripping")
+            # print("Cut")
+            # BDT_scores = self.get_BDT_scores(
+            #     event_loader_gen_MC,
+            #     generate=True
+            # )  
+            # event_loader_gen_MC.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
+            # event_loader_gen_MC.cut("abs(K_Kst_TRUEID)==321")
+            # event_loader_gen_MC.cut("abs(e_plus_TRUEID)==11")
+            # event_loader_gen_MC.cut("abs(e_minus_TRUEID)==11")
+            # event_loader_gen_MC.add_dalitz_masses()
 
 
-            
+            # ###############
+            # event_loader_RapidSim = self.get_event_loader(
+            #     # "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root",
+            #     "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_LARGE_NNvertex_more_vars.root",
+            #     vertex_quality_trainer_obj,
+            #     generate=True,
+            #     # N=10000,
+            #     N=-1,
+            #     convert_branches=True,
+            #     rapidsim=True,
+            # )  
+            # print("Cutting pass_stripping for rapidsim")
+            # event_loader_RapidSim.fill_stripping_bool()
+            # event_loader_RapidSim.cut("pass_stripping")
+            # print("Cut")
+            # BDT_scores = self.get_BDT_scores(
+            #     event_loader_RapidSim,
+            #     generate=True
+            # )  
+            # event_loader_RapidSim.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
+            # event_loader_RapidSim.add_dalitz_masses()
 
 
             
 
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, None, None, "q2", f"BDT_score>{BDT_cut}", [0,25], r"$B^+\to K^+e^+e^-$", xlabel=r'$q^2$ (GeV$^2$)', signal=True)
 
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, None, None, "B_plus_M", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Kee)_{TRUE}$ (GeV)', signal=True)
-
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, None, None, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Kee)$ (GeV)', signal=True)
-
-
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "q2", f"BDT_score>{BDT_cut}", [0,25], r"$B^+\to K^+e^+e^-$", xlabel=r'$q^2$ (GeV$^2$)', signal=True)
-
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Kee)_{TRUE}$ (GeV)', signal=True)
-
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Kee)$ (GeV)', signal=True)
-
-            self.plot_efficiency_as_a_function_of_variable_2D(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, xvar="dalitz_mass_mee", yvar="dalitz_mass_mkl", cut=f"BDT_score>{BDT_cut}", title=r"$B^+\to K^+e^+e^-$", xlabel=r'$m(e^+e^-)$ (GeV)', ylabel=r'$m(K^+e^-)$ (GeV)')
-
-            print('mkl next')
-
-
-
-
-            if only_signal:
-                return
-
-
-
-
-
-            ###############
-            ###############
-            ###############
-            event_loader_MC = self.get_event_loader(
-                "datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
-                vertex_quality_trainer_obj,
-                generate=False,
-                # N=10000,
-                N=-1,
-                convert_branches=True,
-            )  
-            print("Cutting pass_stripping for MC")
-            event_loader_MC.fill_stripping_bool()
-            event_loader_MC.cut("pass_stripping")
-            print("Cut")
-            BDT_scores = self.get_BDT_scores(
-                event_loader_MC,
-                generate=False
-            )  
-            event_loader_MC.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
-            event_loader_MC.cut("abs(K_Kst_TRUEID)==321")
-            event_loader_MC.cut("abs(e_plus_TRUEID)==11")
-            event_loader_MC.cut("abs(e_minus_TRUEID)==11")
-            event_loader_MC.add_dalitz_masses()
-
-
-            ###############
-            event_loader_gen_MC = self.get_event_loader(
-                "datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
-                vertex_quality_trainer_obj,
-                generate=True,
-                # N=10000,
-                N=-1,
-                convert_branches=True,
-                rapidsim=False,
-            )  
-            print("Cutting pass_stripping for gen MC")
-            event_loader_gen_MC.fill_stripping_bool()
-            event_loader_gen_MC.cut("pass_stripping")
-            print("Cut")
-            BDT_scores = self.get_BDT_scores(
-                event_loader_gen_MC,
-                generate=True
-            )  
-            event_loader_gen_MC.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
-            event_loader_gen_MC.cut("abs(K_Kst_TRUEID)==321")
-            event_loader_gen_MC.cut("abs(e_plus_TRUEID)==11")
-            event_loader_gen_MC.cut("abs(e_minus_TRUEID)==11")
-            event_loader_gen_MC.add_dalitz_masses()
             
-            ###############
-            event_loader_RapidSim = self.get_event_loader(
-                # "/users/am13743/fast_vertexing_variables/rapidsim/Kstree/Partreco_tree_NNvertex_more_vars.root",
-                "/users/am13743/fast_vertexing_variables/rapidsim/Kstree/Partreco_tree_LARGE_NNvertex_more_vars.root",
-                vertex_quality_trainer_obj,
-                generate=True,
-                # N=10000,
-                N=-1,
-                convert_branches=True,
-                rapidsim=True,
-            )  
-            print("Cutting pass_stripping for rapidsim")
-            event_loader_RapidSim.fill_stripping_bool()
-            event_loader_RapidSim.cut("pass_stripping")
-            print("Cut")
-            BDT_scores = self.get_BDT_scores(
-                event_loader_RapidSim,
-                generate=True
-            )  
-            event_loader_RapidSim.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
-            event_loader_RapidSim.add_dalitz_masses()
+
+            # self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, None, None, "q2", f"BDT_score>{BDT_cut}", [0,25], r"$B^+\to K^+e^+e^-$", xlabel=r'$q^2$ (GeV$^2$)', signal=True)
+
+            # self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, None, None, "B_plus_M", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Kee)_{TRUE}$ (GeV)', signal=True)
+
+            # self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, None, None, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Kee)$ (GeV)', signal=True)
 
 
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "q2", f"BDT_score>{BDT_cut}", [0,25], r"$B^0\to K^{*0}e^+e^-$", xlabel=r'$q^2$ (GeV$^2$)', signal=False)
+            # self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "q2", f"BDT_score>{BDT_cut}", [0,25], r"$B^+\to K^+e^+e^-$", xlabel=r'$q^2$ (GeV$^2$)', signal=True)
 
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^0\to K^{*0}e^+e^-$", xlabel=r'$m(Kee)_{TRUE}$ (GeV)', signal=False)
+            # self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Kee)_{TRUE}$ (GeV)', signal=True)
 
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^0\to K^{*0}e^+e^-$", xlabel=r'$m(Kee)$ (GeV)', signal=False)
+            # self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Kee)$ (GeV)', signal=True)
+
+            # self.plot_efficiency_as_a_function_of_variable_2D(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, xvar="dalitz_mass_mee", yvar="dalitz_mass_mkl", cut=f"BDT_score>{BDT_cut}", title=r"$B^+\to K^+e^+e^-$", xlabel=r'$m(e^+e^-)$ (GeV)', ylabel=r'$m(K^+e^-)$ (GeV)')
+
+            # print('mkl next')
 
 
-            self.plot_efficiency_as_a_function_of_variable_2D(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, xvar="dalitz_mass_mee", yvar="dalitz_mass_mkl", cut=f"BDT_score>{BDT_cut}", title=r"$B^0\to K^{*0}e^+e^-$", xlabel=r'$m(e^+e^-)$ (GeV)', ylabel=r'$m(K^+e^-)$ (GeV)')
+
+
+            # if only_signal:
+            #     return
 
 
 
 
 
+            # ###############
+            # ###############
+            # ###############
+            # event_loader_MC = self.get_event_loader(
+            #     "datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
+            #     vertex_quality_trainer_obj,
+            #     generate=False,
+            #     # N=10000,
+            #     N=-1,
+            #     convert_branches=True,
+            # )  
+            # print("Cutting pass_stripping for MC")
+            # event_loader_MC.fill_stripping_bool()
+            # event_loader_MC.cut("pass_stripping")
+            # print("Cut")
+            # BDT_scores = self.get_BDT_scores(
+            #     event_loader_MC,
+            #     generate=False
+            # )  
+            # event_loader_MC.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
+            # event_loader_MC.cut("abs(K_Kst_TRUEID)==321")
+            # event_loader_MC.cut("abs(e_plus_TRUEID)==11")
+            # event_loader_MC.cut("abs(e_minus_TRUEID)==11")
+            # event_loader_MC.add_dalitz_masses()
 
 
-            ###############
-            ###############
-            ###############
-            event_loader_MC = self.get_event_loader(
-                "datasets/dedicated_BuD0enuKenu_MC_hierachy_cut_more_vars.root",
-                vertex_quality_trainer_obj,
-                generate=False,
-                # N=10000,
-                N=-1,
-                convert_branches=True,
-            )  
-            print("Cutting pass_stripping for MC")
-            event_loader_MC.fill_stripping_bool()
-            event_loader_MC.cut("pass_stripping")
-            print("Cut")
-            BDT_scores = self.get_BDT_scores(
-                event_loader_MC,
-                generate=False
-            )  
-            event_loader_MC.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
-
-
-            ###############
-            event_loader_gen_MC = self.get_event_loader(
-                "datasets/dedicated_BuD0enuKenu_MC_hierachy_cut_more_vars.root",
-                vertex_quality_trainer_obj,
-                generate=True,
-                # N=10000,
-                N=-1,
-                convert_branches=True,
-                rapidsim=False,
-            )  
-            print("Cutting pass_stripping for gen MC")
-            event_loader_gen_MC.fill_stripping_bool()
-            event_loader_gen_MC.cut("pass_stripping")
-            print("Cut")
-            BDT_scores = self.get_BDT_scores(
-                event_loader_gen_MC,
-                generate=True
-            )  
-            event_loader_gen_MC.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
+            # ###############
+            # event_loader_gen_MC = self.get_event_loader(
+            #     "datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
+            #     vertex_quality_trainer_obj,
+            #     generate=True,
+            #     # N=10000,
+            #     N=-1,
+            #     convert_branches=True,
+            #     rapidsim=False,
+            # )  
+            # print("Cutting pass_stripping for gen MC")
+            # event_loader_gen_MC.fill_stripping_bool()
+            # event_loader_gen_MC.cut("pass_stripping")
+            # print("Cut")
+            # BDT_scores = self.get_BDT_scores(
+            #     event_loader_gen_MC,
+            #     generate=True
+            # )  
+            # event_loader_gen_MC.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
+            # event_loader_gen_MC.cut("abs(K_Kst_TRUEID)==321")
+            # event_loader_gen_MC.cut("abs(e_plus_TRUEID)==11")
+            # event_loader_gen_MC.cut("abs(e_minus_TRUEID)==11")
+            # event_loader_gen_MC.add_dalitz_masses()
             
-            ###############
-            event_loader_RapidSim = self.get_event_loader(
-                "/users/am13743/fast_vertexing_variables/rapidsim/BuD0enuKenu/BuD0enuKenu_tree_NNvertex_more_vars.root",
-                vertex_quality_trainer_obj,
-                generate=True,
-                # N=10000,
-                N=-1,
-                convert_branches=True,
-                rapidsim=True,
-            )  
-            print("Cutting pass_stripping for rapidsim")
-            event_loader_RapidSim.fill_stripping_bool()
-            event_loader_RapidSim.cut("pass_stripping")
-            print("Cut")
-            BDT_scores = self.get_BDT_scores(
-                event_loader_RapidSim,
-                generate=True
-            )  
-            event_loader_RapidSim.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
+            # ###############
+            # event_loader_RapidSim = self.get_event_loader(
+            #     # "/users/am13743/fast_vertexing_variables/rapidsim/Kstree/Partreco_tree_NNvertex_more_vars.root",
+            #     "/users/am13743/fast_vertexing_variables/rapidsim/Kstree/Partreco_tree_LARGE_NNvertex_more_vars.root",
+            #     vertex_quality_trainer_obj,
+            #     generate=True,
+            #     # N=10000,
+            #     N=-1,
+            #     convert_branches=True,
+            #     rapidsim=True,
+            # )  
+            # print("Cutting pass_stripping for rapidsim")
+            # event_loader_RapidSim.fill_stripping_bool()
+            # event_loader_RapidSim.cut("pass_stripping")
+            # print("Cut")
+            # BDT_scores = self.get_BDT_scores(
+            #     event_loader_RapidSim,
+            #     generate=True
+            # )  
+            # event_loader_RapidSim.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
+            # event_loader_RapidSim.add_dalitz_masses()
+
+
+            # self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "q2", f"BDT_score>{BDT_cut}", [0,25], r"$B^0\to K^{*0}e^+e^-$", xlabel=r'$q^2$ (GeV$^2$)', signal=False)
+
+            # self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^0\to K^{*0}e^+e^-$", xlabel=r'$m(Kee)_{TRUE}$ (GeV)', signal=False)
+
+            # self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^0\to K^{*0}e^+e^-$", xlabel=r'$m(Kee)$ (GeV)', signal=False)
+
+
+            # self.plot_efficiency_as_a_function_of_variable_2D(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, xvar="dalitz_mass_mee", yvar="dalitz_mass_mkl", cut=f"BDT_score>{BDT_cut}", title=r"$B^0\to K^{*0}e^+e^-$", xlabel=r'$m(e^+e^-)$ (GeV)', ylabel=r'$m(K^+e^-)$ (GeV)')
 
 
 
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "q2", f"BDT_score>{BDT_cut}", [0,25], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$", xlabel=r'$q^2$ (GeV$^2$)', signal=False)
 
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$", xlabel=r'$m(Kee)_{TRUE}$ (GeV)', signal=False)
 
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$", xlabel=r'$m(Kee)$ (GeV)', signal=False)
+
+
+            # ###############
+            # ###############
+            # ###############
+            # event_loader_MC = self.get_event_loader(
+            #     "datasets/dedicated_BuD0enuKenu_MC_hierachy_cut_more_vars.root",
+            #     vertex_quality_trainer_obj,
+            #     generate=False,
+            #     # N=10000,
+            #     N=-1,
+            #     convert_branches=True,
+            # )  
+            # print("Cutting pass_stripping for MC")
+            # event_loader_MC.fill_stripping_bool()
+            # event_loader_MC.cut("pass_stripping")
+            # print("Cut")
+            # BDT_scores = self.get_BDT_scores(
+            #     event_loader_MC,
+            #     generate=False
+            # )  
+            # event_loader_MC.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
+
+
+            # ###############
+            # event_loader_gen_MC = self.get_event_loader(
+            #     "datasets/dedicated_BuD0enuKenu_MC_hierachy_cut_more_vars.root",
+            #     vertex_quality_trainer_obj,
+            #     generate=True,
+            #     # N=10000,
+            #     N=-1,
+            #     convert_branches=True,
+            #     rapidsim=False,
+            # )  
+            # print("Cutting pass_stripping for gen MC")
+            # event_loader_gen_MC.fill_stripping_bool()
+            # event_loader_gen_MC.cut("pass_stripping")
+            # print("Cut")
+            # BDT_scores = self.get_BDT_scores(
+            #     event_loader_gen_MC,
+            #     generate=True
+            # )  
+            # event_loader_gen_MC.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
+            
+            # ###############
+            # event_loader_RapidSim = self.get_event_loader(
+            #     "/users/am13743/fast_vertexing_variables/rapidsim/BuD0enuKenu/BuD0enuKenu_tree_NNvertex_more_vars.root",
+            #     vertex_quality_trainer_obj,
+            #     generate=True,
+            #     # N=10000,
+            #     N=-1,
+            #     convert_branches=True,
+            #     rapidsim=True,
+            # )  
+            # print("Cutting pass_stripping for rapidsim")
+            # event_loader_RapidSim.fill_stripping_bool()
+            # event_loader_RapidSim.cut("pass_stripping")
+            # print("Cut")
+            # BDT_scores = self.get_BDT_scores(
+            #     event_loader_RapidSim,
+            #     generate=True
+            # )  
+            # event_loader_RapidSim.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
+
+
+
+            # self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "q2", f"BDT_score>{BDT_cut}", [0,25], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$", xlabel=r'$q^2$ (GeV$^2$)', signal=False)
+
+            # self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$", xlabel=r'$m(Kee)_{TRUE}$ (GeV)', signal=False)
+
+            # self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$", xlabel=r'$m(Kee)$ (GeV)', signal=False)
 
 
 
@@ -2422,8 +2422,11 @@ class BDT_tester:
                 generate=True
             )  
             event_loader_RapidSim.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
-            event_loader_RapidSim.add_dalitz_masses(pair_1 = ["K_Kst", "e_minus"], pair_2 = ["e_plus", "e_minus"])
+            event_loader_RapidSim.add_dalitz_masses(pair_1 = ["K_Kst", "e_minus"], pair_2 = ["e_plus", "e_minus"], true_vars=True)
 
+            # branches = ["D0_M"]
+            # compute_variables = event_loader_RapidSim.get_branches(branches, processed=False)
+            # event_loader_RapidSim.add_branch_to_physical("dalitz_mass_mkl", np.asarray(compute_variables["D0_M"]))
 
 
             self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "q2", f"BDT_score>{BDT_cut}", [0,25], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$", xlabel=r'$q^2$ (GeV$^2$)', signal=False)

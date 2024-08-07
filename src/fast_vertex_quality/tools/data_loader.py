@@ -657,24 +657,37 @@ class dataset:
 
         return mass
     
-    def add_dalitz_masses(self, pair_1 = ["K_Kst", "e_minus"], pair_2 = ["e_plus", "e_minus"]):
+    def add_dalitz_masses(self, pair_1 = ["K_Kst", "e_minus"], pair_2 = ["e_plus", "e_minus"], true_vars=True):
 
-        branches = ["e_plus_TRUEP_X",
-                    "e_plus_TRUEP_Y",
-                    "e_plus_TRUEP_Z", 
-                    "e_minus_TRUEP_X",
-                    "e_minus_TRUEP_Y",
-                    "e_minus_TRUEP_Z", 
-                    "K_Kst_TRUEP_X",
-                    "K_Kst_TRUEP_Y",
-                    "K_Kst_TRUEP_Z",
-                    ]
+        if true_vars:
+            branches = ["e_plus_TRUEP_X",
+                        "e_plus_TRUEP_Y",
+                        "e_plus_TRUEP_Z", 
+                        "e_minus_TRUEP_X",
+                        "e_minus_TRUEP_Y",
+                        "e_minus_TRUEP_Z", 
+                        "K_Kst_TRUEP_X",
+                        "K_Kst_TRUEP_Y",
+                        "K_Kst_TRUEP_Z",
+                        ]
+        else:
+            branches = ["e_plus_PX",
+                        "e_plus_PY",
+                        "e_plus_PZ", 
+                        "e_minus_PX",
+                        "e_minus_PY",
+                        "e_minus_PZ", 
+                        "K_Kst_PX",
+                        "K_Kst_PY",
+                        "K_Kst_PZ",
+                        ]
+
         compute_variables = self.get_branches(branches, processed=False)
         # e_minus and K_Kst
         # e_minus and e_plus
 
-        dalitz_mass_mkl = self.compute_dalitz_mass(compute_variables, pair_1[0], pair_1[1], 493.677, 0.51099895000 * 1e-3, true_vars=True)
-        dalitz_mass_mee = self.compute_dalitz_mass(compute_variables, pair_2[0], pair_2[1], 0.51099895000 * 1e-3, 0.51099895000 * 1e-3, true_vars=True)
+        dalitz_mass_mkl = self.compute_dalitz_mass(compute_variables, pair_1[0], pair_1[1], 493.677, 0.51099895000 * 1e-3, true_vars=true_vars)
+        dalitz_mass_mee = self.compute_dalitz_mass(compute_variables, pair_2[0], pair_2[1], 0.51099895000 * 1e-3, 0.51099895000 * 1e-3, true_vars=true_vars)
         
         self.add_branch_to_physical("dalitz_mass_mee", np.asarray(dalitz_mass_mee))
         self.add_branch_to_physical("dalitz_mass_mkl", np.asarray(dalitz_mass_mkl))
