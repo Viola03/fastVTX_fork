@@ -19,7 +19,7 @@ from particle import Particle
 
 network_option = 'VAE'
 # load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions4"
-load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions5"
+load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions6"
 # rd.latent = 6 # noise dims
 # D_architecture=[1000,2000,2000,1000]
 # G_architecture=[1000,2000,2000,1000]
@@ -141,22 +141,22 @@ BDT_tester_obj = BDT_tester(
     signal_convert_branches=True,
 )
 
-# scores = BDT_tester_obj.plot_detailed_metrics(
-#     conditions,
-#     targets,
-#     vertex_quality_trainer_obj, f"metrics_{network_option}.pdf",
-#     only_signal=False
-#     # only_signal=True
-# )
-
-scores = BDT_tester_obj.plot_differential_metrics(
+scores = BDT_tester_obj.plot_detailed_metrics(
     conditions,
     targets,
-    vertex_quality_trainer_obj, f"differential_metrics_{network_option}.pdf",
+    vertex_quality_trainer_obj, f"metrics_{network_option}.pdf",
+    only_signal=False
     # only_signal=True
-    only_signal=False,
-    BDT_cut=0.9
 )
+
+# scores = BDT_tester_obj.plot_differential_metrics(
+#     conditions,
+#     targets,
+#     vertex_quality_trainer_obj, f"differential_metrics_{network_option}.pdf",
+#     # only_signal=True
+#     only_signal=False,
+#     BDT_cut=0.9
+# )
 
 quit()
 
@@ -176,21 +176,21 @@ BDT_tester_obj = BDT_tester(
     background_convert_branches=True,
 )
 
-# scores = BDT_tester_obj.plot_detailed_metrics(
-#     conditions,
-#     targets,
-#     vertex_quality_trainer_obj, f"metrics_{network_option}_prcBDT.pdf",
-#     only_signal=False
-# )
-
-scores = BDT_tester_obj.plot_differential_metrics(
+scores = BDT_tester_obj.plot_detailed_metrics(
     conditions,
     targets,
-    vertex_quality_trainer_obj, f"differential_metrics_{network_option}_prcBDT.pdf",
-    # only_signal=True
-    only_signal=False,
-    BDT_cut=0.55
+    vertex_quality_trainer_obj, f"metrics_{network_option}_prcBDT.pdf",
+    only_signal=False
 )
+
+# scores = BDT_tester_obj.plot_differential_metrics(
+#     conditions,
+#     targets,
+#     vertex_quality_trainer_obj, f"differential_metrics_{network_option}_prcBDT.pdf",
+#     # only_signal=True,
+#     only_signal=False,
+#     BDT_cut=0.55
+# )
 
 
 

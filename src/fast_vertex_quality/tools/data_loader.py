@@ -691,6 +691,23 @@ class dataset:
         
         self.add_branch_to_physical("dalitz_mass_mee", np.asarray(dalitz_mass_mee))
         self.add_branch_to_physical("dalitz_mass_mkl", np.asarray(dalitz_mass_mkl))
+
+    
+    def add_eta_phi(self):
+
+        branches = ["B_plus_TRUEP_X",
+                    "B_plus_TRUEP_Y",
+                    "B_plus_TRUEP_Z", 
+                    ]
+
+
+        compute_variables = self.get_branches(branches, processed=False)
+
+        phi = np.arctan2(compute_variables["B_plus_TRUEP_Y"], compute_variables["B_plus_TRUEP_X"])
+        eta = np.arcsinh(compute_variables["B_plus_TRUEP_Z"] / np.sqrt(compute_variables["B_plus_TRUEP_X"]**2 + compute_variables["B_plus_TRUEP_Y"]**2))
+
+        self.add_branch_to_physical("phi_B", np.asarray(phi))
+        self.add_branch_to_physical("eta_B", np.asarray(eta))
         
 
     def pre_process(self, physical_data):

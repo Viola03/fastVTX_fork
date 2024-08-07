@@ -2126,6 +2126,7 @@ class BDT_tester:
             event_loader_MC.cut("abs(e_plus_TRUEID)==11")
             event_loader_MC.cut("abs(e_minus_TRUEID)==11")
             event_loader_MC.add_dalitz_masses()
+            # event_loader_MC.add_eta_phi()
 
             # branches = ["e_plus_PX", "e_plus_TRACK_PX"]
             # compute_variables = event_loader_MC.get_branches(branches, processed=False)
@@ -2159,6 +2160,7 @@ class BDT_tester:
             event_loader_gen_MC.cut("abs(e_plus_TRUEID)==11")
             event_loader_gen_MC.cut("abs(e_minus_TRUEID)==11")
             event_loader_gen_MC.add_dalitz_masses()
+            # event_loader_gen_MC.add_eta_phi()
 
 
             ###############
@@ -2182,6 +2184,7 @@ class BDT_tester:
             )  
             event_loader_RapidSim.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
             event_loader_RapidSim.add_dalitz_masses()
+            # event_loader_RapidSim.add_eta_phi()
 
 
             
@@ -2191,18 +2194,24 @@ class BDT_tester:
 
             self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, None, None, "q2", f"BDT_score>{BDT_cut}", [0,25], r"$B^+\to K^+e^+e^-$", xlabel=r'$q^2$ (GeV$^2$)', signal=True)
 
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, None, None, "B_plus_M", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Kee)_{TRUE}$ (GeV)', signal=True)
+            # self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, None, None, "B_plus_M", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Kee)_{TRUE}$ (GeV)', signal=True)
+
+            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, None, None, "dalitz_mass_mkl", f"BDT_score>{BDT_cut}", [0,5.3], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Ke)$ (GeV)', signal=True)
 
             self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, None, None, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Kee)$ (GeV)', signal=True)
 
 
             self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "q2", f"BDT_score>{BDT_cut}", [0,25], r"$B^+\to K^+e^+e^-$", xlabel=r'$q^2$ (GeV$^2$)', signal=True)
 
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Kee)_{TRUE}$ (GeV)', signal=True)
+            # self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Kee)_{TRUE}$ (GeV)', signal=True)
+
+            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "dalitz_mass_mkl", f"BDT_score>{BDT_cut}", [0,5.3], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Ke)$ (GeV)', signal=True)
 
             self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Kee)$ (GeV)', signal=True)
 
             self.plot_efficiency_as_a_function_of_variable_2D(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, xvar="dalitz_mass_mee", yvar="dalitz_mass_mkl", cut=f"BDT_score>{BDT_cut}", title=r"$B^+\to K^+e^+e^-$", xlabel=r'$m(e^+e^-)$ (GeV)', ylabel=r'$m(K^+e^-)$ (GeV)')
+
+            # self.plot_efficiency_as_a_function_of_variable_2D(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, xvar="phi_B", yvar="eta_B", cut=f"BDT_score>{BDT_cut}", title=r"$B^+\to K^+e^+e^-$", xlabel=r'$\phi$', ylabel=r'$\eta$')
 
             print('mkl next')
 
@@ -2291,7 +2300,9 @@ class BDT_tester:
 
             self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "q2", f"BDT_score>{BDT_cut}", [0,25], r"$B^0\to K^{*0}e^+e^-$", xlabel=r'$q^2$ (GeV$^2$)', signal=False)
 
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^0\to K^{*0}e^+e^-$", xlabel=r'$m(Kee)_{TRUE}$ (GeV)', signal=False)
+            # self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^0\to K^{*0}e^+e^-$", xlabel=r'$m(Kee)_{TRUE}$ (GeV)', signal=False)
+
+            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "dalitz_mass_mkl", f"BDT_score>{BDT_cut}", [0,5.3], r"$B^0\to K^{*0}e^+e^-$", xlabel=r'$m(Ke)$ (GeV)', signal=False)
 
             self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^0\to K^{*0}e^+e^-$", xlabel=r'$m(Kee)$ (GeV)', signal=False)
 
@@ -2371,6 +2382,8 @@ class BDT_tester:
             self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "q2", f"BDT_score>{BDT_cut}", [0,25], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$", xlabel=r'$q^2$ (GeV$^2$)', signal=False)
 
             self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$", xlabel=r'$m(Kee)_{TRUE}$ (GeV)', signal=False)
+
+            # self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "dalitz_mass_mkl", f"BDT_score>{BDT_cut}", [0,5.3], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$", xlabel=r'$m(Ke)$ (GeV)', signal=False)
 
             self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$", xlabel=r'$m(Kee)$ (GeV)', signal=False)
 
@@ -2452,7 +2465,9 @@ class BDT_tester:
 
             self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "q2", f"BDT_score>{BDT_cut}", [0,25], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$", xlabel=r'$q^2$ (GeV$^2$)', signal=False)
 
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$", xlabel=r'$m(Kee)_{TRUE}$ (GeV)', signal=False)
+            # self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$", xlabel=r'$m(Kee)_{TRUE}$ (GeV)', signal=False)
+
+            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "dalitz_mass_mkl", f"BDT_score>{BDT_cut}", [0,5.3], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$", xlabel=r'$m(Ke)$ (GeV)', signal=False)
 
             self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$", xlabel=r'$m(Kee)$ (GeV)', signal=False)
 
@@ -2498,7 +2513,7 @@ class BDT_tester:
                 colours=colours,
                 filename=filename,
                 only_hists=True,
-                all_effs_blue=True
+                all_effs_blue=False
             )
 
 
@@ -2544,7 +2559,7 @@ class BDT_tester:
                 colours=colours,
                 filename=filename,
                 only_hists=True,
-                all_effs_blue=True
+                all_effs_blue=False
             )
 
 
@@ -2556,10 +2571,10 @@ class BDT_tester:
             )  
 
 
-            plt.title("Kee")
+            plt.title(r"$B^+\to K^+e^+e^-$")
             plt.errorbar(np.arange(np.shape(self.BDTs[0]["signal_stripping_eff"])[0]), self.BDTs[0]["signal_stripping_eff"][:,0], yerr=self.BDTs[0]["signal_stripping_eff"][:,1],label=self.signal_label,color='tab:blue',linestyle='-')
-            plt.errorbar(np.arange(np.shape(signal_gen_stripping_eff)[0]), signal_gen_stripping_eff[:,0], yerr=signal_gen_stripping_eff[:,1],label=r"Generated $B^+\to K^+e^+e^-$ (MC)",color='tab:blue',linestyle='--')
-            plt.errorbar(np.arange(np.shape(signal_gen_rapidsim_stripping_eff)[0]), signal_gen_rapidsim_stripping_eff[:,0], yerr=signal_gen_rapidsim_stripping_eff[:,1],label=r"Generated $B^+\to K^+e^+e^-$ (Rapidsim)",color='tab:blue',linestyle='-.')
+            plt.errorbar(np.arange(np.shape(signal_gen_stripping_eff)[0]), signal_gen_stripping_eff[:,0], yerr=signal_gen_stripping_eff[:,1],label=r"Generated $B^+\to K^+e^+e^-$ (MC)",color='tab:green')
+            plt.errorbar(np.arange(np.shape(signal_gen_rapidsim_stripping_eff)[0]), signal_gen_rapidsim_stripping_eff[:,0], yerr=signal_gen_rapidsim_stripping_eff[:,1],label=r"Generated $B^+\to K^+e^+e^-$ (Rapidsim)",color='tab:orange')
             plt.ylim(0,1)
             cuts_ticks = ['All']+list(self.cuts.keys())
             plt.xticks(np.arange(len(cuts_ticks)), cuts_ticks, rotation=90)
@@ -2626,11 +2641,11 @@ class BDT_tester:
 
 
 
-            plt.title("K*ee")
+            plt.title(r"$B^0\to K^{*0}e^+e^-$")
             plt.errorbar(np.arange(np.shape(self.BDTs[0]["signal_stripping_eff"])[0]), self.BDTs[0]["signal_stripping_eff"][:,0], yerr=self.BDTs[0]["signal_stripping_eff"][:,1],label=self.signal_label,color='tab:blue',linestyle='-')
-            plt.errorbar(np.arange(np.shape(part_reco_MC_stripping_eff)[0]), part_reco_MC_stripping_eff[:,0], yerr=part_reco_MC_stripping_eff[:,1],label=r"$B^0\to K^{*0}e^+e^-$ MC",color='tab:red',linestyle='-')
-            plt.errorbar(np.arange(np.shape(part_reco_gen_stripping_eff)[0]), part_reco_gen_stripping_eff[:,0], yerr=part_reco_gen_stripping_eff[:,1],label=r"Generated $B^0\to K^{*0}e^+e^-$ (MC)",color='tab:red',linestyle='--')
-            plt.errorbar(np.arange(np.shape(part_reco_gen_rapidsim_stripping_eff)[0]), part_reco_gen_rapidsim_stripping_eff[:,0], yerr=part_reco_gen_rapidsim_stripping_eff[:,1],label=r"Generated $B^0\to K^{*0}e^+e^-$ (Rapidsim)",color='tab:red',linestyle='-.')
+            plt.errorbar(np.arange(np.shape(part_reco_MC_stripping_eff)[0]), part_reco_MC_stripping_eff[:,0], yerr=part_reco_MC_stripping_eff[:,1],label=r"$B^0\to K^{*0}e^+e^-$ MC",color='tab:purple',linestyle='-')
+            plt.errorbar(np.arange(np.shape(part_reco_gen_stripping_eff)[0]), part_reco_gen_stripping_eff[:,0], yerr=part_reco_gen_stripping_eff[:,1],label=r"Generated $B^0\to K^{*0}e^+e^-$ (MC)",color='k')
+            plt.errorbar(np.arange(np.shape(part_reco_gen_rapidsim_stripping_eff)[0]), part_reco_gen_rapidsim_stripping_eff[:,0], yerr=part_reco_gen_rapidsim_stripping_eff[:,1],label=r"Generated $B^0\to K^{*0}e^+e^-$ (Rapidsim)",color='violet')
             plt.ylim(0,1)
             cuts_ticks = ['All']+list(self.cuts.keys())
             plt.xticks(np.arange(len(cuts_ticks)), cuts_ticks, rotation=90)
@@ -2684,11 +2699,11 @@ class BDT_tester:
             )
 
 
-            plt.title("BuD0enuKenu")
+            plt.title(r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$")
             plt.errorbar(np.arange(np.shape(self.BDTs[0]["signal_stripping_eff"])[0]), self.BDTs[0]["signal_stripping_eff"][:,0], yerr=self.BDTs[0]["signal_stripping_eff"][:,1],label=self.signal_label,color='tab:blue',linestyle='-')
-            plt.errorbar(np.arange(np.shape(BuD0enuKenu_MC_stripping_eff)[0]), BuD0enuKenu_MC_stripping_eff[:,0], yerr=BuD0enuKenu_MC_stripping_eff[:,1],label=r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$ MC",color='tab:red',linestyle='-')
-            plt.errorbar(np.arange(np.shape(BuD0enuKenu_gen_stripping_eff)[0]), BuD0enuKenu_gen_stripping_eff[:,0], yerr=BuD0enuKenu_gen_stripping_eff[:,1],label=r"Generated $B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$ (MC)",color='tab:red',linestyle='--')
-            plt.errorbar(np.arange(np.shape(BuD0enuKenu_gen_rapidsim_stripping_eff)[0]), BuD0enuKenu_gen_rapidsim_stripping_eff[:,0], yerr=BuD0enuKenu_gen_rapidsim_stripping_eff[:,1],label=r"Generated $B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$ (Rapidsim)",color='tab:red',linestyle='-.')
+            plt.errorbar(np.arange(np.shape(BuD0enuKenu_MC_stripping_eff)[0]), BuD0enuKenu_MC_stripping_eff[:,0], yerr=BuD0enuKenu_MC_stripping_eff[:,1],label=r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$ MC",color='tab:purple',linestyle='-')
+            plt.errorbar(np.arange(np.shape(BuD0enuKenu_gen_stripping_eff)[0]), BuD0enuKenu_gen_stripping_eff[:,0], yerr=BuD0enuKenu_gen_stripping_eff[:,1],label=r"Generated $B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$ (MC)",color='k')
+            plt.errorbar(np.arange(np.shape(BuD0enuKenu_gen_rapidsim_stripping_eff)[0]), BuD0enuKenu_gen_rapidsim_stripping_eff[:,0], yerr=BuD0enuKenu_gen_rapidsim_stripping_eff[:,1],label=r"Generated $B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)e^+\nu_e$ (Rapidsim)",color='violet')
             plt.ylim(0,1)
             cuts_ticks = ['All']+list(self.cuts.keys())
             plt.xticks(np.arange(len(cuts_ticks)), cuts_ticks, rotation=90)
@@ -2741,11 +2756,11 @@ class BDT_tester:
                 only_hists=True,
             )
 
-            plt.title("BuD0piKenu")
+            plt.title(r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$")
             plt.errorbar(np.arange(np.shape(self.BDTs[0]["signal_stripping_eff"])[0]), self.BDTs[0]["signal_stripping_eff"][:,0], yerr=self.BDTs[0]["signal_stripping_eff"][:,1],label=self.signal_label,color='tab:blue',linestyle='-')
-            plt.errorbar(np.arange(np.shape(BuD0piKenu_MC_stripping_eff)[0]), BuD0piKenu_MC_stripping_eff[:,0], yerr=BuD0piKenu_MC_stripping_eff[:,1],label=r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$ MC",color='tab:red',linestyle='-')
-            plt.errorbar(np.arange(np.shape(BuD0piKenu_gen_stripping_eff)[0]), BuD0piKenu_gen_stripping_eff[:,0], yerr=BuD0piKenu_gen_stripping_eff[:,1],label=r"Generated $B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$ (MC)",color='tab:red',linestyle='--')
-            plt.errorbar(np.arange(np.shape(BuD0piKenu_gen_rapidsim_stripping_eff)[0]), BuD0piKenu_gen_rapidsim_stripping_eff[:,0], yerr=BuD0piKenu_gen_rapidsim_stripping_eff[:,1],label=r"Generated $B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$ (Rapidsim)",color='tab:red',linestyle='-.')
+            plt.errorbar(np.arange(np.shape(BuD0piKenu_MC_stripping_eff)[0]), BuD0piKenu_MC_stripping_eff[:,0], yerr=BuD0piKenu_MC_stripping_eff[:,1],label=r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$ MC",color='tab:purple',linestyle='-')
+            plt.errorbar(np.arange(np.shape(BuD0piKenu_gen_stripping_eff)[0]), BuD0piKenu_gen_stripping_eff[:,0], yerr=BuD0piKenu_gen_stripping_eff[:,1],label=r"Generated $B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$ (MC)",color='k')
+            plt.errorbar(np.arange(np.shape(BuD0piKenu_gen_rapidsim_stripping_eff)[0]), BuD0piKenu_gen_rapidsim_stripping_eff[:,0], yerr=BuD0piKenu_gen_rapidsim_stripping_eff[:,1],label=r"Generated $B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$ (Rapidsim)",color='violet')
             plt.ylim(0,1)
             cuts_ticks = ['All']+list(self.cuts.keys())
             plt.xticks(np.arange(len(cuts_ticks)), cuts_ticks, rotation=90)
@@ -2899,6 +2914,7 @@ class BDT_tester:
 
             sample_list = list(sample_values.keys())
 
+            colour_idx = 2
             for sample_idx, sample in enumerate(sample_list):
                 
                 if sample == self.background_label:
@@ -2916,13 +2932,15 @@ class BDT_tester:
 
                 color = "tab:blue"
                 if sample_idx > 0 and not all_effs_blue:
-                    color = "tab:red"
+                    # color = "tab:red"
+                    color = colours[colour_idx]
+                    colour_idx += 1
                 style = "-"
-                if "Gen" in sample:
-                    if "Rapidsim" in sample:
-                        style = "-."
-                    else:
-                        style = "--"
+                # if "Gen" in sample:
+                #     if "Rapidsim" in sample:
+                #         style = "-."
+                #     else:
+                #         style = "--"
 
 
                 if "combi" in sample or sample == self.background_label:
