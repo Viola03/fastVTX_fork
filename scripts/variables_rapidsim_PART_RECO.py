@@ -143,31 +143,31 @@ for branch in new_branches:
 		events[branch] *= 1000.
 
 
-####################
-##### SWAP RANDOMLY DAUGHTER2 and DAUGHTER3
-####################
-N = events.shape[0]
-swap_indexes = np.random.choice(np.arange(N), np.random.poisson(N/2.))
-for branch in list(events.keys()):
-	if "DAUGHTER3" in branch:
+# ####################
+# ##### SWAP RANDOMLY DAUGHTER2 and DAUGHTER3
+# ####################
+# N = events.shape[0]
+# swap_indexes = np.random.choice(np.arange(N), np.random.poisson(N/2.))
+# for branch in list(events.keys()):
+# 	if "DAUGHTER3" in branch:
 		
-		DAUGHTER3 = np.asarray(events[branch])
-		DAUGHTER2 = np.asarray(events[branch.replace('DAUGHTER3','DAUGHTER2')])
+# 		DAUGHTER3 = np.asarray(events[branch])
+# 		DAUGHTER2 = np.asarray(events[branch.replace('DAUGHTER3','DAUGHTER2')])
 
-		DAUGHTER2_swap = DAUGHTER2.copy()
-		DAUGHTER3_swap = DAUGHTER3.copy()
+# 		DAUGHTER2_swap = DAUGHTER2.copy()
+# 		DAUGHTER3_swap = DAUGHTER3.copy()
 
-		DAUGHTER2_swap[swap_indexes] = DAUGHTER3[swap_indexes]
-		DAUGHTER3_swap[swap_indexes] = DAUGHTER2[swap_indexes]
+# 		DAUGHTER2_swap[swap_indexes] = DAUGHTER3[swap_indexes]
+# 		DAUGHTER3_swap[swap_indexes] = DAUGHTER2[swap_indexes]
 
-		events[branch] = DAUGHTER3_swap
-		events[branch.replace('DAUGHTER3','DAUGHTER2')] = DAUGHTER2_swap
+# 		events[branch] = DAUGHTER3_swap
+# 		events[branch.replace('DAUGHTER3','DAUGHTER2')] = DAUGHTER2_swap
 
 
-		# hold = np.asarray(events.iloc[swap_indexes][branch])
-		# events.iloc[swap_indexes][branch] = np.asarray(events.iloc[swap_indexes][branch.replace('DAUGHTER3','DAUGHTER2')])
-		# events.iloc[swap_indexes][branch.replace('DAUGHTER3','DAUGHTER2')] = hold
-####################
+# 		# hold = np.asarray(events.iloc[swap_indexes][branch])
+# 		# events.iloc[swap_indexes][branch] = np.asarray(events.iloc[swap_indexes][branch.replace('DAUGHTER3','DAUGHTER2')])
+# 		# events.iloc[swap_indexes][branch.replace('DAUGHTER3','DAUGHTER2')] = hold
+# ####################
 
 
 use_network_to_adapt_vertex_locations = True

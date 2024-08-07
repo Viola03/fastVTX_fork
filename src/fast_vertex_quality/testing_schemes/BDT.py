@@ -1926,8 +1926,8 @@ class BDT_tester:
             else: hist_no_cut = plt.hist2d(values_no_cut[xvar], values_no_cut[yvar], bins=set_bins, norm=LogNorm())
             plt.xlabel(xlabel)
             plt.ylabel(ylabel)
-            plt.title(title)    
-            # pdf.savefig(bbox_inches="tight")
+            plt.title(f'{title} - pre cut')    
+            pdf.savefig(bbox_inches="tight")
             plt.close()
 
             if loader_idx == 0: set_bins = hist_no_cut[1:3]
@@ -1936,8 +1936,8 @@ class BDT_tester:
             hist_cut = plt.hist2d(values_cut[xvar], values_cut[yvar], bins=set_bins, norm=LogNorm())
             plt.xlabel(xlabel)
             plt.ylabel(ylabel)
-            plt.title(title)    
-            # pdf.savefig(bbox_inches="tight")
+            plt.title(f'{title} - cut')    
+            pdf.savefig(bbox_inches="tight")
             plt.close()
 
             # Compute the ratio of the histograms
@@ -2371,6 +2371,10 @@ class BDT_tester:
                 generate=False
             )  
             event_loader_MC.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
+            event_loader_MC.cut("abs(K_Kst_TRUEID)==321")
+            event_loader_MC.cut("abs(e_plus_TRUEID)==11 or abs(e_plus_TRUEID)==211")
+            event_loader_MC.cut("abs(e_minus_TRUEID)==11 or abs(e_plus_TRUEID)==211")
+            event_loader_MC.add_dalitz_masses()
 
 
             ###############
@@ -2392,7 +2396,13 @@ class BDT_tester:
                 generate=True
             )  
             event_loader_gen_MC.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
+            event_loader_gen_MC.cut("abs(K_Kst_TRUEID)==321")
+            event_loader_gen_MC.cut("abs(e_plus_TRUEID)==11 or abs(e_plus_TRUEID)==211")
+            event_loader_gen_MC.cut("abs(e_minus_TRUEID)==11 or abs(e_plus_TRUEID)==211")
+            event_loader_gen_MC.add_dalitz_masses()
             
+            
+
             ###############
             event_loader_RapidSim = self.get_event_loader(
                 "/users/am13743/fast_vertexing_variables/rapidsim/BuD0piKenu/BuD0piKenu_tree_NNvertex_more_vars.root",
@@ -2412,6 +2422,7 @@ class BDT_tester:
                 generate=True
             )  
             event_loader_RapidSim.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
+            event_loader_RapidSim.add_dalitz_masses(pair_1 = ["K_Kst", "e_minus"], pair_2 = ["e_plus", "e_minus"])
 
 
 
@@ -2422,7 +2433,8 @@ class BDT_tester:
             self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$", xlabel=r'$m(Kee)$ (GeV)', signal=False)
 
 
-         
+            self.plot_efficiency_as_a_function_of_variable_2D(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, xvar="dalitz_mass_mee", yvar="dalitz_mass_mkl", cut=f"BDT_score>{BDT_cut}", title=r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$", xlabel=r'$m(e^+e^-)$ (GeV)', ylabel=r'$m(K^+e^-)$ (GeV)')
+
 
 
 

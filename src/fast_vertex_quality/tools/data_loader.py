@@ -657,7 +657,7 @@ class dataset:
 
         return mass
     
-    def add_dalitz_masses(self):
+    def add_dalitz_masses(self, pair_1 = ["K_Kst", "e_minus"], pair_2 = ["e_plus", "e_minus"]):
 
         branches = ["e_plus_TRUEP_X",
                     "e_plus_TRUEP_Y",
@@ -673,8 +673,8 @@ class dataset:
         # e_minus and K_Kst
         # e_minus and e_plus
 
-        dalitz_mass_mkl = self.compute_dalitz_mass(compute_variables, "K_Kst", "e_minus", 493.677, 0.51099895000 * 1e-3, true_vars=True)
-        dalitz_mass_mee = self.compute_dalitz_mass(compute_variables, "e_plus", "e_minus", 0.51099895000 * 1e-3, 0.51099895000 * 1e-3, true_vars=True)
+        dalitz_mass_mkl = self.compute_dalitz_mass(compute_variables, pair_1[0], pair_1[1], 493.677, 0.51099895000 * 1e-3, true_vars=True)
+        dalitz_mass_mee = self.compute_dalitz_mass(compute_variables, pair_2[0], pair_2[1], 0.51099895000 * 1e-3, 0.51099895000 * 1e-3, true_vars=True)
         
         self.add_branch_to_physical("dalitz_mass_mee", np.asarray(dalitz_mass_mee))
         self.add_branch_to_physical("dalitz_mass_mkl", np.asarray(dalitz_mass_mkl))
