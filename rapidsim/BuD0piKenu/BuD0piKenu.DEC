@@ -1,0 +1,10 @@
+yesPhotos
+
+Decay B+
+1.00	D0	pi+	PHSP;
+Enddecay
+Decay D0
+1.00	K+	e-	anti-nu_e	PHSP;
+Enddecay
+End
+
