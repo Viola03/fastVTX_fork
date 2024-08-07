@@ -124,7 +124,7 @@ vertex_quality_trainer_obj = vertex_quality_trainer(
 )
 
 vertex_quality_trainer_obj.load_state(tag=load_state)
-vertex_quality_trainer_obj.make_plots(filename=f'example_training_plots',testing_file=training_data_loader.get_file_names(),offline=True)
+# vertex_quality_trainer_obj.make_plots(filename=f'example_training_plots',testing_file=training_data_loader.get_file_names(),offline=True)
 
 
 print(f"Initialising BDT tester...")
@@ -154,8 +154,10 @@ scores = BDT_tester_obj.plot_differential_metrics(
     targets,
     vertex_quality_trainer_obj, f"differential_metrics_{network_option}.pdf",
     # only_signal=True
-    only_signal=False
+    only_signal=False,
+    BDT_cut=0.9
 )
+
 quit()
 
 print(f"Initialising BDT tester...")
@@ -174,11 +176,20 @@ BDT_tester_obj = BDT_tester(
     background_convert_branches=True,
 )
 
-scores = BDT_tester_obj.plot_detailed_metrics(
+# scores = BDT_tester_obj.plot_detailed_metrics(
+#     conditions,
+#     targets,
+#     vertex_quality_trainer_obj, f"metrics_{network_option}_prcBDT.pdf",
+#     only_signal=False
+# )
+
+scores = BDT_tester_obj.plot_differential_metrics(
     conditions,
     targets,
-    vertex_quality_trainer_obj, f"metrics_{network_option}_prcBDT.pdf",
-    only_signal=False
+    vertex_quality_trainer_obj, f"differential_metrics_{network_option}_prcBDT.pdf",
+    # only_signal=True
+    only_signal=False,
+    BDT_cut=0.55
 )
 
 

@@ -625,6 +625,61 @@ class dataset:
 
         return output
     
+    def compute_dalitz_mass(self, df, i, j, mass_i, mass_j, true_vars=True):
+
+        if true_vars:
+            PE = np.sqrt(
+                mass_i**2
+                + df[f"{i}_TRUEP_X"] ** 2
+                + df[f"{i}_TRUEP_Y"] ** 2
+                + df[f"{i}_TRUEP_Z"] ** 2
+            ) + np.sqrt(
+                mass_j**2
+                + df[f"{j}_TRUEP_X"] ** 2
+                + df[f"{j}_TRUEP_Y"] ** 2
+                + df[f"{j}_TRUEP_Z"] ** 2
+            )
+            PX = df[f"{i}_TRUEP_X"] + df[f"{j}_TRUEP_X"]
+            PY = df[f"{i}_TRUEP_Y"] + df[f"{j}_TRUEP_Y"]
+            PZ = df[f"{i}_TRUEP_Z"] + df[f"{j}_TRUEP_Z"]
+        else:
+            PE = np.sqrt(
+                mass_i**2 + df[f"{i}_PX"] ** 2 + df[f"{i}_PY"] ** 2 + df[f"{i}_PZ"] ** 2
+            ) + np.sqrt(
+                mass_j**2 + df[f"{j}_PX"] ** 2 + df[f"{j}_PY"] ** 2 + df[f"{j}_PZ"] ** 2
+            )
+            PX = df[f"{i}_PX"] + df[f"{j}_PX"]
+            PY = df[f"{i}_PY"] + df[f"{j}_PY"]
+            PZ = df[f"{i}_PZ"] + df[f"{j}_PZ"]
+
+
+        mass = np.sqrt((PE**2 - PX**2 - PY**2 - PZ**2) * 1e-6)
+
+        return mass
+    
+    def add_dalitz_masses(self):
+
+        branches = ["e_plus_TRUEP_X",
+                    "e_plus_TRUEP_Y",
+                    "e_plus_TRUEP_Z", 
+                    "e_minus_TRUEP_X",
+                    "e_minus_TRUEP_Y",
+                    "e_minus_TRUEP_Z", 
+                    "K_Kst_TRUEP_X",
+                    "K_Kst_TRUEP_Y",
+                    "K_Kst_TRUEP_Z",
+                    ]
+        compute_variables = self.get_branches(branches, processed=False)
+        # e_minus and K_Kst
+        # e_minus and e_plus
+
+        dalitz_mass_mkl = self.compute_dalitz_mass(compute_variables, "K_Kst", "e_minus", 493.677, 0.51099895000 * 1e-3, true_vars=True)
+        dalitz_mass_mee = self.compute_dalitz_mass(compute_variables, "e_plus", "e_minus", 0.51099895000 * 1e-3, 0.51099895000 * 1e-3, true_vars=True)
+        
+        self.add_branch_to_physical("dalitz_mass_mee", np.asarray(dalitz_mass_mee))
+        self.add_branch_to_physical("dalitz_mass_mkl", np.asarray(dalitz_mass_mkl))
+        
+
     def pre_process(self, physical_data):
 
         df = {}

@@ -13,6 +13,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 from particle import Particle
 import uproot3
 import pandas as pd
+from matplotlib.colors import LogNorm
 
 import pkg_resources
 import alexPlot
@@ -1904,6 +1905,63 @@ class BDT_tester:
 
         return clf.predict_proba(sample)[:, 1]
 
+
+    def plot_efficiency_as_a_function_of_variable_2D(self, pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, xvar, yvar, cut, title, xlabel, ylabel):
+        
+
+        for loader_idx, loader in enumerate([event_loader_MC, event_loader_gen_MC, event_loader_RapidSim]):
+
+            branches = [xvar, yvar]
+            values_no_cut = loader.get_branches(branches, processed=False)
+
+            print('SHAPE', values_no_cut.shape)
+
+            bins = 35
+
+            loader.virtual_cut(cut)
+            values_cut = loader.virtual_get_branches(branches,processed=False)
+
+            ax = plt.subplot(1,1,1)
+            if loader_idx == 0:  hist_no_cut = plt.hist2d(values_no_cut[xvar], values_no_cut[yvar], bins=bins, norm=LogNorm())
+            else: hist_no_cut = plt.hist2d(values_no_cut[xvar], values_no_cut[yvar], bins=set_bins, norm=LogNorm())
+            plt.xlabel(xlabel)
+            plt.ylabel(ylabel)
+            plt.title(title)    
+            # pdf.savefig(bbox_inches="tight")
+            plt.close()
+
+            if loader_idx == 0: set_bins = hist_no_cut[1:3]
+
+            ax = plt.subplot(1,1,1)
+            hist_cut = plt.hist2d(values_cut[xvar], values_cut[yvar], bins=set_bins, norm=LogNorm())
+            plt.xlabel(xlabel)
+            plt.ylabel(ylabel)
+            plt.title(title)    
+            # pdf.savefig(bbox_inches="tight")
+            plt.close()
+
+            # Compute the ratio of the histograms
+            ratio = np.divide(hist_cut[0], hist_no_cut[0], where=hist_no_cut[0] != 0)  # Avoid division by zero
+
+            masked_ratio = np.ma.masked_where(hist_no_cut[0] == 0, ratio)
+
+
+            # Plot the ratio
+            plt.figure()
+            plt.imshow(masked_ratio.T, origin='lower', extent=[hist_no_cut[1][0], hist_no_cut[1][-1], hist_no_cut[2][0], hist_no_cut[2][-1]], vmin=0, vmax=1)
+            plt.colorbar()
+            plt.xlabel(xlabel)
+            plt.ylabel(ylabel)
+            plt.title(title)
+            pdf.savefig(bbox_inches="tight")
+            plt.close()
+
+
+
+   
+
+      
+
     def plot_efficiency_as_a_function_of_variable(self, pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, variable, cut, range_array, title, xlabel, signal):
         
         
@@ -2002,20 +2060,20 @@ class BDT_tester:
 
         return x, eff, effErr, pass_tot_val, gen_tot_val, pass_tot_err, gen_tot_err
 
+
     def plot_differential_metrics(
         self,
         conditions,
         targets,
         vertex_quality_trainer_obj,
         filename,
-        only_signal=False
+        only_signal=False,
+        BDT_cut=0.9
     ):  
         self.conditions = conditions
         self.targets = targets
         
         
-        BDT_cut = 0.9
-
 
         with PdfPages(filename) as pdf:
             
@@ -2038,10 +2096,17 @@ class BDT_tester:
             )  
             event_loader_MC.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
 
+            event_loader_MC.cut("abs(K_Kst_TRUEID)==321")
+            event_loader_MC.cut("abs(e_plus_TRUEID)==11")
+            event_loader_MC.cut("abs(e_minus_TRUEID)==11")
+            event_loader_MC.add_dalitz_masses()
+
             # branches = ["e_plus_PX", "e_plus_TRACK_PX"]
             # compute_variables = event_loader_MC.get_branches(branches, processed=False)
             # print(compute_variables)
             # quit()
+
+
 
 
 
@@ -2064,10 +2129,16 @@ class BDT_tester:
                 generate=True
             )  
             event_loader_gen_MC.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
-            
+            event_loader_gen_MC.cut("abs(K_Kst_TRUEID)==321")
+            event_loader_gen_MC.cut("abs(e_plus_TRUEID)==11")
+            event_loader_gen_MC.cut("abs(e_minus_TRUEID)==11")
+            event_loader_gen_MC.add_dalitz_masses()
+
+
             ###############
             event_loader_RapidSim = self.get_event_loader(
-                "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root",
+                # "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root",
+                "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_LARGE_NNvertex_more_vars.root",
                 vertex_quality_trainer_obj,
                 generate=True,
                 # N=10000,
@@ -2084,7 +2155,13 @@ class BDT_tester:
                 generate=True
             )  
             event_loader_RapidSim.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
+            event_loader_RapidSim.add_dalitz_masses()
 
+
+            
+
+
+            
 
             self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, None, None, "q2", f"BDT_score>{BDT_cut}", [0,25], r"$B^+\to K^+e^+e^-$", xlabel=r'$q^2$ (GeV$^2$)', signal=True)
 
@@ -2098,6 +2175,8 @@ class BDT_tester:
             self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Kee)_{TRUE}$ (GeV)', signal=True)
 
             self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Kee)$ (GeV)', signal=True)
+
+            self.plot_efficiency_as_a_function_of_variable_2D(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, xvar="dalitz_mass_mee", yvar="dalitz_mass_mkl", cut=f"BDT_score>{BDT_cut}", title=r"$B^+\to K^+e^+e^-$", xlabel=r'$m(e^+e^-)$ (GeV)', ylabel=r'$m(K^+e^-)$ (GeV)')
 
             print('mkl next')
 
@@ -2131,6 +2210,10 @@ class BDT_tester:
                 generate=False
             )  
             event_loader_MC.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
+            event_loader_MC.cut("abs(K_Kst_TRUEID)==321")
+            event_loader_MC.cut("abs(e_plus_TRUEID)==11")
+            event_loader_MC.cut("abs(e_minus_TRUEID)==11")
+            event_loader_MC.add_dalitz_masses()
 
 
             ###############
@@ -2152,10 +2235,15 @@ class BDT_tester:
                 generate=True
             )  
             event_loader_gen_MC.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
+            event_loader_gen_MC.cut("abs(K_Kst_TRUEID)==321")
+            event_loader_gen_MC.cut("abs(e_plus_TRUEID)==11")
+            event_loader_gen_MC.cut("abs(e_minus_TRUEID)==11")
+            event_loader_gen_MC.add_dalitz_masses()
             
             ###############
             event_loader_RapidSim = self.get_event_loader(
-                "/users/am13743/fast_vertexing_variables/rapidsim/Kstree/Partreco_tree_NNvertex_more_vars.root",
+                # "/users/am13743/fast_vertexing_variables/rapidsim/Kstree/Partreco_tree_NNvertex_more_vars.root",
+                "/users/am13743/fast_vertexing_variables/rapidsim/Kstree/Partreco_tree_LARGE_NNvertex_more_vars.root",
                 vertex_quality_trainer_obj,
                 generate=True,
                 # N=10000,
@@ -2172,6 +2260,7 @@ class BDT_tester:
                 generate=True
             )  
             event_loader_RapidSim.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
+            event_loader_RapidSim.add_dalitz_masses()
 
 
             self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "q2", f"BDT_score>{BDT_cut}", [0,25], r"$B^0\to K^{*0}e^+e^-$", xlabel=r'$q^2$ (GeV$^2$)', signal=False)
@@ -2181,6 +2270,7 @@ class BDT_tester:
             self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^0\to K^{*0}e^+e^-$", xlabel=r'$m(Kee)$ (GeV)', signal=False)
 
 
+            self.plot_efficiency_as_a_function_of_variable_2D(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, xvar="dalitz_mass_mee", yvar="dalitz_mass_mkl", cut=f"BDT_score>{BDT_cut}", title=r"$B^0\to K^{*0}e^+e^-$", xlabel=r'$m(e^+e^-)$ (GeV)', ylabel=r'$m(K^+e^-)$ (GeV)')
 
 
 
