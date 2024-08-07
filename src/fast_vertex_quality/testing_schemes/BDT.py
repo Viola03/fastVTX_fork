@@ -20,6 +20,9 @@ import alexPlot
 import mplhep
 mplhep.style.use('LHCb2')
 
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+
 def poisson_asym_errors(y_points, avoid_errorbars_on_edges=True, blind=False, x_points=None):
 	# https://www.nikhef.nl/~ivov/Talks/2013_03_21_DESY_PoissonError.pdf option 4
 
@@ -1946,17 +1949,40 @@ class BDT_tester:
             masked_ratio = np.ma.masked_where(hist_no_cut[0] == 0, ratio)
 
 
-            # Plot the ratio
-            plt.figure()
-            plt.imshow(masked_ratio.T, origin='lower', extent=[hist_no_cut[1][0], hist_no_cut[1][-1], hist_no_cut[2][0], hist_no_cut[2][-1]], vmin=0, vmax=1)
-            plt.colorbar()
-            plt.xlabel(xlabel)
-            plt.ylabel(ylabel)
-            plt.title(title)
+            # # Plot the ratio
+            # plt.figure(figsize=(12,12))
+            # plt.imshow(masked_ratio.T, origin='lower', extent=[hist_no_cut[1][0], hist_no_cut[1][-1], hist_no_cut[2][0], hist_no_cut[2][-1]], vmin=0, vmax=1, aspect='auto')
+            # plt.colorbar()
+            # plt.xlabel(xlabel)
+            # plt.ylabel(ylabel)
+            # plt.title(title)
+            # pdf.savefig(bbox_inches="tight")
+            # plt.close()
+
+            # Set the fixed figure size (width, height) in inches
+            fig, ax = plt.subplots(figsize=(11, 9.5))
+
+            # Plot the image
+            im = ax.imshow(masked_ratio.T, origin='lower', extent=[hist_no_cut[1][0], hist_no_cut[1][-1], hist_no_cut[2][0], hist_no_cut[2][-1]], vmin=0, vmax=1, aspect='auto')
+
+            # Create a divider for the existing axes instance
+            divider = make_axes_locatable(ax)
+
+            # Append axes to the right of ax, with fixed width for the colorbar
+            cax = divider.append_axes("right", size="5%", pad=0.05)
+
+            # Create the colorbar
+            cbar = plt.colorbar(im, cax=cax)
+            cbar.ax.set_ylabel('Ratio')
+
+            # Set labels and title
+            ax.set_xlabel(xlabel)
+            ax.set_ylabel(ylabel)
+            ax.set_title(title)
+
+            # Save the figure
             pdf.savefig(bbox_inches="tight")
             plt.close()
-
-
 
    
 
