@@ -1,10 +1,10 @@
 yesPhotos
 
 Decay B+
-1.00	D0b	pi+	PHSP;
+1.00	anti-D0	pi+	PHSP;
 Enddecay
-Decay D0
-1.00	K+	e-	anti-nu_e	PHSP;
+Decay anti-D0
+1.00	K+	e-	anti-nu_e	ISGW2;
 Enddecay
 End
 

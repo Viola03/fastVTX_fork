@@ -293,7 +293,9 @@ DaVinci()
 # DaVinci().EvtMax = -1
 # DaVinci().PrintFreq = 1000
 # DaVinci().EvtMax = 200
-DaVinci().EvtMax = 25
+# DaVinci().EvtMax = 25
+# DaVinci().PrintFreq = 250
+DaVinci().EvtMax = -1
 DaVinci().PrintFreq = 250
 DaVinci().Simulation = IS_MC
 DaVinci().Lumi = not IS_MC
@@ -319,7 +321,8 @@ IOHelper().inputFiles(
         # "/eos/home-m/marshall/DL-Advocate2/Kee.dst"
         # "/eos/home-m/marshall/DL-Advocate2/00140982_00000034_7.AllStreams.dst"
         # "/afs/cern.ch/work/m/marshall/fast_vertexing_variables/davinci/00113947_00000003_7.AllStreams.dst"
-        "/afs/cern.ch/work/m/marshall/fast_vertexing_variables/davinci/Kee.dst"
+        # "/afs/cern.ch/work/m/marshall/fast_vertexing_variables/davinci/Kee.dst"
+        "/afs/cern.ch/work/m/marshall/fast_vertexing_variables/davinci/Kmumu.dst"
     ],
     clear=True,
 )
