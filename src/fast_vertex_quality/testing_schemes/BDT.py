@@ -2536,6 +2536,7 @@ class BDT_tester:
                 else:
                     plt.axvline(x=i, alpha=0.5, ls='--',c='k')
             plt.legend(frameon=False)
+            plt.ylabel("Cut Efficiency")
             pdf.savefig(bbox_inches="tight")
             plt.close()
             
@@ -2584,6 +2585,7 @@ class BDT_tester:
                 else:
                     plt.axvline(x=i, alpha=0.5, ls='--',c='k')
             plt.legend(frameon=False)
+            plt.ylabel("Cut Efficiency")
             pdf.savefig(bbox_inches="tight")
             plt.close()
 
@@ -2655,6 +2657,7 @@ class BDT_tester:
                 else:
                     plt.axvline(x=i, alpha=0.5, ls='--',c='k')
             plt.legend(frameon=False)
+            plt.ylabel("Cut Efficiency")
             pdf.savefig(bbox_inches="tight")
             plt.close()
 
@@ -2713,6 +2716,7 @@ class BDT_tester:
                 else:
                     plt.axvline(x=i, alpha=0.5, ls='--',c='k')
             plt.legend(frameon=False)
+            plt.ylabel("Cut Efficiency")
             pdf.savefig(bbox_inches="tight")
             plt.close()
 
@@ -2770,6 +2774,7 @@ class BDT_tester:
                 else:
                     plt.axvline(x=i, alpha=0.5, ls='--',c='k')
             plt.legend(frameon=False)
+            plt.ylabel("Cut Efficiency")
             pdf.savefig(bbox_inches="tight")
             plt.close()
 
