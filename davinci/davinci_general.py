@@ -54,46 +54,90 @@ for idx, combination in enumerate(unique_combinations):
     full_list_of_decays_string += "(B+ -> %s %s %s)"%(particle_dict[combination[0]],particle_dict[combination[1]],particle_dict[combination[2]])
 full_list_of_decays_string += "]CC" 
 
+stripping_line = "Bu2LLK_eeLine_Generalised"
+# config_electron = {
+#     "decayname": "B2Kee",
+#     # 'decay': "[B+ -> ^K+ ^mu+ ^mu-]CC",
+#     # 'branches': {
+#     #     "MOTHER": "[ B+ -> K+ mu+ mu-]CC",
+#     #     "DAUGHTER1": "[ B+ ->  ^K+ mu+ mu-]CC",
+#     #     "DAUGHTER2": "[B+ ->  K+ ^mu+ mu-]CC",
+#     #     "DAUGHTER3": "[B+ ->  K+ mu+ ^mu-]CC"},
 
-config_electron = {
-    "stripping_line": "Bu2LLK_eeLine2",
-    "decayname": "B2Kee",
-    # 'decay': "[B+ -> ^K+ ^mu+ ^mu-]CC",
-    # 'branches': {
-    #     "MOTHER": "[ B+ -> K+ mu+ mu-]CC",
-    #     "DAUGHTER1": "[ B+ ->  ^K+ mu+ mu-]CC",
-    #     "DAUGHTER2": "[B+ ->  K+ ^mu+ mu-]CC",
-    #     "DAUGHTER3": "[B+ ->  K+ mu+ ^mu-]CC"},
-
-    # 'decay': "[B+ -> ^K+ ^e+ ^e-]CC",
-    # 'branches': {
-    #     "MOTHER": "[ B+ -> K+ e+ e-]CC",
-    #     "DAUGHTER1": "[ B+ ->  ^K+ e+ e-]CC",
-    #     "DAUGHTER2": "[B+ ->  K+ ^e+ e-]CC",
-    #     "DAUGHTER3": "[B+ ->  K+ e+ ^e-]CC"},
+#     'decay': "[B+ -> ^K+ ^e+ ^e-]CC",
+#     'branches': {
+#         "MOTHER": "[ B+ -> K+ e+ e-]CC",
+#         "DAUGHTER1": "[ B+ ->  ^K+ e+ e-]CC",
+#         "DAUGHTER2": "[B+ ->  K+ ^e+ e-]CC",
+#         "DAUGHTER3": "[B+ ->  K+ e+ ^e-]CC"},
     
-    # 'decay': "[(B+ -> K+ e+ e-), (B- -> K+ mu+ mu-]",
-    # 'branches': {
-    #     "MOTHER": "[ B+ -> K+ e+ e-]CC",
-    #     "DAUGHTER1": "[ B+ ->  ^K+ e+ e-]CC",
-    #     "DAUGHTER2": "[B+ ->  K+ ^e+ e-]CC",
-    #     "DAUGHTER3": "[B+ ->  K+ e+ ^e-]CC"},
+#     # 'decay': "[(B+ -> K+ e+ e-), (B+ -> K+ mu+ mu-), (B+ -> K+ K+ K-), (B+ -> pi+ pi+ pi-)]",
+#     # 'branches': {
+#     #     "MOTHER": "[(B+ -> K+ e+ e-), (B+ -> K+ mu+ mu-), (B+ -> K+ K+ K-), (B+ -> pi+ pi+ pi-)]CC",
+#     #     "DAUGHTER1": "[(B+ -> ^K+ e+ e-), (B+ -> ^K+ mu+ mu-), (B+ -> ^K+ K+ K-), (B+ -> ^pi+ pi+ pi-)]CC",
+#     #     "DAUGHTER2": "[(B+ -> K+ ^e+ e-), (B+ -> K+ ^mu+ mu-), (B+ -> K+ ^K+ K-), (B+ -> pi+ ^pi+ pi-)]CC",
+#     #     "DAUGHTER3": "[(B+ -> K+ e+ ^e-), (B+ -> K+ mu+ ^mu-), (B+ -> K+ K+ ^K-), (B+ -> pi+ pi+ ^pi-)]CC"},
 
-    'decay': "[X+ -> ^X+ ^X+ ^X-]CC",
-    'branches': {
-        "MOTHER": "[ X+ -> X+ X+ X-]CC",
-        "DAUGHTER1": "[ X+ ->  ^X+ X+ X-]CC",
-        "DAUGHTER2": "[X+ ->  X+ ^X+ X-]CC",
-        "DAUGHTER3": "[X+ ->  X+ X+ ^X-]CC"},
+#     # 'decay': "[(B+ -> K+ e+ e-), (B+ -> K+ mu+ mu-), (B+ -> K+ K+ K-)]",
+#     # 'branches': {
+#     #     "MOTHER": "[ X+ -> X+ X+ X-]CC",
+#     #     "DAUGHTER1": "[ X+ ->  ^X+ X+ X-]CC",
+#     #     "DAUGHTER2": "[X+ ->  X+ ^X+ X-]CC",
+#     #     "DAUGHTER3": "[X+ ->  X+ X+ ^X-]CC"},
+
+#     # 'decay': "[X+ -> ^X+ ^X+ ^X-]CC",
+#     # 'branches': {
+#     #     "MOTHER": "[ X+ -> X+ X+ X-]CC",
+#     #     "DAUGHTER1": "[ X+ ->  ^X+ X+ X-]CC",
+#     #     "DAUGHTER2": "[X+ ->  X+ ^X+ X-]CC",
+#     #     "DAUGHTER3": "[X+ ->  X+ X+ ^X-]CC"},
      
-    # # 'decay': "[B+ -> ^pi+ ^pi+ ^pi-]CC",
-    # 'branches': {
-    #     "MOTHER": "[ B+ -> pi+ pi+ pi-]CC",
-    #     "DAUGHTER1": "[ B+ ->  ^pi+ pi+ pi-]CC",
-    #     "DAUGHTER2": "[B+ ->  pi+ ^pi+ pi-]CC",
-    #     "DAUGHTER3": "[B+ ->  pi+ pi+ ^pi-]CC"},
+#     # # 'decay': "[B+ -> ^pi+ ^pi+ ^pi-]CC",
+#     # 'branches': {
+#     #     "MOTHER": "[ B+ -> pi+ pi+ pi-]CC",
+#     #     "DAUGHTER1": "[ B+ ->  ^pi+ pi+ pi-]CC",
+#     #     "DAUGHTER2": "[B+ ->  pi+ ^pi+ pi-]CC",
+#     #     "DAUGHTER3": "[B+ ->  pi+ pi+ ^pi-]CC"},
 
-}
+# }
+
+config_electron = []
+config_electron.append({
+    "decayname": "B2Kee",
+    'decay': "[B+ -> ^K+ ^e+ ^e-]CC",
+    'branches': {
+        "MOTHER": "[ B+ -> K+ e+ e-]CC",
+        "DAUGHTER1": "[ B+ ->  ^K+ e+ e-]CC",
+        "DAUGHTER2": "[B+ ->  K+ ^e+ e-]CC",
+        "DAUGHTER3": "[B+ ->  K+ e+ ^e-]CC"},
+})
+config_electron.append({
+    "decayname": "B2Kmumu",
+    'decay': "[B+ -> ^K+ ^mu+ ^mu-]CC",
+    'branches': {
+        "MOTHER": "[ B+ -> K+ mu+ mu-]CC",
+        "DAUGHTER1": "[ B+ ->  ^K+ mu+ mu-]CC",
+        "DAUGHTER2": "[B+ ->  K+ ^mu+ mu-]CC",
+        "DAUGHTER3": "[B+ ->  K+ mu+ ^mu-]CC"},
+})
+config_electron.append({
+    "decayname": "B2KKK",
+    'decay': "[B+ -> ^K+ ^K+ ^K-]CC",
+    'branches': {
+        "MOTHER": "[ B+ -> K+ K+ K-]CC",
+        "DAUGHTER1": "[ B+ ->  ^K+ K+ K-]CC",
+        "DAUGHTER2": "[B+ ->  K+ ^K+ K-]CC",
+        "DAUGHTER3": "[B+ ->  K+ K+ ^K-]CC"},
+})
+config_electron.append({
+    "decayname": "B2pipipi",
+    'decay': "[B+ -> ^pi+ ^pi+ ^pi-]CC",
+    'branches': {
+        "MOTHER": "[ B+ -> pi+ pi+ pi-]CC",
+        "DAUGHTER1": "[ B+ ->  ^pi+ pi+ pi-]CC",
+        "DAUGHTER2": "[B+ ->  pi+ ^pi+ pi-]CC",
+        "DAUGHTER3": "[B+ ->  pi+ pi+ ^pi-]CC"},
+})
 
 
 # _Decays = ["[ B+ -> K+ e+ e- ]cc", "[ B+ -> K+ K+ K- ]cc"] 
@@ -111,7 +155,6 @@ from StrippingConf.Configuration import StrippingConf, StrippingStream
 __all__ = ("Bu2LLKConf", "default_config")
 
 default_config = {
-    "NAME": "Bu2LLK",
     "CONFIG": {
         "DaughterPT":250.0,
         "UpperMass": 99999.0,
@@ -159,6 +202,7 @@ class GeneralConf(LineBuilder):
         self._name = name
 
         eeXLine_name = name + "_ee"
+        # eeXLine_name = name
 
         from StandardParticles import StdLooseElectrons as Electrons
         from StandardParticles import StdLooseMuons as Muons
@@ -188,7 +232,8 @@ class GeneralConf(LineBuilder):
 
         
         SelB2eeXFromTracks = self._makeB2LLX(
-            eeXLine_name + "2",
+            eeXLine_name + "_Generalised",
+            # eeXLine_name,
             hadrons=[
                 SelElectrons,
                 SelMuons,
@@ -200,7 +245,8 @@ class GeneralConf(LineBuilder):
         )
 
         self.B2eeXFromTracksLine = StrippingLine(
-            eeXLine_name + "Line2",
+            eeXLine_name + "Line_Generalised",
+            # eeXLine_name + "Line",
             prescale=1,
             postscale=1,
             selection=SelB2eeXFromTracks,
@@ -297,19 +343,17 @@ stripping_config = default_config
 mod_stripping_config = stripping_config["CONFIG"]
 
 builder_name = "Bu2LLK"
+# builder_name = "B2XMuMu"
 # builder_name = "General"
 
 lb = builder(builder_name, mod_stripping_config)
 
 stream = StrippingStream("MyStream")
 
-cfg = config_electron
-
 for line in lb.lines():
     print(line.name())
-    if line.name() == "Stripping" + cfg["stripping_line"]:
+    if line.name() == "Stripping" + stripping_line:
         stream.appendLines([line])
-# quit()
 
 from Configurables import ProcStatusCheck
 
@@ -336,53 +380,56 @@ sc = StrippingConf(
 
 from Configurables import DecayTreeTuple
 
-tuple = DecayTreeTuple(cfg["decayname"] + "_Tuple")
+tuples = []
+for config_electron_i in config_electron:
+    tuples.append(DecayTreeTuple(config_electron_i["decayname"] + "_Tuple"))
 # tuple.Inputs = [path_to_look]
 
 
-# tuple.Inputs = ["Phys/StdAllLooseMuons/Particles", "Phys/StdAllLooseKaons/Particles", "Phys/StdLooseDiElectron/Particles"]
-# tuple.Inputs = ["Phys/StdAllLooseMuons/Particles", "Phys/StdAllLooseKaons/Particles", "Phys/StdLoosePions/Particles", "Phys/StdLooseElectrons/Particles"]
-# tuple.Inputs = ["pPhys/Particles"]
-# tuple.Inputs = ["Phys/B2XMuMu_Line/Particles", "Phys/Bu2LLK_eeLine2/Particles"]
+# tuple.Inputs = ["Phys/B2XMuMu_eeLine/Particles"]
 # tuple.Inputs = ["Phys/B2XMuMu_Line/Particles"]
-# tuple.Inputs = ["Phys/General_eeLine2/Particles"]
-tuple.Inputs = ["Phys/Bu2LLK_eeLine2/Particles"]
+for tuple in tuples:
+    tuple.Inputs = ["Phys/Bu2LLK_eeLine_Generalised/Particles"]
 
-tuple.Decay = cfg["decay"]
-
-tuple.addBranches(cfg["branches"])
-
-tuple.ToolList += [
-    "TupleToolAngles",
-    "TupleToolEventInfo",
-    "TupleToolPrimaries",
-    "TupleToolPropertime",
-    "TupleToolTrackInfo",
-    # "TupleToolBremInfo",
-    "TupleToolRecoStats",
-    # "TupleToolMuonPid",
-    "TupleToolMCBackgroundInfo",
-    # "TupleToolL0Data",
-    # "TupleToolANNPID",
-]
-
-tuple.ToolList += ["TupleToolMCTruth"]
-tuple.ToolList += ["MCTupleToolEventType"]
+for idx, config_electron_i in enumerate(config_electron):
+    tuples[idx].Decay = config_electron_i["decay"]
+    tuples[idx].addBranches(config_electron_i["branches"])
 
 from Configurables import TupleToolMCTruth
-mc_truth = TupleToolMCTruth()
-mc_truth.ToolList = ["MCTupleToolKinematic", "MCTupleToolHierarchy"]
-tuple.addTool(mc_truth)
-tuple.TupleToolMCTruth.Verbose = True
-
-# MCTupleToolHierarchyOtherTracks
-# https://gitlab.cern.ch:8443/lhcb/Analysis/-/merge_requests/707/diffs#diff-content-279d6abf536ade7c3044e046262dba6dd103778c
-
 from Configurables import TupleToolKinematic
 
-tuple.ToolList += ["TupleToolKinematic"]
-tuple.addTool(TupleToolKinematic, name="TupleToolKinematic")
-tuple.TupleToolKinematic.Verbose = True
+mc_truth = TupleToolMCTruth()
+mc_truth.ToolList = ["MCTupleToolKinematic", "MCTupleToolHierarchy"]
+
+for tuple in tuples:
+    tuple.ToolList += [
+        "TupleToolAngles",
+        "TupleToolEventInfo",
+        "TupleToolPrimaries",
+        "TupleToolPropertime",
+        "TupleToolTrackInfo",
+        # "TupleToolBremInfo",
+        "TupleToolRecoStats",
+        # "TupleToolMuonPid",
+        "TupleToolMCBackgroundInfo",
+        # "TupleToolL0Data",
+        # "TupleToolANNPID",
+    ]
+
+    tuple.ToolList += ["TupleToolMCTruth"]
+    tuple.ToolList += ["MCTupleToolEventType"]
+
+
+    tuple.addTool(mc_truth)
+    tuple.TupleToolMCTruth.Verbose = True
+
+    # MCTupleToolHierarchyOtherTracks
+    # https://gitlab.cern.ch:8443/lhcb/Analysis/-/merge_requests/707/diffs#diff-content-279d6abf536ade7c3044e046262dba6dd103778c
+
+
+    tuple.ToolList += ["TupleToolKinematic"]
+    tuple.addTool(TupleToolKinematic, name="TupleToolKinematic")
+    tuple.TupleToolKinematic.Verbose = True
 
 
 from Configurables import DaVinci
@@ -405,7 +452,8 @@ DaVinci().Lumi = not IS_MC
 if IS_MC:
     DaVinci().appendToMainSequence([eventNodeKiller])
     DaVinci().appendToMainSequence([sc.sequence()])
-DaVinci().UserAlgorithms = [tuple]
+# DaVinci().UserAlgorithms = [tuple]
+DaVinci().UserAlgorithms = tuples
 DaVinci().VerboseMessages = True
 if year != "2018":
     DaVinci().DataType = year
@@ -424,8 +472,8 @@ IOHelper().inputFiles(
         # "/eos/home-m/marshall/DL-Advocate2/Kee.dst"
         # "/eos/home-m/marshall/DL-Advocate2/00140982_00000034_7.AllStreams.dst"
         # "/afs/cern.ch/work/m/marshall/fast_vertexing_variables/davinci/00113947_00000003_7.AllStreams.dst"
-        # "/afs/cern.ch/work/m/marshall/fast_vertexing_variables/davinci/Kee.dst"
-        "/afs/cern.ch/work/m/marshall/fast_vertexing_variables/davinci/Kmumu.dst"
+        "/afs/cern.ch/work/m/marshall/fast_vertexing_variables/davinci/Kee.dst"
+        # "/afs/cern.ch/work/m/marshall/fast_vertexing_variables/davinci/Kmumu.dst"
     ],
     clear=True,
 )
