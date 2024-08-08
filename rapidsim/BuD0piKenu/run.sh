@@ -1,1 +1,1 @@
-$RAPIDSIM_ROOT/build/src/RapidSim.exe BuD0piKenu 25000 1
+$RAPIDSIM_ROOT/build/src/RapidSim.exe BuD0piKenu 2500000 1

@@ -59,7 +59,8 @@ for job_name, path_dict in job_setting.items():
     # myApp.platform = "x86_64-slc6-gcc62-opt"
     myApp.platform = "x86_64+avx2+fma-centos7-gcc62-opt"
     # myApp.options = ["./davinci_intermediates.py", "./print_something.py"]
-    myApp.options = ["./davinci_intermediates.py"]
+    # myApp.options = ["./davinci_intermediates.py"]
+    myApp.options = ["./davinci_intermediates_MUON.py"]
 
     bck = Dirac()
     # bck = Condor()
@@ -69,7 +70,7 @@ for job_name, path_dict in job_setting.items():
     splitter = SplitByFiles()
     splitter.ignoremissing = True
     splitter.maxFiles = -1
-    splitter.filesPerJob = 3
+    splitter.filesPerJob = 1
 
     job = Job(name=job_name, comment=job_name, backend=bck, splitter=splitter)
     Year = (
@@ -100,9 +101,9 @@ for job_name, path_dict in job_setting.items():
     )
 
     print("Create job for thee jobs: ", job.name)
-    job.inputdata  = dataset
+    # job.inputdata  = dataset
     # job.inputdata = [dataset[0]]
-    # job.inputdata = dataset[:5]
+    job.inputdata = dataset[:100]
 
     # This throws the files on the grid personall space
     job.outputfiles = [
