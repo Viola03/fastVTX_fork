@@ -21,7 +21,7 @@ ganga gangaSubmit_mix.py
 ```
 to submit a mix. The file `targets.pkl` (created by `search_simulationCondition.py`) contains a list of addresses for various MC from the bookkeeping.
 
-The above `ganga` scripts submit the `DaVinci` script `davinci_intermediates.py`.
+The above `ganga` scripts submit the `DaVinci` script `davinci_intermediates.py`. UPDATE, script is now `davinci_general_mcmatch.py`
 
 This script contains the conditions to run the unbiased (all PID and stripping cuts removed) three-body reconstruction. The important line in this script is
 ```
@@ -33,6 +33,7 @@ These `ganga` jobs will output small `*.root` files in their respective `ganga` 
 
 ### Processing data files
 
+UPDATE, output from `davinci_general_mcmatch.py` can be manipulated with `davinci/collapse_individual_tuples.py`
 In `/davinci` run:
 ```
 python cut_hierarchy.py
