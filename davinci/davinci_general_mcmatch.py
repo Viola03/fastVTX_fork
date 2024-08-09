@@ -100,6 +100,7 @@ from StrippingUtils.Utils import LineBuilder
 ###############################################################################################################################################################
 ###############################################################################################################################################################
 ###############################################################################################################################################################
+# make new stripping line with mcMATCH for each decay string
 
 class GeneralConf(LineBuilder):
     """
@@ -134,20 +135,37 @@ class GeneralConf(LineBuilder):
         # from StandardParticles import StdAllNoPIDsPions as Pions
         # from StandardParticles import StdAllNoPIDsKaons as Kaons
 
+        
+        # SelElectrons = self._filterHadron(
+        #     name="ElectronsFor" + self._name, sel=Electrons, params=config, mcMatch="& (((mcMatch('e+')) | (mcMatch('e-')))"
+        # )
+
+        # SelMuons = self._filterHadron(
+        #     name="MuonsFor" + self._name, sel=Muons, params=config, mcMatch="& (((mcMatch('mu+')) | (mcMatch('mu-')))"
+        # )
+
+        # SelKaons = self._filterHadron(
+        #     name="KaonsFor" + self._name, sel=Kaons, params=config, mcMatch="& (((mcMatch('K+')) | (mcMatch('K-')))"
+        # )
+
+        # SelPions = self._filterHadron(
+        #     name="PionsFor" + self._name, sel=Pions, params=config, mcMatch="& (((mcMatch('pi+')) | (mcMatch('pi-')))"
+        # )
+
         SelElectrons = self._filterHadron(
-            name="ElectronsFor" + self._name, sel=Electrons, params=config
+            name="ElectronsFor" + self._name, sel=Electrons, params=config, mcMatch="e"
         )
 
         SelMuons = self._filterHadron(
-            name="MuonsFor" + self._name, sel=Muons, params=config
+            name="MuonsFor" + self._name, sel=Muons, params=config, mcMatch="mu"
         )
 
         SelKaons = self._filterHadron(
-            name="KaonsFor" + self._name, sel=Kaons, params=config
+            name="KaonsFor" + self._name, sel=Kaons, params=config, mcMatch="K"
         )
 
         SelPions = self._filterHadron(
-            name="PionsFor" + self._name, sel=Pions, params=config
+            name="PionsFor" + self._name, sel=Pions, params=config, mcMatch="pi"
         )
 
         
@@ -178,15 +196,24 @@ class GeneralConf(LineBuilder):
 
 
     #####################################################
-    def _filterHadron(self, name, sel, params):
+    def _filterHadron(self, name, sel, params, mcMatch=''):
         """
         Filter for all hadronic final states
         """
-        _Code = (
-            "(PT > %(DaughterPT)s *MeV)" % params
-        )
+        if mcMatch != '':
+            params["mcMatch"] = mcMatch
+            _Code = (
+                "(PT > %(DaughterPT)s *MeV)"
+                " & (mcMatch('%(mcMatch)s+') | mcMatch('%(mcMatch)s-'))" % params
+            )
+        
+        else:
+            _Code = (
+                "(PT > %(DaughterPT)s *MeV)" % params
+            )
 
-        _Filter = FilterDesktop(Code=_Code)
+
+        _Filter = FilterDesktop(Preambulo = ["from LoKiPhysMC.decorators import *","from LoKiPhysMC.functions import mcMatch"], Code=_Code)
 
         return Selection(name, Algorithm=_Filter, RequiredSelections=[sel])
 
