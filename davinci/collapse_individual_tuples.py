@@ -93,9 +93,9 @@ def trim_file_DecayTree(filename):
     newfile.Close()
 
 
-def trim_file_directory_structure(filename):
+def trim_file_directory_structure(filename_in, filename_out):
     # Open the old file
-    oldfile = ROOT.TFile(filename, "READ")
+    oldfile = ROOT.TFile(filename_in, "READ")
 
     oldtrees = []
 
@@ -109,7 +109,7 @@ def trim_file_directory_structure(filename):
         oldtrees.append((dir_name, oldtree))
 
     # Create a new file and clone the old tree into the new file
-    newfile = ROOT.TFile("small.root", "RECREATE")
+    newfile = ROOT.TFile(filename_out, "RECREATE")
 
     # Clone the trees into the new file, preserving the directory structure
     for dir_name, oldtree in oldtrees:
@@ -146,7 +146,7 @@ def merge_directory_structure(inname, outname):
 
 # trim_file_DecayTree("MergeTest.root")
 
-# trim_file_directory_structure("cocktail_general_MC_hierachy.root")
-merge_directory_structure("small.root", "sample.root")
+trim_file_directory_structure("DVntuple.root", "DVntuple_trimmed.root")
+merge_directory_structure("DVntuple_trimmed.root", "DVntuple_merged_B.root")
 
 

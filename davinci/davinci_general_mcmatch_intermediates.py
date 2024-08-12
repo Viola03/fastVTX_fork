@@ -22,9 +22,7 @@ from Configurables import DaVinci
 
 import numpy as np
 
-stripping_line = "Bu2LLK_eeLine_Generalised"
-
-
+'''
 negative_particles = [11, 13, -211, -321]
 positive_particles = [-11, -13, 211, 321]
 particle_dict = {
@@ -48,10 +46,6 @@ full_list_of_decays = []
 for idx, combination in enumerate(unique_combinations):
     full_list_of_decays.append("[ B+ -> %s %s %s ]cc"%(particle_dict[combination[0]],particle_dict[combination[1]],particle_dict[combination[2]]))
 
-
-
-
-
 config_electron = []
 
 for idx, combination in enumerate(unique_combinations):
@@ -65,9 +59,49 @@ for idx, combination in enumerate(unique_combinations):
             "DAUGHTER2": "[B+ ->  %s ^%s %s]CC"%(particle_dict[combination[0]],particle_dict[combination[1]],particle_dict[combination[2]]),
             "DAUGHTER3": "[B+ ->  %s %s ^%s]CC"%(particle_dict[combination[0]],particle_dict[combination[1]],particle_dict[combination[2]])},
     })
+'''
+
+
+negative_particles = [11, 13, -211, -321]
+positive_particles = [-11, -13, 211, 321]
+particle_dict = {
+11:"e-", -11:"e+",
+13:"mu-", -13:"mu+",
+-211:"pi-", 211:"pi+",
+-321:"K-", 321:"K+",
+}
+combinations = np.empty((0,3))
+for p1 in positive_particles:
+    for p2 in positive_particles:
+        for n1 in negative_particles:
+            combinations = np.append(combinations, [[p1,p2,n1]], axis=0)
+
+# combinations = [[321, -11, 11]]
+# combinations = [[211, 211, -211],[321, -11, 11]]
+
+full_list_of_decays = []
+for idx, combination in enumerate(combinations):
+    full_list_of_decays.append("[ B+ -> %s %s %s ]cc"%(particle_dict[combination[0]],particle_dict[combination[1]],particle_dict[combination[2]]))
+    full_list_of_decays.append("[ B+ -> %s J/psi(1S) ]cc"%(particle_dict[combination[0]]))
+
+config_electron = []
+
+for idx, combination in enumerate(combinations):
+
+    config_electron.append({
+        "decayname": "B_%sJpsi(%s%s)"%(particle_dict[combination[0]],particle_dict[combination[1]],particle_dict[combination[2]]),
+
+        'decay': "[B+ -> ^(J/psi(1S)->^%s ^%s) ^%s]CC"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
+        'branches': {
+            "MOTHER": "[ B+ -> (J/psi(1S)->%s %s)  %s]CC"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
+            "DAUGHTER1": "[ B+ -> (J/psi(1S)->%s %s) ^%s]CC"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
+            "DAUGHTER2": "[(B+ -> (J/psi(1S)->%s ^%s) %s), (B- -> (J/psi(1S)->^%s %s) %s)]"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]],particle_dict[combination[2]],particle_dict[combination[1]],particle_dict[combination[0]]),
+            "DAUGHTER3": "[(B+ -> (J/psi(1S)->^%s %s) %s), (B- -> (J/psi(1S)->%s ^%s) %s)]"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]],particle_dict[combination[2]],particle_dict[combination[1]],particle_dict[combination[0]]),
+            "INTERMEDIATE": "[ B+ -> ^(J/psi(1S)->%s %s) %s]CC"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]])},
+        'intermediate_daughters':[particle_dict[combination[1]],particle_dict[combination[2]]],
+    })
 
 from StrippingConf.Configuration import StrippingConf, StrippingStream
-
 
 __all__ = ("Bu2LLKConf", "default_config")
 
@@ -102,6 +136,28 @@ from StrippingUtils.Utils import LineBuilder
 ###############################################################################################################################################################
 # make new stripping line with mcMATCH for each decay string
 
+from Gaudi.Configuration import *
+from Configurables import CombineParticles
+from CommonParticles.Utils import *
+import GaudiKernel.SystemOfUnits as Units
+from Configurables            import DataOnDemandSvc
+
+_particles = {}
+
+def updateDoD ( alg , hat = 'Phys/' ) :
+    """
+    Update Data-On-Demand service
+    """
+    _parts = { hat+alg.name()+'/Particles' : alg } 
+    _particles.update ( _parts ) 
+    
+    dod = DataOnDemandSvc()
+    dod.AlgMap.update(
+        { hat + alg.name() + '/Particles' : alg.getFullName() }
+        )
+    return _parts 
+    
+
 class GeneralConf(LineBuilder):
     """
     Builder for R_X measurements
@@ -117,23 +173,17 @@ class GeneralConf(LineBuilder):
         "DiLeptonPT",
     )
 
-    def __init__(self, name, config):
+    def __init__(self, name, config, intermediate_daughters):
         LineBuilder.__init__(self, name, config)
 
         self._name = name
 
         eeXLine_name = name + "_ee"
-        # eeXLine_name = name
 
         from StandardParticles import StdLooseElectrons as Electrons
         from StandardParticles import StdLooseMuons as Muons
         from StandardParticles import StdLoosePions as Pions
         from StandardParticles import StdLooseKaons as Kaons
-
-        # from StandardParticles import StdAllNoPIDsElectrons as Electrons
-        # from StandardParticles import StdAllNoPIDsMuons as Muons
-        # from StandardParticles import StdAllNoPIDsPions as Pions
-        # from StandardParticles import StdAllNoPIDsKaons as Kaons
 
         SelElectrons = self._filterHadron(
             name="ElectronsFor" + self._name, sel=Electrons, params=config, mcMatch="e"
@@ -151,10 +201,38 @@ class GeneralConf(LineBuilder):
             name="PionsFor" + self._name, sel=Pions, params=config, mcMatch="pi"
         )
 
+        from Configurables import CombineParticles
+
+        _CombineParticles = CombineParticles(
+            "StdLooseIntermediate"+self._name,
+            DecayDescriptor='[J/psi(1S) -> %s %s]cc'%(intermediate_daughters[0], intermediate_daughters[1]),
+            CombinationCut="(ADOCACHI2CUT(99999, ''))",
+            MotherCut="(VFASPF(VCHI2) < 99999)"        
+            )   
+        RequiredSelections_list = []
+        if 'e+' in intermediate_daughters or 'e-' in intermediate_daughters:
+            RequiredSelections_list.append(SelElectrons)
+        if 'mu+' in intermediate_daughters or 'mu-' in intermediate_daughters:
+            RequiredSelections_list.append(SelMuons)
+        if 'K+' in intermediate_daughters or 'K-' in intermediate_daughters:
+            RequiredSelections_list.append(SelKaons)
+        if 'pi+' in intermediate_daughters or 'pi-' in intermediate_daughters:
+            RequiredSelections_list.append(SelPions)
+
+        intermediate_combinations = Selection(
+            'Sel_StdLooseIntermediate'+self._name,
+            Algorithm=_CombineParticles,
+            # RequiredSelections=[SelElectrons, SelMuons, SelKaons, SelPions]
+            # RequiredSelections=[SelElectrons]
+            RequiredSelections=RequiredSelections_list
+        )
+
         
+
+
         SelB2eeXFromTracks = self._makeB2LLX(
             eeXLine_name + "_Generalised",
-            # eeXLine_name,
+            intermediate_combinations,
             hadrons=[
                 SelElectrons,
                 SelMuons,
@@ -167,7 +245,6 @@ class GeneralConf(LineBuilder):
 
         self.B2eeXFromTracksLine = StrippingLine(
             eeXLine_name + "Line_Generalised",
-            # eeXLine_name + "Line",
             prescale=1,
             postscale=1,
             selection=SelB2eeXFromTracks,
@@ -200,25 +277,10 @@ class GeneralConf(LineBuilder):
 
         return Selection(name, Algorithm=_Filter, RequiredSelections=[sel])
 
-    
-    # #####################################################
-    # def _filterDiLepton( self, name, dilepton, params ) :
-    #     """
-    #     Handy interface for dilepton filter
-    #     """
-
-    #     _Code = (
-    #         "(PT > %(DiLeptonPT)s *MeV)" % params
-    #     )
-
-    #     _Filter = FilterDesktop( Code = _Code )
-
-    #     return Selection(name, Algorithm = _Filter, RequiredSelections = [ dilepton ] )
-
 
     #####################################################
     def _makeB2LLX(
-        self, name, hadrons, params, masscut
+        self, name, intermediates, hadrons, params, masscut
     ):
         """
         CombineParticles / Selection for the B
@@ -227,18 +289,11 @@ class GeneralConf(LineBuilder):
         _Decays = full_list_of_decays
         
         _Cut = (
-            "((VFASPF(VCHI2/VDOF) < %(BVertexCHI2)s) "
-            "& (BPVIPCHI2() < %(BIPCHI2)s) "
-            "& (BPVDIRA > %(BDIRA)s) "
-            # "& (ABSID > 0) "
-            "& ((mcMatch('B+')) | (mcMatch('B-')) | (mcMatch('B0')) | (mcMatch('B~0')) | (mcMatch('B_s0')) | (mcMatch('B_s~0'))  | (mcMatch('B_c+')) | (mcMatch('B_c-')))"
-            "& (BPVVDCHI2 > %(BFlightCHI2)s))" % params
+            "((mcMatch('B+')) | (mcMatch('B-')) | (mcMatch('B0')) | (mcMatch('B~0')) | (mcMatch('B_s0')) | (mcMatch('B_s~0'))  | (mcMatch('B_c+')) | (mcMatch('B_c-')))"
         )
-        # _Cut = (
-        #     "((mcMatch('B+')) | (mcMatch('B-')) | (mcMatch('B0')) | (mcMatch('B~0')) | (mcMatch('B_s0')) | (mcMatch('B_s~0'))  | (mcMatch('B_c+')) | (mcMatch('B_c-')))"
-        # )
 
         _Combine = CombineParticles(
+            'Generalised_combine_Particles',
             Preambulo = ["from LoKiPhysMC.decorators import *","from LoKiPhysMC.functions import mcMatch"],
             DecayDescriptors=_Decays, CombinationCut=masscut, MotherCut=_Cut
         )
@@ -246,51 +301,53 @@ class GeneralConf(LineBuilder):
         _Merge = MergedSelection("Merge" + name, RequiredSelections=hadrons)
 
         return Selection(
-            name, Algorithm=_Combine, RequiredSelections=[_Merge]
+            name, Algorithm=_Combine, RequiredSelections=[intermediates, _Merge]
         )
 
 ###############################################################################################################################################################
 ###############################################################################################################################################################
 ###############################################################################################################################################################
 
-
-builder = GeneralConf
-stripping_config = default_config
-
-mod_stripping_config = stripping_config["CONFIG"]
-
-builder_name = "Bu2LLK"
-# builder_name = "B2XMuMu"
-# builder_name = "General"
-
-lb = builder(builder_name, mod_stripping_config)
-
-stream = StrippingStream("MyStream")
-
-for line in lb.lines():
-    print(line.name())
-    if line.name() == "Stripping" + stripping_line:
-        stream.appendLines([line])
-
 from Configurables import ProcStatusCheck
 
-bad_events_filter = ProcStatusCheck()
-
-sc = StrippingConf(
-    Streams=[stream],
-    MaxCandidates=4000,
-    AcceptBadEvents=False,
-    BadEventSelection=bad_events_filter,
-)
 
 from Configurables import DecayTreeTuple
 
 tuples = []
+sc = []
 for config_electron_i in config_electron:
-    tuples.append(DecayTreeTuple(config_electron_i["decayname"] + "_Tuple"))
+    name = config_electron_i["decayname"]
+    tuple_i = DecayTreeTuple(name + "_Tuple")
+    print('\n\n\n')
+    print(name, config_electron_i["intermediate_daughters"])
+    mod_stripping_config = default_config["CONFIG"]
+    builder_name = "Bu2LLK_%s"%name
+    try:
+        del mod_stripping_config['mcMatch']
+    except:
+        pass
+    lb = GeneralConf(builder_name, mod_stripping_config, intermediate_daughters = config_electron_i["intermediate_daughters"])
+    stream = StrippingStream("MyStream_%s"%name)
 
-for tuple in tuples:
-    tuple.Inputs = ["Phys/Bu2LLK_eeLine_Generalised/Particles"]
+    stripping_line = 'Bu2LLK_%s_eeLine_Generalised'%name
+    for line in lb.lines():
+        if line.name() == "Stripping" + stripping_line:
+            stream.appendLines([line])
+    bad_events_filter = ProcStatusCheck()
+    sc_i = StrippingConf(
+        name='Conf_%s'%name,
+        Streams=[stream],
+        MaxCandidates=4000,
+        AcceptBadEvents=False,
+        BadEventSelection=bad_events_filter,
+    )
+    sc.append(sc_i)
+
+    tuple_i.Inputs = ["Phys/%s/Particles"%stripping_line]
+    tuples.append(tuple_i)
+
+# for tuple in tuples:
+#     tuple.Inputs = ["Phys/Bu2LLK_eeLine_Generalised/Particles"]
 
 for idx, config_electron_i in enumerate(config_electron):
     tuples[idx].Decay = config_electron_i["decay"]
@@ -349,7 +406,11 @@ DaVinci().Simulation = IS_MC
 DaVinci().Lumi = not IS_MC
 if IS_MC:
     DaVinci().appendToMainSequence([eventNodeKiller])
-    DaVinci().appendToMainSequence([sc.sequence()])
+    list_to_appendToMainSequence = []
+    for sc_i in sc:
+        list_to_appendToMainSequence.append(sc_i.sequence())
+        # DaVinci().appendToMainSequence([sc_i.sequence()])
+    DaVinci().appendToMainSequence(list_to_appendToMainSequence)
 # DaVinci().UserAlgorithms = [tuple]
 DaVinci().UserAlgorithms = tuples
 DaVinci().VerboseMessages = True

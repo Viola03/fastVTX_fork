@@ -77,7 +77,8 @@ extend = False
 # filesPerJob = 5
 # nfiles_per_event_typs = 150
 # filesPerJob = 5
-nfiles_per_event_typs = 10
+# nfiles_per_event_typs = 10
+nfiles_per_event_typs = 2
 filesPerJob = 5
 
 # print(len(list(LFNs.keys())))
