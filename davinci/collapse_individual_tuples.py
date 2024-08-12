@@ -2,6 +2,8 @@
 
 import ROOT
 from ROOT import TFile, TTree, TList
+import glob
+import os
 
 branches_to_keep = [
     'MOTHER_DIRA_OWNPV', 'MOTHER_ENDVERTEX_CHI2', 'MOTHER_ENDVERTEX_NDOF', 'MOTHER_ENDVERTEX_X', 'MOTHER_ENDVERTEX_Y', 'MOTHER_ENDVERTEX_Z',
@@ -146,7 +148,18 @@ def merge_directory_structure(inname, outname):
 
 # trim_file_DecayTree("MergeTest.root")
 
-trim_file_directory_structure("DVntuple.root", "DVntuple_trimmed.root")
-merge_directory_structure("DVntuple_trimmed.root", "DVntuple_merged_B.root")
+
+file_list = glob.glob("/afs/cern.ch/work/m/marshall/gangadir/workspace/marshall/LocalXML/2001/*/output/DTT_*.root")
+
+
+for file_idx, file in enumerate(file_list):
+
+    print('\n',file_idx,'/',len(file_list),file)
+    file_trimmed = file[:-5]+'_trimmed.root'
+    file_merged = file[:-5]+'_merged.root'
+
+    trim_file_directory_structure(file, file_trimmed)
+    merge_directory_structure(file_trimmed, file_merged)
+    os.remove(file_trimmed)
 
 

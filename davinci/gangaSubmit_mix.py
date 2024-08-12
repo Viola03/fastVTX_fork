@@ -79,7 +79,7 @@ extend = False
 # filesPerJob = 5
 # nfiles_per_event_typs = 10
 nfiles_per_event_typs = 2
-filesPerJob = 5
+filesPerJob = 2
 
 # print(len(list(LFNs.keys())))
 # quit()
@@ -139,7 +139,8 @@ myApp.platform = "x86_64+avx2+fma-centos7-gcc62-opt"
 # myApp.options = ["./davinci_intermediates.py", "./print_something.py"]
 # myApp.options = ["./print_something.py", "./davinci_intermediates.py"]
 # myApp.options = ["./davinci_intermediates.py"]
-myApp.options = ["./davinci_general_mcmatch.py"]
+# myApp.options = ["./davinci_general_mcmatch.py"]
+myApp.options = ["./davinci_general_mcmatch_intermediates.py"]
 
 bck = Dirac()
 # bck = Condor()
