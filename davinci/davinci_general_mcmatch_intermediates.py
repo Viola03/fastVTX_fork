@@ -75,30 +75,69 @@ for p1 in positive_particles:
     for p2 in positive_particles:
         for n1 in negative_particles:
             combinations = np.append(combinations, [[p1,p2,n1]], axis=0)
+            combinations = np.append(combinations, [[-1*p1,-1*p2,-1*n1]], axis=0)
 
 # combinations = [[321, -11, 11]]
 # combinations = [[211, 211, -211],[321, -11, 11]]
 
+# sorted_combinations = np.sort(combinations, axis=1)
+# unique_combinations = np.unique(sorted_combinations, axis=0)
+
+
 full_list_of_decays = []
 for idx, combination in enumerate(combinations):
-    full_list_of_decays.append("[ B+ -> %s %s %s ]cc"%(particle_dict[combination[0]],particle_dict[combination[1]],particle_dict[combination[2]]))
-    full_list_of_decays.append("[ B+ -> %s J/psi(1S) ]cc"%(particle_dict[combination[0]]))
+    # full_list_of_decays.append("[ B+ -> %s %s %s ]cc"%(particle_dict[combination[0]],particle_dict[combination[1]],particle_dict[combination[2]]))
+    # full_list_of_decays.append("[ B+ -> %s J/psi(1S) ]cc"%(particle_dict[combination[0]]))
+    # full_list_of_decays.append("B+ -> %s %s %s"%(particle_dict[combination[0]],particle_dict[combination[1]],particle_dict[combination[2]]))
+    # full_list_of_decays.append("B+ -> %s J/psi(1S)"%(particle_dict[combination[0]]))
+
+    full_list_of_decays.append(
+    ["B+ -> %s %s %s"%(particle_dict[combination[0]],particle_dict[combination[1]],particle_dict[combination[2]]),
+                   "B+ -> %s J/psi(1S)"%(particle_dict[combination[0]])])
+    
 
 config_electron = []
 
 for idx, combination in enumerate(combinations):
 
+    # config_electron.append({
+    #     "decayname": "B_%sJpsi(%s%s)"%(particle_dict[combination[0]],particle_dict[combination[1]],particle_dict[combination[2]]),
+
+    #     'decay': "[B+ -> ^(J/psi(1S)->^%s ^%s) ^%s]CC"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
+    #     'branches': {
+    #         "MOTHER": "[ B+ -> (J/psi(1S)->%s %s)  %s]CC"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
+    #         "DAUGHTER1": "[ B+ -> (J/psi(1S)->%s %s) ^%s]CC"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
+    #         "DAUGHTER2": "[(B+ -> (J/psi(1S)->%s ^%s) %s), (B- -> (J/psi(1S)->^%s %s) %s)]"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]],particle_dict[combination[2]],particle_dict[combination[1]],particle_dict[combination[0]]),
+    #         "DAUGHTER3": "[(B+ -> (J/psi(1S)->^%s %s) %s), (B- -> (J/psi(1S)->%s ^%s) %s)]"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]],particle_dict[combination[2]],particle_dict[combination[1]],particle_dict[combination[0]]),
+    #         "INTERMEDIATE": "[ B+ -> ^(J/psi(1S)->%s %s) %s]CC"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]])},
+    #     'intermediate_daughters':[particle_dict[combination[1]],particle_dict[combination[2]]],
+    # })
+
+    # config_electron.append({
+    #     "decayname": "B_%sJpsi(%s%s)"%(particle_dict[combination[0]],particle_dict[combination[1]],particle_dict[combination[2]]),
+
+    #     'decay': "B+ -> ^(J/psi(1S)->^%s ^%s) ^%s"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
+    #     'branches': {
+    #         "MOTHER": "B+ -> (J/psi(1S)->%s %s)  %s"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
+    #         "DAUGHTER1": "B+ -> (J/psi(1S)->%s %s) ^%s"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
+    #         "DAUGHTER2": "B+ -> (J/psi(1S)->%s ^%s) %s"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
+    #         "DAUGHTER3": "B+ -> (J/psi(1S)->^%s %s) %s"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
+    #         "INTERMEDIATE": "B+ -> ^(J/psi(1S)->%s %s) %s"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]])},
+    #     'intermediate_daughters':[particle_dict[combination[1]],particle_dict[combination[2]]],
+    # })
+
     config_electron.append({
         "decayname": "B_%sJpsi(%s%s)"%(particle_dict[combination[0]],particle_dict[combination[1]],particle_dict[combination[2]]),
 
-        'decay': "[B+ -> ^(J/psi(1S)->^%s ^%s) ^%s]CC"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
+        'decay': "B+ ->  ^%s ^%s ^%s"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
         'branches': {
-            "MOTHER": "[ B+ -> (J/psi(1S)->%s %s)  %s]CC"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
-            "DAUGHTER1": "[ B+ -> (J/psi(1S)->%s %s) ^%s]CC"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
-            "DAUGHTER2": "[(B+ -> (J/psi(1S)->%s ^%s) %s), (B- -> (J/psi(1S)->^%s %s) %s)]"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]],particle_dict[combination[2]],particle_dict[combination[1]],particle_dict[combination[0]]),
-            "DAUGHTER3": "[(B+ -> (J/psi(1S)->^%s %s) %s), (B- -> (J/psi(1S)->%s ^%s) %s)]"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]],particle_dict[combination[2]],particle_dict[combination[1]],particle_dict[combination[0]]),
-            "INTERMEDIATE": "[ B+ -> ^(J/psi(1S)->%s %s) %s]CC"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]])},
+            "MOTHER": "B+ -> %s %s  %s"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
+            "DAUGHTER1": "B+ -> %s %s ^%s"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
+            "DAUGHTER2": "B+ -> %s ^%s %s"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
+            "DAUGHTER3": "B+ -> ^%s %s %s"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]])},
+            # "INTERMEDIATE": "B+ ->  %s %s %s"%(particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]])},
         'intermediate_daughters':[particle_dict[combination[1]],particle_dict[combination[2]]],
+        'full_list_of_decays_i':full_list_of_decays[idx],
     })
 
 from StrippingConf.Configuration import StrippingConf, StrippingStream
@@ -173,7 +212,7 @@ class GeneralConf(LineBuilder):
         "DiLeptonPT",
     )
 
-    def __init__(self, name, config, intermediate_daughters):
+    def __init__(self, name, config, intermediate_daughters, full_list_of_decays_i):
         LineBuilder.__init__(self, name, config)
 
         self._name = name
@@ -205,7 +244,8 @@ class GeneralConf(LineBuilder):
 
         _CombineParticles = CombineParticles(
             "StdLooseIntermediate"+self._name,
-            DecayDescriptor='[J/psi(1S) -> %s %s]cc'%(intermediate_daughters[0], intermediate_daughters[1]),
+            # DecayDescriptor='[J/psi(1S) -> %s %s]cc'%(intermediate_daughters[0], intermediate_daughters[1]),
+            DecayDescriptor='J/psi(1S) -> %s %s'%(intermediate_daughters[0], intermediate_daughters[1]),
             CombinationCut="(ADOCACHI2CUT(99999, ''))",
             MotherCut="(VFASPF(VCHI2) < 99999)"        
             )   
@@ -239,6 +279,7 @@ class GeneralConf(LineBuilder):
                 SelPions,
                 SelKaons,
             ],
+            full_list_of_decays_i=full_list_of_decays_i,
             params=config,
             masscut="ADAMASS('B+') <  %(BMassWindow)s *MeV" % config,
         )
@@ -280,13 +321,13 @@ class GeneralConf(LineBuilder):
 
     #####################################################
     def _makeB2LLX(
-        self, name, intermediates, hadrons, params, masscut
+        self, name, intermediates, hadrons, full_list_of_decays_i, params, masscut
     ):
         """
         CombineParticles / Selection for the B
         """
 
-        _Decays = full_list_of_decays
+        _Decays = full_list_of_decays_i
         
         _Cut = (
             "((mcMatch('B+')) | (mcMatch('B-')) | (mcMatch('B0')) | (mcMatch('B~0')) | (mcMatch('B_s0')) | (mcMatch('B_s~0'))  | (mcMatch('B_c+')) | (mcMatch('B_c-')))"
@@ -301,7 +342,8 @@ class GeneralConf(LineBuilder):
         _Merge = MergedSelection("Merge" + name, RequiredSelections=hadrons)
 
         return Selection(
-            name, Algorithm=_Combine, RequiredSelections=[intermediates, _Merge]
+            # name, Algorithm=_Combine, RequiredSelections=[intermediates, _Merge]
+            name, Algorithm=_Combine, RequiredSelections=[_Merge]
         )
 
 ###############################################################################################################################################################
@@ -326,7 +368,7 @@ for config_electron_i in config_electron:
         del mod_stripping_config['mcMatch']
     except:
         pass
-    lb = GeneralConf(builder_name, mod_stripping_config, intermediate_daughters = config_electron_i["intermediate_daughters"])
+    lb = GeneralConf(builder_name, mod_stripping_config, intermediate_daughters = config_electron_i["intermediate_daughters"], full_list_of_decays_i=config_electron_i["full_list_of_decays_i"])
     stream = StrippingStream("MyStream_%s"%name)
 
     stripping_line = 'Bu2LLK_%s_eeLine_Generalised'%name
@@ -404,15 +446,19 @@ DaVinci().EvtMax = 100
 DaVinci().PrintFreq = 25
 DaVinci().Simulation = IS_MC
 DaVinci().Lumi = not IS_MC
+DaVinci().UserAlgorithms = []
 if IS_MC:
-    DaVinci().appendToMainSequence([eventNodeKiller])
+    # DaVinci().appendToMainSequence([eventNodeKiller])
     list_to_appendToMainSequence = []
-    for sc_i in sc:
-        list_to_appendToMainSequence.append(sc_i.sequence())
-        # DaVinci().appendToMainSequence([sc_i.sequence()])
-    DaVinci().appendToMainSequence(list_to_appendToMainSequence)
+    for idx, sc_i in enumerate(sc):
+        DaVinci().appendToMainSequence([eventNodeKiller])
+        DaVinci().appendToMainSequence([sc_i.sequence()])
+        DaVinci().UserAlgorithms += [tuples[idx]]
+        # list_to_appendToMainSequence.append(sc_i.sequence())
+        # list_to_appendToMainSequence.append(sc_i.sequence())
+    # DaVinci().appendToMainSequence(list_to_appendToMainSequence)
 # DaVinci().UserAlgorithms = [tuple]
-DaVinci().UserAlgorithms = tuples
+# DaVinci().UserAlgorithms = tuples
 DaVinci().VerboseMessages = True
 if year != "2018":
     DaVinci().DataType = year
