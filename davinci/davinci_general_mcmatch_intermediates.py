@@ -177,17 +177,17 @@ class GeneralConf(LineBuilder):
         # from StandardParticles import StdLoosePions as Pions
         # from StandardParticles import StdLooseKaons as Kaons
 
-        # # # Use to get closer to davinci_intermediates
-        # from StandardParticles import StdAllLooseElectrons as Electrons
-        # from StandardParticles import StdAllLooseMuons as Muons
-        # from StandardParticles import StdAllLoosePions as Pions
-        # from StandardParticles import StdAllLooseKaons as Kaons
+        # # Use to get closer to davinci_intermediates
+        from StandardParticles import StdAllLooseElectrons as Electrons
+        from StandardParticles import StdAllLooseMuons as Muons
+        from StandardParticles import StdAllLoosePions as Pions
+        from StandardParticles import StdAllLooseKaons as Kaons
 
-        # # Even more candidates?
-        from StandardParticles import StdAllNoPIDsElectrons as Electrons
-        from StandardParticles import StdAllNoPIDsMuons as Muons
-        from StandardParticles import StdAllNoPIDsPions as Pions
-        from StandardParticles import StdAllNoPIDsKaons as Kaons
+        # # # Even more candidates? - might be taking a long long time to run
+        # from StandardParticles import StdAllNoPIDsElectrons as Electrons
+        # from StandardParticles import StdAllNoPIDsMuons as Muons
+        # from StandardParticles import StdAllNoPIDsPions as Pions
+        # from StandardParticles import StdAllNoPIDsKaons as Kaons
 
         SelElectrons = self._filterHadron(
             name="ElectronsFor" + self._name, sel=Electrons, params=config, mcMatch="e"
@@ -411,6 +411,7 @@ if IS_MC:
         DaVinci().UserAlgorithms += [tuples[idx]]
 
 DaVinci().VerboseMessages = True
+DaVinci().VerboseMessages = False
 if year != "2018":
     DaVinci().DataType = year
 else:

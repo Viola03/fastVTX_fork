@@ -78,7 +78,7 @@ extend = False
 # nfiles_per_event_typs = 150
 # filesPerJob = 5
 # nfiles_per_event_typs = 10
-nfiles_per_event_typs = 2
+nfiles_per_event_typs = 3
 filesPerJob = 2
 
 # print(len(list(LFNs.keys())))
@@ -153,6 +153,10 @@ splitter.maxFiles = -1
 splitter.filesPerJob = filesPerJob
 
 job = Job(name=job_name, comment=job_name, backend=bck, splitter=splitter)
+
+job.backend.downloadSandbox = False
+
+
 Year = (
     bool("2011" in job_name) * ' "2011" '
     + bool("2012" in job_name) * ' "2012" '
@@ -170,7 +174,9 @@ job.application.extraOpts = (
     + job_name
     + '.root"  ; '
     + "DaVinci().EvtMax        =              -1             ; "
-    # + "DaVinci().EvtMax        =              25             ; "
+    # + "DaVinci().EvtMax        =              5             ; "
+    + "DaVinci().PrintFreq        =              2500             ; "
+    + "DaVinci().VerboseMessages        =              False             ; "
     + "from Configurables import CondDB                      ; "
     + "CondDB( LatestGlobalTagByDataType = "
     + Year
@@ -183,14 +189,20 @@ job.application.extraOpts = (
 print("Create job for thee jobs: ", job.name)
 # job.inputdata = comp_dataset[:5]
 job.inputdata  = comp_dataset
+# job.inputdata  = comp_dataset[:3]
 
 # This throws the files on the grid personall space
+# job.outputfiles = [
+#     # DiracFile(namePattern="*.root"),
+#     LocalFile(namePattern="DTT*.root"),
+#     LocalFile("summary.xml"),
+# ]  # keep my Tuples on grid element (retrive manually)
+
 job.outputfiles = [
-    # DiracFile(namePattern="*.root"),
-    LocalFile(namePattern="DTT*.root"),
-    LocalFile("summary.xml"),
+    DiracFile(namePattern="DTT*.root"),
 ]  # keep my Tuples on grid element (retrive manually)
-# job.outputfiles= [LocalFile(namePattern='*.root') , LocalFile('summary.xml') ] # keep my Tuples on grid element (retrive manually)
+
+
 jobs.parallel_submit = True
 job.submit()
 print("======================================")
