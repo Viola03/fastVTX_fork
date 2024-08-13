@@ -22,7 +22,8 @@ network_option = 'VAE'
 # rd.latent = 6 # VAE latent dims
 # D_architecture=[1000,2000,2000,1000]
 # G_architecture=[1000,2000,2000,1000]
-load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions6"
+# load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions6"
+load_state = f"networks/vertex_job_{network_option}general_5"
 rd.latent = 7 # VAE latent dims
 D_architecture=[1600,2600,2600,1600]
 G_architecture=[1600,2600,2600,1600]
@@ -47,13 +48,22 @@ print(f"Loading data...")
 training_data_loader = data_loader.load_data(
     [
         # "datasets/cocktail_hierarchy_cut_more_vars.root",
-        "datasets/cocktail_x5_MC_hierachy_cut_more_vars.root",
+        # "datasets/cocktail_x5_MC_hierachy_cut_more_vars.root",
+        # "datasets/general_sample_more_vars.root",
+        "datasets/general_sample_intermediate_more_vars.root",
     ],
     convert_to_RK_branch_names=True,
     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
+    # conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus'},
 )
 transformers = training_data_loader.get_transformers()
 print(training_data_loader.shape())
+
+training_data_loader.cut("abs(K_Kst_TRUEID)==321")
+training_data_loader.cut("abs(e_plus_TRUEID)==11")
+training_data_loader.cut("abs(e_minus_TRUEID)==11")
+print(training_data_loader.shape())
+# quit()
 
 print(f"Creating vertex_quality_trainer...")
 
@@ -68,18 +78,12 @@ conditions = [
     "K_Kst_eta",
     "e_plus_eta",
     "e_minus_eta",
-    # "IP_B_plus",
-    # "IP_K_Kst",
-    # "IP_e_plus",
-    # "IP_e_minus",
-    # "FD_B_plus",
-    # "DIRA_B_plus",
-    "IP_B_plus_true_vertex",
+    # "IP_B_plus_true_vertex",
     "IP_K_Kst_true_vertex",
     "IP_e_plus_true_vertex",
     "IP_e_minus_true_vertex",
     "FD_B_plus_true_vertex",
-    "DIRA_B_plus_true_vertex",
+    # "DIRA_B_plus_true_vertex",
     "missing_B_plus_P",
     "missing_B_plus_PT",
     "missing_J_psi_1S_P",
@@ -87,19 +91,18 @@ conditions = [
     "m_01",
     "m_02",
     "m_12",
-
-    # "B_plus_FLIGHT",
     "K_Kst_FLIGHT",
     "e_plus_FLIGHT",
     "e_minus_FLIGHT",
-
     "delta_0_P",
     "delta_0_PT",
     "delta_1_P",
     "delta_1_PT",
     "delta_2_P",
     "delta_2_PT",
-
+    # "K_Kst_TRUEID",
+    # "e_plus_TRUEID",
+    # "e_minus_TRUEID",
 ]
 
 targets = [

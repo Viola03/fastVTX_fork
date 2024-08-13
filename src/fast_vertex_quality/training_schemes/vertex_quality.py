@@ -590,6 +590,8 @@ class vertex_quality_trainer:
         if self.trackchi2_trainer is not None:
             data_loader_obj.fill_chi2_gen(self.trackchi2_trainer)
 
+        # data_loader_obj.plot(f'conditions_{np.random.randint(0,9999)}.pdf',self.conditions)
+
         events_gen = data_loader_obj.get_branches(self.conditions, processed=True)
 
         events_gen = np.asarray(events_gen[self.conditions])
