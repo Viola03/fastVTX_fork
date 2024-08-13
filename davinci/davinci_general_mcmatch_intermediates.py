@@ -36,7 +36,10 @@ for p1 in positive_particles:
         for n1 in negative_particles:
             combinations = np.append(combinations, [[p1,p2,n1]], axis=0)
             combinations = np.append(combinations, [[-1*p1,-1*p2,-1*n1]], axis=0)
-            
+
+# combinations = np.append(combinations, [[321,-11,11]], axis=0)
+# combinations = np.append(combinations, [[-321,11,-11]], axis=0)
+
 full_list_of_decays = []
 config_electron = []
 
@@ -364,7 +367,7 @@ eventNodeKiller = EventNodeKiller("Stripkiller")
 eventNodeKiller.Nodes = ["/Event/AllStreams", "/Event/Strip"]
 
 DaVinci()
-DaVinci().EvtMax = 100
+DaVinci().EvtMax = 250
 DaVinci().PrintFreq = 25
 DaVinci().Simulation = IS_MC
 DaVinci().Lumi = not IS_MC
