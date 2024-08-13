@@ -21,7 +21,8 @@ print(f"Loading data...")
 training_data_loader = data_loader.load_data(
     [
         # "datasets/cocktail_hierarchy_cut_more_vars.root",
-        "datasets/cocktail_x5_MC_hierachy_cut_more_vars.root",
+        # "datasets/cocktail_x5_MC_hierachy_cut_more_vars.root",
+        "datasets/general_sample_intermediate_more_vars.root",
     ],
     convert_to_RK_branch_names=True,
     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
@@ -85,12 +86,14 @@ primary_vertex_trainer_obj = primary_vertex_trainer(
 
 steps_for_plot = 5000
 primary_vertex_trainer_obj.train(steps=steps_for_plot)
-primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job2")
+# primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job2")
+primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job_general")
 primary_vertex_trainer_obj.make_plots(filename=f'vertex_plots_0.pdf',testing_file=training_data_loader.get_file_names())
 
 for i in range(100):
     primary_vertex_trainer_obj.train_more_steps(steps=steps_for_plot)
-    primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job2")
+    # primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job2")
+    primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job_general")
     primary_vertex_trainer_obj.make_plots(filename=f'vertex_plots_{i+1}.pdf',testing_file=training_data_loader.get_file_names())
 
 

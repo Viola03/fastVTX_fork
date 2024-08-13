@@ -15,6 +15,9 @@ masses[211] = 139.57039
 masses[13] = 105.66
 masses[11] = 0.51099895000 * 1e-3
 
+use_intermediate = True
+# use_intermediate = False
+
 # file_name = 'cocktail_hierarchy_cut.root'
 # particles = ["DAUGHTER1", "DAUGHTER2", "DAUGHTER3"]
 # mother = 'MOTHER'
@@ -26,11 +29,16 @@ masses[11] = 0.51099895000 * 1e-3
 # mother = 'MOTHER'
 # intermediate = 'INTERMEDIATE'
 
-file_name = 'dedicated_Kmumu_MC_hierachy.root'
+# file_name = 'dedicated_Kmumu_MC_hierachy_cut.root'
+# particles = ["DAUGHTER1", "DAUGHTER2", "DAUGHTER3"]
+# mother = 'MOTHER'
+# intermediate = 'INTERMEDIATE'
+
+# file_name = 'general_sample.root'
+file_name = 'general_sample_intermediate.root'
 particles = ["DAUGHTER1", "DAUGHTER2", "DAUGHTER3"]
 mother = 'MOTHER'
 intermediate = 'INTERMEDIATE'
-
 
 # file_name = 'dedicated_Kstee_MC_hierachy_cut.root'
 # particles = ["DAUGHTER1", "DAUGHTER2", "DAUGHTER3"]
@@ -128,11 +136,12 @@ events[f"{particles[1]}_FLIGHT"] = C
 events[f"{particles[2]}_FLIGHT"] = D
 
 
-dist = vt.compute_intermediate_distance(events, intermediate, mother)
-dist = np.asarray(dist)
-print(f'fraction of intermediates that travel: {np.shape(dist[np.where(dist>0)])[0]/np.shape(dist)[0]}')
-dist[np.where(dist==0)] = 1E-4
-events[f"{intermediate}_FLIGHT"] = dist
+if use_intermediate:
+    dist = vt.compute_intermediate_distance(events, intermediate, mother)
+    dist = np.asarray(dist)
+    print(f'fraction of intermediates that travel: {np.shape(dist[np.where(dist>0)])[0]/np.shape(dist)[0]}')
+    dist[np.where(dist==0)] = 1E-4
+    events[f"{intermediate}_FLIGHT"] = dist
 
 
 # plt.hist(np.log10(dist[np.where(dist>0)]),bins=50)
@@ -196,16 +205,18 @@ for particle in particles:
 # quit()
 events[f"{mother}_P"], events[f"{mother}_PT"] = vt.compute_reconstructed_mother_momenta(events, mother)
 
-events[f"{intermediate}_P"], events[f"{intermediate}_PT"] = vt.compute_reconstructed_intermediate_momenta(events, [particles[1], particles[2]])
+if use_intermediate:
+    events[f"{intermediate}_P"], events[f"{intermediate}_PT"] = vt.compute_reconstructed_intermediate_momenta(events, [particles[1], particles[2]])
 # print(events[f'{mother}_TRUEP_Z'])
 # quit()
 # events[f"B_P"], events[f"B_PT"] = vt.compute_reconstructed_mother_momenta(events, 'M')
 events[f"missing_{mother}_P"], events[f"missing_{mother}_PT"] = vt.compute_missing_momentum(
     events, mother,particles
 )
-events[f"missing_{intermediate}_P"], events[f"missing_{intermediate}_PT"] = vt.compute_missing_momentum(
-    events, mother,[particles[1], particles[2]]
-)
+if use_intermediate:
+    events[f"missing_{intermediate}_P"], events[f"missing_{intermediate}_PT"] = vt.compute_missing_momentum(
+        events, mother,[particles[1], particles[2]]
+    )
 # print(events[f'{mother}_TRUEP_Z'])
 # quit()
 for particle_i in range(0, len(particles)):
@@ -260,6 +271,10 @@ def write_df_to_root(df, output_name):
 	with uproot3.recreate(output_name) as f:
 		f["DecayTree"] = uproot3.newtree(branch_dict)
 		f["DecayTree"].extend(data_dict)
+
+
+cut_condition = "(MOTHER_TRUEID != 0) & (MOTHER_BKGCAT < 60)"
+events = events.query(cut_condition)  
 
 if file_name[-5:] == '.root':
     write_df_to_root(events, f"{directory}{file_name[:-5]}_more_vars.root")

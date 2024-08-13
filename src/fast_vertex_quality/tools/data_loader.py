@@ -148,6 +148,7 @@ class Transformer:
             f"IP_{rd.daughter_particles[0]}_true_vertex",
             f"IP_{rd.daughter_particles[1]}_true_vertex",
             f"IP_{rd.daughter_particles[2]}_true_vertex",
+            f"IP_{rd.mother_particle}_true_vertex",
             f"FD_{rd.mother_particle}_true_vertex",
 
             f"{rd.intermediate_particle}_TRUEID_width",
@@ -200,6 +201,20 @@ class Transformer:
         
         self.min_fills = {}
 
+        self.trueID_map = {-11:1, -13:2, 211:3, 321:4} # positive particles
+        for pid in list(self.trueID_map.keys()):
+            self.trueID_map[-pid] = -self.trueID_map[pid]
+        values = list(self.trueID_map.values())
+        values_max = np.amax(values)
+        values_min = np.amin(values)
+        for pid in list(self.trueID_map.keys()):
+            self.trueID_map[pid] = (((self.trueID_map[pid]-values_min)/(values_max-values_min))*2.-1.)*0.8
+
+    def map_pdg_codes(self, data):
+        mapped_values = np.vectorize(lambda pid: self.trueID_map.get(pid, -1 if pid < 0 else 1))(data)
+        return mapped_values.astype(np.float64)
+
+
     def fit(self, data_raw, column):
 
         self.column = column
@@ -214,14 +229,11 @@ class Transformer:
                 data[np.where(data==0)] = 1E-6
             data = np.log10(data)
         elif column in self.one_minus_log_columns:
-            # print(column, data)
             data[np.where(data==1)] = 1.-1E-15
             data[np.where(data>1)] = 1.-1E-15
             data[np.where(np.isnan(data))] = 1.-1E-15
             data[np.where(np.isinf(data))] = 1.-1E-15
-            # print(np.amin(data), np.amax(data))
             data = np.log10(1.0 - data)
-            # print(np.amin(data), np.amax(data))
         elif self.column in self.abs_columns:
             data = np.abs(data)
         elif self.column in self.shift_and_symsqrt_columns:
@@ -231,10 +243,7 @@ class Transformer:
 
         self.min = np.amin(data)
         self.max = np.amax(data)
-        # if column in self.one_minus_log_columns:
-        #     print(self.min)
-        #     print(self.max)
-        #     print('\n\n')
+
 
     def process(self, data_raw):
         
@@ -244,7 +253,16 @@ class Transformer:
             # pass # value is likely a single element
             data = np.asarray(data_raw).astype('float64')
 
-        if self.column in self.log_columns:
+        block_scaling = False
+
+        if "TRUEID" in self.column:
+            # print(data)
+            data = self.map_pdg_codes(data)
+            # print(data)
+            # print(np.where(np.abs(data)>1.))
+            # quit()
+            block_scaling = True
+        elif self.column in self.log_columns:
             try:
                 if "width" in self.column or "mass" in self.column:
                     data[np.where(data==0)] = self.min_fills[self.column]
@@ -272,10 +290,11 @@ class Transformer:
         if "DIRA" in self.column:
             where = np.where(np.isnan(data))
 
-        data = data - self.min
-        data = data / (self.max - self.min)
-        data *= 2
-        data += -1
+        if not block_scaling:
+            data = data - self.min
+            data = data / (self.max - self.min)
+            data *= 2
+            data += -1
 
         try:
             if "DIRA" in self.column:
@@ -295,7 +314,9 @@ class Transformer:
         data = data * (self.max - self.min)
         data = data + self.min
 
-        if self.column in self.log_columns:
+        if "TRUEID" in self.column:
+            pass # not currently inverting the processing of TRUEID values
+        elif self.column in self.log_columns:
             data = np.power(10, data)
         elif self.column in self.one_minus_log_columns:
             data = np.power(10, data)
@@ -726,20 +747,32 @@ class dataset:
             if column == "file" or column == "pass_stripping":
                 df[column] = physical_data[column]
             else:
-                try:
-                    if fresh_transformers:
-                        data_array = np.asarray(physical_data[column]).copy()
-                        transformer_i = Transformer()
-                        transformer_i.fit(data_array, column)
-                        self.Transformers[column] = transformer_i
+                # if "TRUEID" in column:
+                #     print("MUST DELETE THIS")
+                #     if fresh_transformers:
+                #         data_array = np.asarray(physical_data[column]).copy()
+                #         transformer_i = Transformer()
+                #         transformer_i.fit(data_array, column)
+                #         self.Transformers[column] = transformer_i
 
-                    df[column] = self.Transformers[column].process(
-                        np.asarray(physical_data[column]).copy()
-                    )
-                # except Exception as e:
-                #     print(f"\n\n pre_process: An error occurred: {e}")
-                except:
-                    pass
+                #     df[column] = self.Transformers[column].process(
+                #         np.asarray(physical_data[column]).copy()
+                #     )
+                # else:
+                    try:
+                        if fresh_transformers:
+                            data_array = np.asarray(physical_data[column]).copy()
+                            transformer_i = Transformer()
+                            transformer_i.fit(data_array, column)
+                            self.Transformers[column] = transformer_i
+
+                        df[column] = self.Transformers[column].process(
+                            np.asarray(physical_data[column]).copy()
+                        )
+                    # except Exception as e:
+                    #     print(f"\n\n pre_process: An error occurred: {e}")
+                    except:
+                        pass
             # print(np.shape(df[column]), column)
 
         return pd.DataFrame.from_dict(df)

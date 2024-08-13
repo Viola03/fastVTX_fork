@@ -17,7 +17,8 @@ masses[13] = 105.66
 masses[11] = 0.51099895000 * 1e-3
 
 # file_name = 'Kee/Signal_tree.root'
-file_name = 'Kee/Signal_tree_LARGE.root'
+# file_name = 'Kee/Signal_tree_LARGE.root'
+file_name = 'Kmumu/Kmumu_tree.root'
 particles = ["DAUGHTER1", "DAUGHTER2", "DAUGHTER3"]
 mother = 'MOTHER'
 intermediate = 'INTERMEDIATE'

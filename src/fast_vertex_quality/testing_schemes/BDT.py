@@ -113,7 +113,10 @@ class BDT_tester:
         gen_track_chi2=True,
         signal_convert_branches=True,
         background_convert_branches=False,
+        use_intermediate=True,
     ):
+
+        self.use_intermediate = use_intermediate
 
         self.log_columns = [
             f"{rd.mother_particle}_FDCHI2_OWNPV",
@@ -1488,8 +1491,9 @@ class BDT_tester:
         self.cuts['B_plus_IPCHI2_OWNPV'] = "<25"
         self.cuts['(B_plus_ENDVERTEX_CHI2/B_plus_ENDVERTEX_NDOF)'] = "<9"
         # cuts['J_psi_1S_PT'] = ">0"
-        self.cuts['J_psi_1S_FDCHI2_OWNPV'] = ">16"
-        self.cuts['J_psi_1S_IPCHI2_OWNPV'] = ">0"
+        if self.use_intermediate:
+            self.cuts['J_psi_1S_FDCHI2_OWNPV'] = ">16"
+            self.cuts['J_psi_1S_IPCHI2_OWNPV'] = ">0"
         for lepton in ['e_minus', 'e_plus']:
             self.cuts[f'{lepton}_IPCHI2_OWNPV'] = ">9"
             # cuts[f'{lepton}_PT'] = ">300"
@@ -1506,6 +1510,7 @@ class BDT_tester:
         for cut in list(self.cuts.keys()):
             eff_true, effErr_true = loader.getEff(f'{cut}{self.cuts[cut]}')
             effs_true = np.append(effs_true, [[eff_true, effErr_true]], axis=0)
+
 
         return effs_true
 
@@ -2475,7 +2480,87 @@ class BDT_tester:
             self.plot_efficiency_as_a_function_of_variable_2D(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, xvar="dalitz_mass_mee", yvar="dalitz_mass_mkl", cut=f"BDT_score>{BDT_cut}", title=r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$", xlabel=r'$m(e^+e^-)$ (GeV)', ylabel=r'$m(K^+e^-)$ (GeV)')
 
 
+            ###############
+            ###############
+            ###############
+            event_loader_MC = self.get_event_loader(
+                "datasets/dedicated_Kmumu_MC_hierachy_cut_more_vars.root",
+                vertex_quality_trainer_obj,
+                generate=False,
+                # N=10000,
+                N=-1,
+                convert_branches=True,
+            )  
+            print("Cutting pass_stripping for MC")
+            event_loader_MC.fill_stripping_bool()
+            event_loader_MC.cut("pass_stripping")
+            print("Cut")
+            BDT_scores = self.get_BDT_scores(
+                event_loader_MC,
+                generate=False
+            )  
+            event_loader_MC.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
+            event_loader_MC.cut("abs(K_Kst_TRUEID)==321")
+            event_loader_MC.cut("abs(e_plus_TRUEID)==13")
+            event_loader_MC.cut("abs(e_minus_TRUEID)==13")
+            event_loader_MC.add_dalitz_masses()
 
+
+            ###############
+            event_loader_gen_MC = self.get_event_loader(
+                "datasets/dedicated_Kmumu_MC_hierachy_cut_more_vars.root",
+                vertex_quality_trainer_obj,
+                generate=True,
+                # N=10000,
+                N=-1,
+                convert_branches=True,
+                rapidsim=False,
+            )  
+            print("Cutting pass_stripping for gen MC")
+            event_loader_gen_MC.fill_stripping_bool()
+            event_loader_gen_MC.cut("pass_stripping")
+            print("Cut")
+            BDT_scores = self.get_BDT_scores(
+                event_loader_gen_MC,
+                generate=True
+            )  
+            event_loader_gen_MC.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
+            event_loader_gen_MC.cut("abs(K_Kst_TRUEID)==321")
+            event_loader_gen_MC.cut("abs(e_plus_TRUEID)==13")
+            event_loader_gen_MC.cut("abs(e_minus_TRUEID)==13")
+            event_loader_gen_MC.add_dalitz_masses()
+            
+            
+
+            ###############
+            event_loader_RapidSim = self.get_event_loader(
+                "/users/am13743/fast_vertexing_variables/rapidsim/Kmumu/Kmumu_tree_NNvertex_more_vars.root",
+                vertex_quality_trainer_obj,
+                generate=True,
+                # N=10000,
+                N=-1,
+                convert_branches=True,
+                rapidsim=True,
+            )  
+            print("Cutting pass_stripping for rapidsim")
+            event_loader_RapidSim.fill_stripping_bool()
+            event_loader_RapidSim.cut("pass_stripping")
+            print("Cut")
+            BDT_scores = self.get_BDT_scores(
+                event_loader_RapidSim,
+                generate=True
+            )  
+            event_loader_RapidSim.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
+            event_loader_RapidSim.add_dalitz_masses(pair_1 = ["K_Kst", "e_minus"], pair_2 = ["e_plus", "e_minus"], true_vars=True)
+
+            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "q2", f"BDT_score>{BDT_cut}", [0,25], r"$B^+\to K^+\mu^+\mu^-$", xlabel=r'$q^2$ (GeV$^2$)', signal=False)
+
+            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "dalitz_mass_mkl", f"BDT_score>{BDT_cut}", [0,5.3], r"$B^+\to K^+\mu^+\mu^-$", xlabel=r'$m(Ke)$ (GeV)', signal=False)
+
+            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to K^+\mu^+\mu^-$", xlabel=r'$m(Kee)$ (GeV)', signal=False)
+
+
+            self.plot_efficiency_as_a_function_of_variable_2D(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, xvar="dalitz_mass_mee", yvar="dalitz_mass_mkl", cut=f"BDT_score>{BDT_cut}", title=r"$B^+\to K^+\mu^+\mu^-$", xlabel=r'$m(e^+e^-)$ (GeV)', ylabel=r'$m(K^+e^-)$ (GeV)')
 
 
 
@@ -2779,8 +2864,63 @@ class BDT_tester:
             plt.close()
 
 
+            # Kmumu
+            Kmumu_gen, Kmumu_gen_stripping_eff = self.get_sample_and_stripping_eff(
+                "datasets/dedicated_Kmumu_MC_hierachy_cut_more_vars.root",
+                vertex_quality_trainer_obj,
+                generate=True,
+                N=10000,
+                rapidsim=False,
+                convert_branches=True,
+            )  
+            
+            Kmumu_gen_rapidsim, Kmumu_gen_rapidsim_stripping_eff = self.get_sample_and_stripping_eff(
+                "/users/am13743/fast_vertexing_variables/rapidsim/Kmumu/Kmumu_tree_NNvertex_more_vars.root",
+                vertex_quality_trainer_obj,
+                generate=True,
+                N=10000,
+                rapidsim=True,
+            )  
+            
+            Kmumu_MC, Kmumu_MC_stripping_eff = self.get_sample_and_stripping_eff(
+                "datasets/dedicated_Kmumu_MC_hierachy_cut_more_vars.root",
+                vertex_quality_trainer_obj,
+                generate=False,
+                N=10000,
+                convert_branches=True,
+            )  
 
+            
+            samples = [Kmumu_gen, Kmumu_gen_rapidsim, Kmumu_MC]
+            labels = [self.signal_label, self.background_label, r"Generated $B^+\to K^+\mu^+\mu^-$ (MC)", r"Generated $B^+\to K^+\mu^+\mu^-$ (Rapidsim)", r"$B^+\to K^+\mu^+\mu^-$ MC"]
+            colours = ["tab:blue", "tab:red", "k", "violet", "tab:purple"]
 
+            self.query_and_plot_samples_pages(
+                pdf,
+                samples,
+                labels,
+                colours=colours,
+                filename=filename.replace('.pdf','_Kmumu.pdf'),
+                only_hists=True,
+            )
+
+            plt.title(r"$B^+\to K^+\mu^+\mu^-$")
+            plt.errorbar(np.arange(np.shape(self.BDTs[0]["signal_stripping_eff"])[0]), self.BDTs[0]["signal_stripping_eff"][:,0], yerr=self.BDTs[0]["signal_stripping_eff"][:,1],label=self.signal_label,color='tab:blue',linestyle='-')
+            plt.errorbar(np.arange(np.shape(Kmumu_MC_stripping_eff)[0]), Kmumu_MC_stripping_eff[:,0], yerr=Kmumu_MC_stripping_eff[:,1],label=r"$B^+\to K^+\mu^+\mu^-$ MC",color='tab:purple',linestyle='-')
+            plt.errorbar(np.arange(np.shape(Kmumu_gen_stripping_eff)[0]), Kmumu_gen_stripping_eff[:,0], yerr=Kmumu_gen_stripping_eff[:,1],label=r"Generated $B^+\to K^+\mu^+\mu^-$ (MC)",color='k')
+            plt.errorbar(np.arange(np.shape(Kmumu_gen_rapidsim_stripping_eff)[0]), Kmumu_gen_rapidsim_stripping_eff[:,0], yerr=Kmumu_gen_rapidsim_stripping_eff[:,1],label=r"Generated $B^+\to K^+\mu^+\mu^-$ (Rapidsim)",color='violet')
+            plt.ylim(0,1)
+            cuts_ticks = ['All']+list(self.cuts.keys())
+            plt.xticks(np.arange(len(cuts_ticks)), cuts_ticks, rotation=90)
+            for i in np.arange(len(cuts_ticks)):
+                if i == 0:
+                    plt.axvline(x=i, alpha=0.5, ls='-',c='k')
+                else:
+                    plt.axvline(x=i, alpha=0.5, ls='--',c='k')
+            plt.legend(frameon=False)
+            plt.ylabel("Cut Efficiency")
+            pdf.savefig(bbox_inches="tight")
+            plt.close()
 
 
     def query_and_plot_samples_pages(
