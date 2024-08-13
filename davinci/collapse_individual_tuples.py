@@ -149,7 +149,7 @@ def merge_directory_structure(inname, outname):
 # trim_file_DecayTree("MergeTest.root")
 
 # merge_directory_structure("DVntuple_general_full.root", "DVntuple_general.root")
-merge_directory_structure("DVntuple.root", "DVntuple_general_Kee.root")
+merge_directory_structure("DVntuple.root", "DVntuple_general_Kee_TEST.root")
 quit()
 
 file_list = glob.glob("/afs/cern.ch/work/m/marshall/gangadir/workspace/marshall/LocalXML/2004/*/output/DTT_*.root")

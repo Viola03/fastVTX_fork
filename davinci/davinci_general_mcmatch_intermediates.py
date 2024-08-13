@@ -59,7 +59,10 @@ for idx, combination in enumerate(combinations):
         quit()
 
     full_list_of_decays.append(["%s -> %s J/psi(1S)"%(B_string,particle_dict[combination[0]])])
+    # # CC - works
+    # full_list_of_decays.append(["[ %s -> %s J/psi(1S) ]cc"%(B_string,particle_dict[combination[0]])])
 
+    # production
     config_electron.append({
         "decayname": "%s_%sJpsi(%s%s)"%(B_string,particle_dict[combination[0]],particle_dict[combination[1]],particle_dict[combination[2]]),
 
@@ -73,6 +76,21 @@ for idx, combination in enumerate(combinations):
         'intermediate_daughters':[particle_dict[combination[1]],particle_dict[combination[2]]],
         'full_list_of_decays_i':full_list_of_decays[idx],
     })
+
+    # # CC - works
+    # config_electron.append({
+    #     "decayname": "%s_%sJpsi(%s%s)"%(B_string,particle_dict[combination[0]],particle_dict[combination[1]],particle_dict[combination[2]]),
+
+    #     'decay': "[%s -> ^(J/psi(1S)->^%s ^%s) ^%s]CC"%(B_string,particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
+    #     'branches': {
+    #         "MOTHER": "[ %s -> (J/psi(1S)->%s %s)  %s]CC"%(B_string,particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
+    #         "DAUGHTER1": "[ %s -> (J/psi(1S)->%s %s) ^%s]CC"%(B_string,particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
+    #         "DAUGHTER2": "[(%s -> (J/psi(1S)->%s ^%s) %s), (%s -> (J/psi(1S)->^%s %s) %s)]"%(B_string,particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]], B_string,particle_dict[combination[2]],particle_dict[combination[1]],particle_dict[combination[0]]),
+    #         "DAUGHTER3": "[(%s -> (J/psi(1S)->^%s %s) %s), (%s -> (J/psi(1S)->%s ^%s) %s)]"%(B_string,particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]], B_string,particle_dict[combination[2]],particle_dict[combination[1]],particle_dict[combination[0]]),
+    #         "INTERMEDIATE": "[ %s -> ^(J/psi(1S)->%s %s) %s]CC"%(B_string,particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]])},
+    #     'intermediate_daughters':[particle_dict[combination[1]],particle_dict[combination[2]]],
+    #     'full_list_of_decays_i':full_list_of_decays[idx],
+    # })
 
 from StrippingConf.Configuration import StrippingConf, StrippingStream
 
@@ -153,10 +171,23 @@ class GeneralConf(LineBuilder):
 
         eeXLine_name = name + "_ee"
 
-        from StandardParticles import StdLooseElectrons as Electrons
-        from StandardParticles import StdLooseMuons as Muons
-        from StandardParticles import StdLoosePions as Pions
-        from StandardParticles import StdLooseKaons as Kaons
+        # # outdated
+        # from StandardParticles import StdLooseElectrons as Electrons
+        # from StandardParticles import StdLooseMuons as Muons
+        # from StandardParticles import StdLoosePions as Pions
+        # from StandardParticles import StdLooseKaons as Kaons
+
+        # # # Use to get closer to davinci_intermediates
+        # from StandardParticles import StdAllLooseElectrons as Electrons
+        # from StandardParticles import StdAllLooseMuons as Muons
+        # from StandardParticles import StdAllLoosePions as Pions
+        # from StandardParticles import StdAllLooseKaons as Kaons
+
+        # # Even more candidates?
+        from StandardParticles import StdAllNoPIDsElectrons as Electrons
+        from StandardParticles import StdAllNoPIDsMuons as Muons
+        from StandardParticles import StdAllNoPIDsPions as Pions
+        from StandardParticles import StdAllNoPIDsKaons as Kaons
 
         SelElectrons = self._filterHadron(
             name="ElectronsFor" + self._name, sel=Electrons, params=config, mcMatch="e"
@@ -180,7 +211,7 @@ class GeneralConf(LineBuilder):
             "StdLooseIntermediate"+self._name,
             DecayDescriptor='J/psi(1S) -> %s %s'%(intermediate_daughters[0], intermediate_daughters[1]),
             CombinationCut="(ADOCACHI2CUT(99999, ''))",
-            MotherCut="(VFASPF(VCHI2) < 99999)"        
+            MotherCut="(VFASPF(VCHI2) < 99999)",
             ) 
 
         RequiredSelections_list = []
