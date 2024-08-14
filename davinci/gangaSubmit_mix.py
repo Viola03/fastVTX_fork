@@ -79,14 +79,14 @@ extend = False
 # filesPerJob = 5
 # nfiles_per_event_typs = 10
 nfiles_per_event_typs = 3
-filesPerJob = 2
+filesPerJob = 1
 
 # print(len(list(LFNs.keys())))
 # quit()
 
 total = 0
 for target in list(LFNs.keys()):
-
+	
 	files = []
 	LFNs[target] = np.asarray(LFNs[target])
 	np.random.shuffle(LFNs[target])
@@ -116,23 +116,23 @@ polarity = ["Down"]
 streams = ["ALLSTREAMS.DST"]
 i = 0
 job_name = (
-    "20"
-    + year[i]
-    + "_Reco"
-    + Reco_v[i]
-    + "Strip"
-    + strip_v[i]
-    + "_"
-    + polarity[i]
-    + "_"
-    + streams[i]
+	"20"
+	+ year[i]
+	+ "_Reco"
+	+ Reco_v[i]
+	+ "Strip"
+	+ strip_v[i]
+	+ "_"
+	+ polarity[i]
+	+ "_"
+	+ streams[i]
 )
 
 try:
-    myApp = prepareGaudiExec("DaVinci", "v44r3", myPath=".")
+	myApp = prepareGaudiExec("DaVinci", "v44r3", myPath=".")
 except:
-    myApp = GaudiExec()
-    myApp.directory = "./DaVinciDev_v44r3"
+	myApp = GaudiExec()
+	myApp.directory = "./DaVinciDev_v44r3"
 
 # myApp.platform = "x86_64-slc6-gcc62-opt"
 myApp.platform = "x86_64+avx2+fma-centos7-gcc62-opt"
@@ -158,32 +158,32 @@ job.backend.downloadSandbox = False
 
 
 Year = (
-    bool("2011" in job_name) * ' "2011" '
-    + bool("2012" in job_name) * ' "2012" '
-    + bool("2015" in job_name) * ' "2015"  '
-    + bool("2016" in job_name) * ' "2016"  '
-    + bool("2017" in job_name) * ' "2017" '
-    + bool("2018" in job_name) * ' "2018" '
+	bool("2011" in job_name) * ' "2011" '
+	+ bool("2012" in job_name) * ' "2012" '
+	+ bool("2015" in job_name) * ' "2015"  '
+	+ bool("2016" in job_name) * ' "2016"  '
+	+ bool("2017" in job_name) * ' "2017" '
+	+ bool("2018" in job_name) * ' "2018" '
 )
 job.do_auto_resubmit = False
 job.application = myApp
 
 job.application.extraOpts = (
-    "from Configurables import DaVinci                     ; "
-    + 'DaVinci().TupleFile     = "DTT_'
-    + job_name
-    + '.root"  ; '
-    + "DaVinci().EvtMax        =              -1             ; "
-    # + "DaVinci().EvtMax        =              5             ; "
-    + "DaVinci().PrintFreq        =              2500             ; "
-    + "DaVinci().VerboseMessages        =              False             ; "
-    + "from Configurables import CondDB                      ; "
-    + "CondDB( LatestGlobalTagByDataType = "
-    + Year
-    + ")     ; "
-    + "DaVinci().DataType      =   "
-    + Year
-    + "              ; "
+	"from Configurables import DaVinci                     ; "
+	+ 'DaVinci().TupleFile     = "DTT_'
+	+ job_name
+	+ '.root"  ; '
+	+ "DaVinci().EvtMax        =              -1             ; "
+	# + "DaVinci().EvtMax        =              5             ; "
+	+ "DaVinci().PrintFreq        =              2500             ; "
+	+ "DaVinci().VerboseMessages        =              False             ; "
+	+ "from Configurables import CondDB                      ; "
+	+ "CondDB( LatestGlobalTagByDataType = "
+	+ Year
+	+ ")     ; "
+	+ "DaVinci().DataType      =   "
+	+ Year
+	+ "              ; "
 )
 
 print("Create job for thee jobs: ", job.name)
@@ -199,7 +199,7 @@ job.inputdata  = comp_dataset
 # ]  # keep my Tuples on grid element (retrive manually)
 
 job.outputfiles = [
-    DiracFile(namePattern="DTT*.root"),
+	DiracFile(namePattern="DTT*.root"),
 ]  # keep my Tuples on grid element (retrive manually)
 
 

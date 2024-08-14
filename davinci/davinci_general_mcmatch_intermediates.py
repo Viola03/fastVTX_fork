@@ -171,17 +171,17 @@ class GeneralConf(LineBuilder):
 
         eeXLine_name = name + "_ee"
 
-        # # outdated
-        # from StandardParticles import StdLooseElectrons as Electrons
-        # from StandardParticles import StdLooseMuons as Muons
-        # from StandardParticles import StdLoosePions as Pions
-        # from StandardParticles import StdLooseKaons as Kaons
+        # outdated
+        from StandardParticles import StdLooseElectrons as Electrons
+        from StandardParticles import StdLooseMuons as Muons
+        from StandardParticles import StdLoosePions as Pions
+        from StandardParticles import StdLooseKaons as Kaons
 
-        # # Use to get closer to davinci_intermediates
-        from StandardParticles import StdAllLooseElectrons as Electrons
-        from StandardParticles import StdAllLooseMuons as Muons
-        from StandardParticles import StdAllLoosePions as Pions
-        from StandardParticles import StdAllLooseKaons as Kaons
+        # # # Use to get closer to davinci_intermediates
+        # from StandardParticles import StdAllLooseElectrons as Electrons
+        # from StandardParticles import StdAllLooseMuons as Muons
+        # from StandardParticles import StdAllLoosePions as Pions
+        # from StandardParticles import StdAllLooseKaons as Kaons
 
         # # # Even more candidates? - might be taking a long long time to run
         # from StandardParticles import StdAllNoPIDsElectrons as Electrons
@@ -411,7 +411,7 @@ if IS_MC:
         DaVinci().UserAlgorithms += [tuples[idx]]
 
 DaVinci().VerboseMessages = True
-DaVinci().VerboseMessages = False
+# DaVinci().VerboseMessages = False
 if year != "2018":
     DaVinci().DataType = year
 else:
