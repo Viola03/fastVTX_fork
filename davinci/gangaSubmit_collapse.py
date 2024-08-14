@@ -50,6 +50,7 @@ job.inputfiles = files_list
 
 myApp = Executable()
 myApp.exe = File('run_collapse_individual_tuples_GANGA.sh')
+myApp.platform = "x86_64-centos7-gcc8-opt"
 job.application = myApp
 
 job.outputfiles = [
