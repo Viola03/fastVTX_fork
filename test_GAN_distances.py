@@ -23,7 +23,9 @@ network_option = 'VAE'
 # load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions6"
 # load_state = f"networks/vertex_job_{network_option}general_2"
 # load_state = f"networks/vertex_job_{network_option}general_3"
-load_state = f"networks/vertex_job_{network_option}general_5"
+# load_state = f"networks/vertex_job_{network_option}general_5"
+# load_state = f"networks/vertex_job_{network_option}general_6"
+load_state = f"networks/vertex_job_{network_option}general_7"
 # rd.latent = 6 # noise dims
 # D_architecture=[1000,2000,2000,1000]
 # G_architecture=[1000,2000,2000,1000]
@@ -75,12 +77,12 @@ conditions = [
     "K_Kst_eta",
     "e_plus_eta",
     "e_minus_eta",
-    # "IP_B_plus_true_vertex",
+    "IP_B_plus_true_vertex",
     "IP_K_Kst_true_vertex",
     "IP_e_plus_true_vertex",
     "IP_e_minus_true_vertex",
     "FD_B_plus_true_vertex",
-    # "DIRA_B_plus_true_vertex",
+    "DIRA_B_plus_true_vertex",
     "missing_B_plus_P",
     "missing_B_plus_PT",
     "missing_J_psi_1S_P",
@@ -97,9 +99,9 @@ conditions = [
     "delta_1_PT",
     "delta_2_P",
     "delta_2_PT",
-    # "K_Kst_TRUEID",
-    # "e_plus_TRUEID",
-    # "e_minus_TRUEID",
+    "K_Kst_TRUEID",
+    "e_plus_TRUEID",
+    "e_minus_TRUEID",
 ]
 
 targets = [
@@ -155,17 +157,17 @@ scores = BDT_tester_obj.plot_detailed_metrics(
     conditions,
     targets,
     vertex_quality_trainer_obj, f"metrics_{network_option}.pdf",
-    only_signal=False
-    # only_signal=True
+    only_signal=True,
+    # only_signal=False,
 )
-# quit()
+quit()
 
 scores = BDT_tester_obj.plot_differential_metrics(
     conditions,
     targets,
     vertex_quality_trainer_obj, f"differential_metrics_{network_option}.pdf",
-    # only_signal=True
-    only_signal=False,
+    only_signal=True,
+    # only_signal=False,
     BDT_cut=0.9
 )
 

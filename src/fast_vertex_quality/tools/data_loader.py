@@ -287,8 +287,16 @@ class Transformer:
             data = data - self.shift
             data = symsqrt(data)
 
+        if "DIRA" in self.column and "true_vertex" in self.column and rd.mother_particle in self.column:
+            where_over_threshold = np.where(data<-7.6)
+            data[where_over_threshold] = -7.6
+        if "IP" in self.column and "true_vertex" in self.column and rd.mother_particle in self.column:
+            where_over_threshold = np.where(data<-2.6)
+            data[where_over_threshold] = -2.6
+
         if "DIRA" in self.column:
             where = np.where(np.isnan(data))
+            where_not_nan = np.where(np.logical_not(np.isnan(data)))
 
         if not block_scaling:
             data = data - self.min
@@ -298,10 +306,13 @@ class Transformer:
 
         try:
             if "DIRA" in self.column:
-                data[where] = -1
+                data[where] = np.amin(data[where_not_nan])
+                # data[where] = -1
         except Exception as e:
             print("ERROR in data_loader:",e)
             print("Continuing, might not be essential")
+
+        data = np.clip(data, -1, 1)
 
         return data
 
@@ -779,6 +790,17 @@ class dataset:
 
     def get_transformers(self):
         return self.Transformers
+
+    def save_transformers(self, file):
+        pickle.dump(
+            self.Transformers,
+            open(
+                file,
+                "wb",
+            ),
+        )
+    # def load_transformers(self, file):
+    #     self.Transformers = pickle.load(open(file, "rb"))
 
     def shape(self):
         return self.all_data['physical'].shape

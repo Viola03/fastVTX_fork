@@ -1805,7 +1805,8 @@ class BDT_tester:
                 values.append(sample_values[key][:,idx])
                 log_values.append(np.log(sample_values[key][:,idx]))
 
-            # plt.subplot(2,2,1)
+            plt.figure(figsize=(22,12))
+            plt.subplot(2,2,1)
             hist = plt.hist(
                 values,
                 bins=50,
@@ -1825,77 +1826,57 @@ class BDT_tester:
             plt.xlabel(target)
             plt.legend(frameon=False)
 
+            make_plot = True
+            if target == 'B_plus_ENDVERTEX_CHI2':
+                range_i = [0,26]
+            elif target == 'B_plus_IPCHI2_OWNPV':
+                range_i = [0,26]
+            elif target == 'B_plus_FDCHI2_OWNPV':
+                range_i = [0,30000]
+            elif target == 'B_plus_DIRA_OWNPV':
+                range_i = [-0.0002,0]
+            elif target == 'K_Kst_IPCHI2_OWNPV':
+                range_i = [0,5000]
+            elif target == 'K_Kst_TRACK_CHI2NDOF':
+                range_i = [0,4]
+            elif target == 'e_minus_IPCHI2_OWNPV' or target == 'e_plus_IPCHI2_OWNPV':
+                range_i = [0,8000]
+            elif target == 'e_minus_TRACK_CHI2NDOF' or target == 'e_plus_TRACK_CHI2NDOF':
+                range_i = [0,4]
+            elif target == 'J_psi_1S_FDCHI2_OWNPV':
+                range_i = [0,30000]
+            elif target == 'J_psi_1S_IPCHI2_OWNPV':
+                range_i = [0,5000]
+            else:
+                make_plot = False
+
+            if make_plot:
+                plt.subplot(2,2,2)
+                hist = plt.hist(
+                    values,
+                    bins=50,
+                    color=colours,
+                    alpha=0.25,
+                    label=list(sample_values.keys()),
+                    density=True,
+                    histtype="stepfilled",
+                    range=range_i
+                )
+                plt.hist(
+                    values,
+                    bins=50,
+                    color=colours,
+                    density=True,
+                    histtype="step",
+                    range=range_i
+                )
+                plt.xlabel(target)
+                plt.legend(frameon=False)
+
             pdf.savefig(bbox_inches="tight")
             plt.close()
 
-            # plt.subplot(2,2,2)
-            # hist = plt.hist(
-            #     values,
-            #     bins=50,
-            #     color=colours,
-            #     alpha=0.25,
-            #     label=list(sample_values.keys()),
-            #     density=True,
-            #     histtype="stepfilled",
-            # )
-            # plt.hist(
-            #     values,
-            #     bins=50,
-            #     color=colours,
-            #     density=True,
-            #     histtype="step",
-            # )
-            # plt.xlabel(target)
-            # plt.yscale('log')
 
-            # # pdf.savefig(bbox_inches="tight")
-            # # plt.close()
-
-            # plt.subplot(2,2,3)
-            # hist = plt.hist(
-            #     log_values,
-            #     bins=50,
-            #     color=colours,
-            #     alpha=0.25,
-            #     label=list(sample_values.keys()),
-            #     density=True,
-            #     histtype="stepfilled",
-            # )
-            # plt.hist(
-            #     log_values,
-            #     bins=50,
-            #     color=colours,
-            #     density=True,
-            #     histtype="step",
-            # )
-            # plt.xlabel(f'log({target})')
-
-            # # pdf.savefig(bbox_inches="tight")
-            # # plt.close()
-
-            # plt.subplot(2,2,4)
-            # hist = plt.hist(
-            #     log_values,
-            #     bins=50,
-            #     color=colours,
-            #     alpha=0.25,
-            #     label=list(sample_values.keys()),
-            #     density=True,
-            #     histtype="stepfilled",
-            # )
-            # plt.hist(
-            #     log_values,
-            #     bins=50,
-            #     color=colours,
-            #     density=True,
-            #     histtype="step",
-            # )
-            # plt.xlabel(f'log({target})')
-            # plt.yscale('log')
-
-
-            # pdf.savefig(bbox_inches="tight")
-            # plt.close()
 
 
     def get_BDT_scores(self, event_loader, generate):

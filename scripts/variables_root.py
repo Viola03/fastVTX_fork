@@ -35,7 +35,8 @@ use_intermediate = True
 # intermediate = 'INTERMEDIATE'
 
 # file_name = 'general_sample.root'
-file_name = 'general_sample_intermediate.root'
+# file_name = 'general_sample_intermediate.root'
+file_name = 'general_sample_intermediate_All.root'
 particles = ["DAUGHTER1", "DAUGHTER2", "DAUGHTER3"]
 mother = 'MOTHER'
 intermediate = 'INTERMEDIATE'

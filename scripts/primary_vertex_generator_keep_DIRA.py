@@ -35,6 +35,7 @@ training_data_loader.add_branch_and_process(name='B_plus_TRUEP_T',recipe="sqrt((
 transformers = training_data_loader.get_transformers()
 
 training_data_loader.cut('B_plus_TRUEP_Z>0')
+training_data_loader.cut('abs(B_plus_TRUEID)>521')
 # training_data_loader.print_branches()
 
 
@@ -87,13 +88,13 @@ primary_vertex_trainer_obj = primary_vertex_trainer(
 steps_for_plot = 5000
 primary_vertex_trainer_obj.train(steps=steps_for_plot)
 # primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job2")
-primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job_general")
+primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job_generalBplus")
 primary_vertex_trainer_obj.make_plots(filename=f'vertex_plots_0.pdf',testing_file=training_data_loader.get_file_names())
 
 for i in range(100):
     primary_vertex_trainer_obj.train_more_steps(steps=steps_for_plot)
     # primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job2")
-    primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job_general")
+    primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job_generalBplus")
     primary_vertex_trainer_obj.make_plots(filename=f'vertex_plots_{i+1}.pdf',testing_file=training_data_loader.get_file_names())
 
 
