@@ -3,13 +3,13 @@ import numpy as np
 import time
 import pickle 
 
-# def hadd_job_output(job, output_filename):
-#     command = ["hadd", "-fk", output_filename] + job.backend.getOutputDataAccessURLs()
-#     os.system(" ".join(command))
+def hadd_job_output(job, output_filename):
+    command = ["hadd", "-fk", output_filename] + job.backend.getOutputDataAccessURLs()
+    os.system(" ".join(command))
 
-# hadd_job_output(jobs(2038),"/afs/cern.ch/work/m/marshall/fast_vertexing_variables/davinci/general_merged.root")
+hadd_job_output(jobs(2041),"/afs/cern.ch/work/m/marshall/fast_vertexing_variables/davinci/general_merged.root")
 
-# quit()
+quit()
 
 # How do I run an executable job that uses input files on the Grid as arguments to the script?
 
