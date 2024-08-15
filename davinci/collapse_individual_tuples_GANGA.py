@@ -18,6 +18,7 @@ import ROOT
 from ROOT import TFile, TTree, TList
 import glob
 import os
+import numpy as np
 
 branches_to_keep = [
     'MOTHER_DIRA_OWNPV', 'MOTHER_ENDVERTEX_CHI2', 'MOTHER_ENDVERTEX_NDOF', 'MOTHER_ENDVERTEX_X', 'MOTHER_ENDVERTEX_Y', 'MOTHER_ENDVERTEX_Z',
@@ -86,19 +87,28 @@ branches_to_keep = [
 ]
 
 def trim_file_directory_structure(filename_in, filename_out):
+
+    print('\n\tFUNCTION: trim_file_directory_structure',filename_in, filename_out,'\n')
+
     # Open the old file
     oldfile = ROOT.TFile(filename_in, "READ")
 
     oldtrees = []
 
+    total_entries = 0
     for key in oldfile.GetListOfKeys():
         dir_name = key.GetName()
         directory = oldfile.Get(dir_name)
         oldtree = directory.Get('DecayTree')
+        print('\t\t{:<35} : {:>15}'.format(dir_name, oldtree.GetEntries()))
+        total_entries += oldtree.GetEntries()
         oldtree.SetBranchStatus("*", 0)
         for branch_name in branches_to_keep:
             oldtree.SetBranchStatus(branch_name, 1)
         oldtrees.append((dir_name, oldtree))
+
+    print('\t\t{:<35} : {:>15}'.format('*'*35, '*'*15))
+    print('\t\t{:<35} : {:>15}'.format('TOTAL ENTRIES', total_entries))
 
     # Create a new file and clone the old tree into the new file
     newfile = ROOT.TFile(filename_out, "RECREATE")
@@ -118,6 +128,8 @@ def trim_file_directory_structure(filename_in, filename_out):
 
 def merge_directory_structure(inname, outname):
 
+    print('\n\tFUNCTION: merge_directory_structure',inname, outname,'\n')
+
     # input_file = TFile("cocktail_general_MC_hierachy.root", 'read')
     input_file = TFile(inname, 'read')
     treeList = TList()
@@ -135,11 +147,10 @@ def merge_directory_structure(inname, outname):
     outputFile.Write()
     outputFile.Close()
 
-
 if use_PFNs:
     for file_idx, pfn_i in enumerate(pfns):
 
-        print('\n',file_idx,'/',len(pfns),pfn_i)
+        print('\n',file_idx,'/',len(pfns),pfn_i,' USING PFNs')
 
         # file = '/'+pfn_i.split('//')[-1]
         file = pfn_i
@@ -158,9 +169,9 @@ else:
 
         print('\n',file_idx,'/',len(file_list),file)
 
-
-        file_trimmed = file[:-5]+'_trimmed.root'
-        file_merged = file[:-5]+'_merged.root'
+        rndint = np.random.randint(100000000,999999999) # i think this wasnt necessary in this end.
+        file_trimmed = file[:-5]+'_trimmed_'+str(rndint)+'.root'
+        file_merged = file[:-5]+'_merged_'+str(rndint)+'.root'
 
         trim_file_directory_structure(file, file_trimmed)
         merge_directory_structure(file_trimmed, file_merged)

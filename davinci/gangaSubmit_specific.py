@@ -13,8 +13,8 @@ i = 0
 # inclusive B
 # PATH_name = "/MC/2018/Beam6500GeV-2018-MagDown-Nu1.6-25ns-Pythia8/Sim09k/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/10000023/ALLSTREAMS.DST"
 # Kee
-# decay_name = "Kee"
-# PATH_name = "/MC/2018/Beam6500GeV-2018-MagDown-Nu1.6-25ns-Pythia8/Sim09g/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/12123003/ALLSTREAMS.DST"
+decay_name = "Kee"
+PATH_name = "/MC/2018/Beam6500GeV-2018-MagDown-Nu1.6-25ns-Pythia8/Sim09g/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/12123003/ALLSTREAMS.DST"
 # K*ee
 # decay_name = "Kstee"
 # PATH_name = "/MC/2015/Beam6500GeV-2015-MagUp-Nu1.6-25ns-Pythia8/Sim09i/Trig0x411400a2/Reco15a/Turbo02/Stripping24r1NoPrescalingFlagged/11124002/ALLSTREAMS.DST"
@@ -23,8 +23,8 @@ i = 0
 # PATH_name = "/MC/2018/Beam6500GeV-2018-MagDown-Nu1.6-25ns-Pythia8/Sim09k/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/12583023/ALLSTREAMS.DST"
 # decay_name = "BuD0piKenu" 
 # PATH_name = "/MC/2018/Beam6500GeV-2018-MagDown-Nu1.6-25ns-Pythia8/Sim09m/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/12583040/ALLSTREAMS.DST"
-decay_name = "Kmumu" 
-PATH_name = "/MC/2018/Beam6500GeV-2018-MagDown-Nu1.6-25ns-Pythia8/Sim09i/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/12113002/ALLSTREAMS.DST"
+# decay_name = "Kmumu" 
+# PATH_name = "/MC/2018/Beam6500GeV-2018-MagDown-Nu1.6-25ns-Pythia8/Sim09i/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/12113002/ALLSTREAMS.DST"
 
 print(PATH_name)
 job_name = (
@@ -60,12 +60,10 @@ for job_name, path_dict in job_setting.items():
     myApp.platform = "x86_64+avx2+fma-centos7-gcc62-opt"
     # myApp.options = ["./davinci_intermediates.py", "./print_something.py"]
     # myApp.options = ["./davinci_intermediates.py"]
-    myApp.options = ["./davinci_intermediates_MUON.py"]
+    # myApp.options = ["./davinci_intermediates_MUON.py"]
+    myApp.options = ["./davinci_Kee_mcmatch_intermediates.py"]
 
     bck = Dirac()
-    # bck = Condor()
-    # bck = Local()
-    # bck = Interactive()
 
     splitter = SplitByFiles()
     splitter.ignoremissing = True
@@ -73,6 +71,9 @@ for job_name, path_dict in job_setting.items():
     splitter.filesPerJob = 1
 
     job = Job(name=job_name, comment=job_name, backend=bck, splitter=splitter)
+
+    # job.backend.downloadSandbox = False
+
     Year = (
         bool("2011" in job_name) * ' "2011" '
         + bool("2012" in job_name) * ' "2012" '
@@ -90,7 +91,8 @@ for job_name, path_dict in job_setting.items():
         + job_name
         + '.root"  ; '
         + "DaVinci().EvtMax        =              -1             ; "
-        # + "DaVinci().EvtMax        =              25             ; "
+        + "DaVinci().PrintFreq        =              2500             ; "
+        + "DaVinci().VerboseMessages        =              False             ; "
         + "from Configurables import CondDB                      ; "
         + "CondDB( LatestGlobalTagByDataType = "
         + Year
@@ -101,17 +103,13 @@ for job_name, path_dict in job_setting.items():
     )
 
     print("Create job for thee jobs: ", job.name)
-    # job.inputdata  = dataset
-    # job.inputdata = [dataset[0]]
-    job.inputdata = dataset[:100]
+    job.inputdata  = dataset
+    # job.inputdata  = dataset[:3]
 
-    # This throws the files on the grid personall space
     job.outputfiles = [
-        # DiracFile(namePattern="*.root"),
         LocalFile(namePattern="DTT*.root"),
         LocalFile("summary.xml"),
-    ]  # keep my Tuples on grid element (retrive manually)
-    # job.outputfiles= [LocalFile(namePattern='*.root') , LocalFile('summary.xml') ] # keep my Tuples on grid element (retrive manually)
+    ] 
     jobs.parallel_submit = True
     job.submit()
     print("======================================")

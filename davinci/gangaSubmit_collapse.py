@@ -3,9 +3,12 @@ import numpy as np
 import time
 import pickle 
 
-# def hadd_job_output(job, output_filename):
-#     command = ["hadd", "-fk", output_filename] + job.backend.getOutputDataAccessURLs()
-#     os.system(" ".join(command))
+# def dumpDataAccessURLs(job, output_filename):
+# 	files = job.backend.getOutputDataAccessURLs()
+# 	filehandler = open("OutputDataAccessURLs.pkl", 'wb') 
+# 	pickle.dump(files, filehandler)
+# dumpDataAccessURLs(jobs(2041))
+# quit()
 
 # How do I run an executable job that uses input files on the Grid as arguments to the script?
 
@@ -28,10 +31,7 @@ for lfn_idx, sj in enumerate(j.subjobs.select(status="completed")):
 		fileset = LHCbCompressedFileSet(files)
 		ds = LHCbCompressedDataset(fileset)
 		extend = True
-
-
-	for file in files:
-		print(file)
+		
 	files_Dirac = [DiracFile(lfn=file) for file in files]
 	files_list.extend(files_Dirac)
 
@@ -40,13 +40,11 @@ for lfn_idx, sj in enumerate(j.subjobs.select(status="completed")):
 	
 job_name = "%s_Collapse"%JOB_ID
 
-
 bck = Dirac()
 
 job = Job(name=job_name, comment=job_name, backend=bck)
 
 job.splitter = GenericSplitter(attribute = 'inputfiles', values = [[i, LocalFile('collapse_individual_tuples_GANGA.py')] for idx, i in enumerate(files_list)])
-job.inputfiles = files_list
 
 myApp = Executable()
 myApp.exe = File('run_collapse_individual_tuples_GANGA.sh')
@@ -54,8 +52,10 @@ myApp.platform = "x86_64-centos7-gcc8-opt"
 job.application = myApp
 
 job.outputfiles = [
-	DiracFile(namePattern="*merged.root"),
-]  # keep my Tuples on grid element (retrive manually)
+	DiracFile(namePattern="*merged*.root"),
+]
+
+job.backend.settings['BannedSites'] = ['LCG.Beijing.cn'] #We have issues with this grid site in particular
 
 jobs.parallel_submit = True
 job.submit()

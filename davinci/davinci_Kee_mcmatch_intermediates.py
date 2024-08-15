@@ -30,67 +30,31 @@ particle_dict = {
 -211:"pi-", 211:"pi+",
 -321:"K-", 321:"K+",
 }
-combinations = np.empty((0,3))
-for p1 in positive_particles:
-    for p2 in positive_particles:
-        for n1 in negative_particles:
-            combinations = np.append(combinations, [[p1,p2,n1]], axis=0)
-            combinations = np.append(combinations, [[-1*p1,-1*p2,-1*n1]], axis=0)
 
-# combinations = np.append(combinations, [[321,-11,11]], axis=0)
-# combinations = np.append(combinations, [[-321,11,-11]], axis=0)
+################################################################################
+B_string = 'B+'
 
 full_list_of_decays = []
 config_electron = []
+full_list_of_decays.append("[ %s -> %s %s %s ]cc"%(B_string,particle_dict[321],particle_dict[-11],particle_dict[11]))
+full_list_of_decays.append("[ %s -> %s J/psi(1S) ]cc"%(B_string,particle_dict[321]))
+# full_list_of_decays = ["[ B+ -> K+ e+ e- ]cc", "[ B+ -> K+ J/psi(1S) ]cc"]
 
-for idx, combination in enumerate(combinations):
+config_electron.append({
+    "stripping_line": "Bu2LLK_eeLine2",
+    "decayname": "%s_%sJpsi(%s%s)"%(B_string,particle_dict[321],particle_dict[-11],particle_dict[11]),
+    'decay': "[B+ -> ^(J/psi(1S)->^e+ ^e-) ^K+]CC",
+    'branches': {
+        "MOTHER": "[ B+ -> (J/psi(1S)->e+ e-)  K+]CC",
+        "DAUGHTER1": "[ B+ -> (J/psi(1S)->e+ e-) ^K+]CC",
+        "DAUGHTER2": "[(B+ -> (J/psi(1S)->e+ ^e-) K+), (B- -> (J/psi(1S)->^e- e+) K-)]",
+        "DAUGHTER3": "[(B+ -> (J/psi(1S)->^e+ e-) K+), (B- -> (J/psi(1S)->e- ^e+) K-)]",
+        "INTERMEDIATE": "[ B+ -> ^(J/psi(1S)->e+ e-) K+]CC"},
+        'intermediate_daughters':[particle_dict[-11],particle_dict[11]],
+        'full_list_of_decays_i':full_list_of_decays,
+})
+################################################################################
 
-    charge = 0
-    for particle in combination:
-        if particle in negative_particles:
-            charge += -1
-        if particle in positive_particles:
-            charge += 1
-
-    if charge == 1: B_string = "B+"
-    elif charge == -1:B_string = "B-"
-    else:
-        print("Not setup yet for neutrals")
-        quit()
-
-    full_list_of_decays.append(["%s -> %s J/psi(1S)"%(B_string,particle_dict[combination[0]])])
-    # # CC - works
-    # full_list_of_decays.append(["[ %s -> %s J/psi(1S) ]cc"%(B_string,particle_dict[combination[0]])])
-
-    # production
-    config_electron.append({
-        "decayname": "%s_%sJpsi(%s%s)"%(B_string,particle_dict[combination[0]],particle_dict[combination[1]],particle_dict[combination[2]]),
-
-        'decay': "%s -> ^(J/psi(1S)->^%s ^%s) ^%s"%(B_string,particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
-        'branches': {
-            "MOTHER": "%s -> (J/psi(1S)->%s %s)  %s"%(B_string,particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
-            "DAUGHTER1": "%s -> (J/psi(1S)->%s %s) ^%s"%(B_string,particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
-            "DAUGHTER2": "%s -> (J/psi(1S)->%s ^%s) %s"%(B_string,particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
-            "DAUGHTER3": "%s -> (J/psi(1S)->^%s %s) %s"%(B_string,particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
-            "INTERMEDIATE": "%s -> ^(J/psi(1S)->%s %s) %s"%(B_string,particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]])},
-        'intermediate_daughters':[particle_dict[combination[1]],particle_dict[combination[2]]],
-        'full_list_of_decays_i':full_list_of_decays[idx],
-    })
-
-    # # CC - works
-    # config_electron.append({
-    #     "decayname": "%s_%sJpsi(%s%s)"%(B_string,particle_dict[combination[0]],particle_dict[combination[1]],particle_dict[combination[2]]),
-
-    #     'decay': "[%s -> ^(J/psi(1S)->^%s ^%s) ^%s]CC"%(B_string,particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
-    #     'branches': {
-    #         "MOTHER": "[ %s -> (J/psi(1S)->%s %s)  %s]CC"%(B_string,particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
-    #         "DAUGHTER1": "[ %s -> (J/psi(1S)->%s %s) ^%s]CC"%(B_string,particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]]),
-    #         "DAUGHTER2": "[(%s -> (J/psi(1S)->%s ^%s) %s), (%s -> (J/psi(1S)->^%s %s) %s)]"%(B_string,particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]], B_string,particle_dict[combination[2]],particle_dict[combination[1]],particle_dict[combination[0]]),
-    #         "DAUGHTER3": "[(%s -> (J/psi(1S)->^%s %s) %s), (%s -> (J/psi(1S)->%s ^%s) %s)]"%(B_string,particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]], B_string,particle_dict[combination[2]],particle_dict[combination[1]],particle_dict[combination[0]]),
-    #         "INTERMEDIATE": "[ %s -> ^(J/psi(1S)->%s %s) %s]CC"%(B_string,particle_dict[combination[1]],particle_dict[combination[2]],particle_dict[combination[0]])},
-    #     'intermediate_daughters':[particle_dict[combination[1]],particle_dict[combination[2]]],
-    #     'full_list_of_decays_i':full_list_of_decays[idx],
-    # })
 
 from StrippingConf.Configuration import StrippingConf, StrippingStream
 

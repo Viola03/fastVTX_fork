@@ -202,6 +202,8 @@ job.outputfiles = [
 	DiracFile(namePattern="DTT*.root"),
 ]  # keep my Tuples on grid element (retrive manually)
 
+job.backend.settings['BannedSites'] = ['LCG.Beijing.cn'] #We have issues with this grid site in particular
+
 
 jobs.parallel_submit = True
 job.submit()
