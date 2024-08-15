@@ -2091,7 +2091,8 @@ class BDT_tester:
             
             ###############
             event_loader_MC = self.get_event_loader(
-                "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
+                # "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
+                "datasets/dedicated_Kee_MC_hierachy_All_cut_more_vars.root",
                 vertex_quality_trainer_obj,
                 generate=False,
                 # N=10000,
@@ -2125,7 +2126,8 @@ class BDT_tester:
 
             ###############
             event_loader_gen_MC = self.get_event_loader(
-                "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
+                # "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
+                "datasets/dedicated_Kee_MC_hierachy_All_cut_more_vars.root",
                 vertex_quality_trainer_obj,
                 generate=True,
                 # N=10000,

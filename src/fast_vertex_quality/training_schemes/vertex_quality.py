@@ -553,6 +553,7 @@ class vertex_quality_trainer:
 
     def save_state(self, tag):
 
+        print("Saving state...")
         pickle.dump(
             self.transformers,
             open(

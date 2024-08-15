@@ -57,6 +57,7 @@ training_data_loader = data_loader.load_data(
     convert_to_RK_branch_names=True,
     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
     # conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus'},
+    # N=5000,
 )
 transformers = training_data_loader.get_transformers()
 print(training_data_loader.shape())
@@ -144,12 +145,12 @@ vertex_quality_trainer_obj = vertex_quality_trainer(
 steps_for_plot = 5000
 vertex_quality_trainer_obj.train(steps=steps_for_plot)
 vertex_quality_trainer_obj.save_state(tag=load_state)
-vertex_quality_trainer_obj.make_plots(filename=f'plots_0.pdf',testing_file=training_data_loader.get_file_names())
+# vertex_quality_trainer_obj.make_plots(filename=f'plots_0.pdf',testing_file=training_data_loader.get_file_names())
 
 for i in range(70):
     vertex_quality_trainer_obj.train_more_steps(steps=steps_for_plot)
     vertex_quality_trainer_obj.save_state(tag=load_state)
-    vertex_quality_trainer_obj.make_plots(filename=f'plots_{i+1}.pdf',testing_file=training_data_loader.get_file_names())
+    # vertex_quality_trainer_obj.make_plots(filename=f'plots_{i+1}.pdf',testing_file=training_data_loader.get_file_names())
 
 
 

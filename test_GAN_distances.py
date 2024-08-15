@@ -160,7 +160,7 @@ scores = BDT_tester_obj.plot_detailed_metrics(
     only_signal=True,
     # only_signal=False,
 )
-quit()
+
 
 scores = BDT_tester_obj.plot_differential_metrics(
     conditions,

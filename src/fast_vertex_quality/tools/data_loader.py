@@ -201,9 +201,11 @@ class Transformer:
         
         self.min_fills = {}
 
-        self.trueID_map = {-11:1, -13:2, 211:3, 321:4} # positive particles
-        for pid in list(self.trueID_map.keys()):
-            self.trueID_map[-pid] = -self.trueID_map[pid]
+        # self.trueID_map = {-11:1, -13:2, 211:3, 321:4} # positive particles
+        # for pid in list(self.trueID_map.keys()):
+        #     self.trueID_map[-pid] = -self.trueID_map[pid]
+        self.trueID_map = {11:1, 13:2, 211:3, 321:4} # positive particles
+
         values = list(self.trueID_map.values())
         values_max = np.amax(values)
         values_min = np.amin(values)
@@ -211,7 +213,7 @@ class Transformer:
             self.trueID_map[pid] = (((self.trueID_map[pid]-values_min)/(values_max-values_min))*2.-1.)*0.8
 
     def map_pdg_codes(self, data):
-        mapped_values = np.vectorize(lambda pid: self.trueID_map.get(pid, -1 if pid < 0 else 1))(data)
+        mapped_values = np.vectorize(lambda pid: self.trueID_map.get(pid, -1 if pid < 0 else 1))(np.abs(data))
         return mapped_values.astype(np.float64)
 
 
@@ -287,12 +289,13 @@ class Transformer:
             data = data - self.shift
             data = symsqrt(data)
 
-        if "DIRA" in self.column and "true_vertex" in self.column and rd.mother_particle in self.column:
-            where_over_threshold = np.where(data<-7.6)
-            data[where_over_threshold] = -7.6
-        if "IP" in self.column and "true_vertex" in self.column and rd.mother_particle in self.column:
-            where_over_threshold = np.where(data<-2.6)
-            data[where_over_threshold] = -2.6
+        # # Threshold cut for DIRA and IP
+        # if "DIRA" in self.column and "true_vertex" in self.column and rd.mother_particle in self.column:
+        #     where_over_threshold = np.where(data<-7.6)
+        #     data[where_over_threshold] = -7.6
+        # if "IP" in self.column and "true_vertex" in self.column and rd.mother_particle in self.column:
+        #     where_over_threshold = np.where(data<-2.6)
+        #     data[where_over_threshold] = -2.6
 
         if "DIRA" in self.column:
             where = np.where(np.isnan(data))
