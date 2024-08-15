@@ -24,7 +24,7 @@ network_option = 'VAE'
 # G_architecture=[1000,2000,2000,1000]
 # load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions6"
 # load_state = f"networks/vertex_job_{network_option}general_6"
-load_state = f"networks/vertex_job_{network_option}general_7"
+load_state = f"networks/vertex_job_{network_option}general_8"
 rd.latent = 7 # VAE latent dims
 D_architecture=[1600,2600,2600,1600]
 G_architecture=[1600,2600,2600,1600]
@@ -123,7 +123,8 @@ targets = [
 ]
 
 # training_data_loader.print_branches()
-# training_data_loader.plot('conditions.pdf',conditions)
+print("plot conditions...")
+training_data_loader.plot('conditions.pdf',conditions)
 # quit()
 
 

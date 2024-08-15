@@ -2584,7 +2584,8 @@ class BDT_tester:
 
 
             signal_gen, signal_gen_stripping_eff = self.get_sample_and_stripping_eff(
-                "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
+                # "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
+                "datasets/dedicated_Kee_MC_hierachy_All_cut_more_vars.root",
                 vertex_quality_trainer_obj,
                 generate=True,
                 N=10000,
@@ -2657,7 +2658,8 @@ class BDT_tester:
 
             self.compare_stripping_eff_plots(
                 pdf,
-                ["datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root", "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root", "datasets/cocktail_hierarchy_cut_more_vars.root", "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root"],
+                # ["datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root", "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root", "datasets/cocktail_hierarchy_cut_more_vars.root", "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root"],
+                ["datasets/dedicated_Kee_MC_hierachy_All_cut_more_vars.root", "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root", "datasets/cocktail_hierarchy_cut_more_vars.root", "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root"],
                 vertex_quality_trainer_obj,
                 generate=[False, True, False, True],
                 convert_branches=[True, True, True, True],

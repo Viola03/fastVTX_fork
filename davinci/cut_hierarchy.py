@@ -105,18 +105,27 @@ cut_condition = "(MOTHER_TRUEID != 0) & (MOTHER_BKGCAT < 60)"
 # name = 'dedicated_BuD0enuKenu_MC_hierachy'
 # name = 'dedicated_BuD0piKenu_MC_hierachy'
 # name = 'cocktail_x5_MC_hierachy'
-name = 'dedicated_Kmumu_MC_hierachy'
+name = 'dedicated_Kee_MC_hierachy_All'
 
 with uproot.open(f'/users/am13743/fast_vertexing_variables/datasets/raw/{name}.root') as ur_file:
 	
-	try:
-		tree = ur_file["B2Kee_Tuple/DecayTree"]
-	except:
-		tree = ur_file["B2Kmumu_Tuple/DecayTree"]
-	
+	for key in ur_file.keys():
+		if 'DecayTree' in key:
+			key = key[:-2]
+			break
 
+	tree = ur_file[key]
+	# try:
+	# 	tree = ur_file["B2Kee_Tuple/DecayTree"]
+	# except:
+	# 	tree = ur_file["B2Kmumu_Tuple/DecayTree"]
+	
 	data = tree.arrays(branches_to_keep, library="pd")
 
 	filtered_data = data.query(cut_condition)
+
+	if "dedicated_Kee_MC" in name:
+		filtered_data = filtered_data.query("MOTHER_BKGCAT<11")
+
 
 write_df_to_root(filtered_data, f'/users/am13743/fast_vertexing_variables/datasets/{name}_cut.root')
