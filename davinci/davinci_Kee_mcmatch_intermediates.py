@@ -34,7 +34,7 @@ particle_dict = {
 ################################################################################
 B_string = 'B+'
 
-# full_list_of_decays = []
+full_list_of_decays = []
 config_electron = []
 full_list_of_decays.append("[ %s -> %s %s %s ]cc"%(B_string,particle_dict[321],particle_dict[-11],particle_dict[11]))
 full_list_of_decays.append("[ %s -> %s J/psi(1S) ]cc"%(B_string,particle_dict[321]))

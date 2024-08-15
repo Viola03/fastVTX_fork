@@ -72,7 +72,7 @@ for job_name, path_dict in job_setting.items():
 
     job = Job(name=job_name, comment=job_name, backend=bck, splitter=splitter)
 
-    job.backend.downloadSandbox = False
+    # job.backend.downloadSandbox = False
 
     Year = (
         bool("2011" in job_name) * ' "2011" '
@@ -104,6 +104,8 @@ for job_name, path_dict in job_setting.items():
 
     print("Create job for thee jobs: ", job.name)
     job.inputdata  = dataset
+    # job.inputdata  = dataset[:3]
+
     job.outputfiles = [
         LocalFile(namePattern="DTT*.root"),
         LocalFile("summary.xml"),
