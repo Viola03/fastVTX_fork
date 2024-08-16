@@ -121,72 +121,72 @@ vertex_quality_trainer_obj.load_state(tag=load_state)
 # vertex_quality_trainer_obj.make_plots(filename=f'example_training_plots_general',testing_file=training_data_loader.get_file_names(),offline=True)
 # quit()
 
-print(f"Initialising BDT tester...")
-BDT_tester_obj = BDT_tester(
-    transformers=transformers,
-    tag="networks/BDT_sig_comb_WGANcocktail_newconditions",
-    # tag="networks/BDT_sig_comb_WGANcocktail_general",
-    train=False,
-    BDT_vars=targets,
-    signal="datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
-    background="datasets/B2Kee_2018_CommonPresel.csv",
-    signal_label=r"Signal $B^+\to K^+e^+e^-$ MC",
-    background_label=r"UMSB Combinatorial",
-    gen_track_chi2=False,
-    signal_convert_branches=True,
-    use_intermediate=use_intermediate
-)
-
-scores = BDT_tester_obj.plot_detailed_metrics(
-    conditions,
-    targets,
-    vertex_quality_trainer_obj, f"metrics_{network_option}.pdf",
-    # only_signal=True,
-    # avoid_rapidsim=True,
-)
-
-
-scores = BDT_tester_obj.plot_differential_metrics(
-    conditions,
-    targets,
-    vertex_quality_trainer_obj, f"differential_metrics_{network_option}.pdf",
-    # only_signal=True,
-    BDT_cut=0.9,
-    # avoid_rapidsim=True,
-)
-quit()
-
 # print(f"Initialising BDT tester...")
 # BDT_tester_obj = BDT_tester(
 #     transformers=transformers,
-#     tag="networks/BDT_sig_prc_WGANcocktail_newconditions",
+#     tag="networks/BDT_sig_comb_WGANcocktail_newconditions",
+#     # tag="networks/BDT_sig_comb_WGANcocktail_general",
 #     train=False,
 #     BDT_vars=targets,
-#     # signal="datasets/Kee_2018_truthed_more_vars.csv",
 #     signal="datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
-#     background="datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
+#     background="datasets/B2Kee_2018_CommonPresel.csv",
 #     signal_label=r"Signal $B^+\to K^+e^+e^-$ MC",
-#     background_label=r"Part. Reco. $B^0\to K^{*0}e^+e^-$ MC",
+#     background_label=r"UMSB Combinatorial",
 #     gen_track_chi2=False,
 #     signal_convert_branches=True,
-#     background_convert_branches=True,
+#     use_intermediate=use_intermediate
 # )
 
 # scores = BDT_tester_obj.plot_detailed_metrics(
 #     conditions,
 #     targets,
-#     vertex_quality_trainer_obj, f"metrics_{network_option}_prcBDT.pdf",
-#     only_signal=False
+#     vertex_quality_trainer_obj, f"metrics_{network_option}.pdf",
+#     # only_signal=True,
+#     # avoid_rapidsim=True,
 # )
+
 
 # scores = BDT_tester_obj.plot_differential_metrics(
 #     conditions,
 #     targets,
-#     vertex_quality_trainer_obj, f"differential_metrics_{network_option}_prcBDT.pdf",
+#     vertex_quality_trainer_obj, f"differential_metrics_{network_option}.pdf",
 #     # only_signal=True,
-#     only_signal=False,
-#     BDT_cut=0.55
+#     BDT_cut=0.9,
+#     # avoid_rapidsim=True,
 # )
+# quit()
+
+print(f"Initialising BDT tester...")
+BDT_tester_obj = BDT_tester(
+    transformers=transformers,
+    tag="networks/BDT_sig_prc_WGANcocktail_newconditions",
+    train=False,
+    BDT_vars=targets,
+    # signal="datasets/Kee_2018_truthed_more_vars.csv",
+    signal="datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
+    background="datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
+    signal_label=r"Signal $B^+\to K^+e^+e^-$ MC",
+    background_label=r"Part. Reco. $B^0\to K^{*0}e^+e^-$ MC",
+    gen_track_chi2=False,
+    signal_convert_branches=True,
+    background_convert_branches=True,
+)
+
+scores = BDT_tester_obj.plot_detailed_metrics(
+    conditions,
+    targets,
+    vertex_quality_trainer_obj, f"metrics_{network_option}_prcBDT.pdf",
+    only_signal=False
+)
+
+scores = BDT_tester_obj.plot_differential_metrics(
+    conditions,
+    targets,
+    vertex_quality_trainer_obj, f"differential_metrics_{network_option}_prcBDT.pdf",
+    # only_signal=True,
+    only_signal=False,
+    BDT_cut=0.55
+)
 
 
 
