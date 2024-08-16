@@ -293,11 +293,19 @@ class vertex_quality_trainer:
         break_option = False
         for epoch in range(int(1e30)):
 
-            X_train_data_all_pp = self.data_loader_obj.get_branches(
-                self.targets + self.conditions, processed=True
-            )
+            if self.data_loader_obj.reweight_for_training_bool:
+                X_train_data_all_pp = self.data_loader_obj.get_branches(
+                    self.targets + self.conditions + ['training_weight'], processed=True
+                )
+                X_train_data_all_pp = X_train_data_all_pp.sample(frac=1, weights=X_train_data_all_pp['training_weight'],replace=True)
+                X_train_data_all_pp = X_train_data_all_pp.drop(columns=['training_weight'])
 
-            X_train_data_all_pp = X_train_data_all_pp.sample(frac=1)
+            else:
+                X_train_data_all_pp = self.data_loader_obj.get_branches(
+                    self.targets + self.conditions, processed=True
+                )
+                X_train_data_all_pp = X_train_data_all_pp.sample(frac=1)
+
             X_train_data_all_pp = X_train_data_all_pp[self.targets + self.conditions]
 
             X_train_raw = np.asarray(X_train_data_all_pp)
@@ -376,11 +384,20 @@ class vertex_quality_trainer:
         break_option = False
         for epoch in range(int(1e30)):
 
-            X_train_data_all_pp = self.data_loader_obj.get_branches(
-                self.targets + self.conditions, processed=True
-            )
+            if self.data_loader_obj.reweight_for_training_bool:
+                print("loading training events with weights")
+                X_train_data_all_pp = self.data_loader_obj.get_branches(
+                    self.targets + self.conditions + ['training_weight'], processed=True
+                )
+                X_train_data_all_pp = X_train_data_all_pp.sample(frac=1, weights=X_train_data_all_pp['training_weight'],replace=True)
+                X_train_data_all_pp = X_train_data_all_pp.drop(columns=['training_weight'])
 
-            X_train_data_all_pp = X_train_data_all_pp.sample(frac=1)
+            else:
+                X_train_data_all_pp = self.data_loader_obj.get_branches(
+                    self.targets + self.conditions, processed=True
+                )
+                X_train_data_all_pp = X_train_data_all_pp.sample(frac=1)
+
             X_train_data_all_pp = X_train_data_all_pp[self.targets + self.conditions]
 
             X_train_raw = np.asarray(X_train_data_all_pp)

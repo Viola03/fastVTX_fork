@@ -49,15 +49,20 @@ parser["DEFAULT"] = {
 # Can overwrite the above defaults in mainConfig.txt
 parser.read("mainConfig.txt".format(**os.environ))
 
+printed_warning = False
 
-def read_definition(name, organising_types=False):
+def read_definition(printed_warning, name, organising_types=False):
     """Function to access a defintion from anywhere else"""
     try:
         value = parser.get("mainConfig", name)
     except:
-        print("no mainConfig.txt in current directory...")
-        print("\n\n quitting...")
-        quit()
+        if not printed_warning:
+            print("no mainConfig.txt in current directory (taking default)...")
+            printed_warning = True
+        # print("\n\n quitting...")
+        # quit()
+        value = parser["DEFAULT"][name]
+
     if not organising_types:
         try:
             if value in ["0", "1"]:
@@ -76,7 +81,7 @@ def read_definition(name, organising_types=False):
             except ValueError:
                 pass
             pass
-    return value
+    return printed_warning, value
 
 
 def update_definition(name, value):
@@ -88,8 +93,9 @@ def update_definition(name, value):
 arguments_libary = parser["DEFAULT"]
 arguments_types = {}
 for key in arguments_libary.keys():
+    printed_warning, value = read_definition(printed_warning, key, organising_types=True)
     arguments_types[key] = type(
-        read_definition(key, organising_types=True)
+        value
     )  # .__name__
 
 ## Look for all arguments...
@@ -119,7 +125,7 @@ from types import SimpleNamespace
 
 arguments = {}
 for key in arguments_types.keys():
-    value = read_definition(key)
+    printed_warning, value = read_definition(printed_warning, key)
     arguments[key] = value
 
 arguments["info_string"] = info_string

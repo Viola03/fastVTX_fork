@@ -52,7 +52,8 @@ training_data_loader = data_loader.load_data(
         # "datasets/cocktail_x5_MC_hierachy_cut_more_vars.root",
         # "datasets/general_sample_more_vars.root",
         # "datasets/general_sample_intermediate_more_vars.root",
-        "datasets/general_sample_intermediate_All_more_vars.root",
+        # "datasets/general_sample_intermediate_All_more_vars.root",
+        "datasets/general_sample_intermediate_All_more_vars_HEADfactor10.root",
     ],
     convert_to_RK_branch_names=True,
     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
@@ -61,6 +62,10 @@ training_data_loader = data_loader.load_data(
 )
 transformers = training_data_loader.get_transformers()
 print(training_data_loader.shape())
+
+# # temporary function!
+training_data_loader.reweight_for_training("B_plus_M")
+
 
 # training_data_loader.cut("abs(K_Kst_TRUEID)==321")
 # training_data_loader.cut("abs(e_plus_TRUEID)==11")
@@ -82,18 +87,18 @@ conditions = [
     "e_plus_eta",
     "e_minus_eta",
     "IP_B_plus_true_vertex",
-    "IP_K_Kst_true_vertex",
-    "IP_e_plus_true_vertex",
-    "IP_e_minus_true_vertex",
+    # "IP_K_Kst_true_vertex",
+    # "IP_e_plus_true_vertex",
+    # "IP_e_minus_true_vertex",
     "FD_B_plus_true_vertex",
     "DIRA_B_plus_true_vertex",
     "missing_B_plus_P",
     "missing_B_plus_PT",
     "missing_J_psi_1S_P",
     "missing_J_psi_1S_PT",
-    "m_01",
-    "m_02",
-    "m_12",
+    # "m_01",
+    # "m_02",
+    # "m_12",
     "K_Kst_FLIGHT",
     "e_plus_FLIGHT",
     "e_minus_FLIGHT",
@@ -103,9 +108,9 @@ conditions = [
     "delta_1_PT",
     "delta_2_P",
     "delta_2_PT",
-    "K_Kst_TRUEID",
-    "e_plus_TRUEID",
-    "e_minus_TRUEID",
+    # "K_Kst_TRUEID",
+    # "e_plus_TRUEID",
+    # "e_minus_TRUEID",
 ]
 
 targets = [
@@ -151,6 +156,4 @@ for i in range(70):
     vertex_quality_trainer_obj.train_more_steps(steps=steps_for_plot)
     vertex_quality_trainer_obj.save_state(tag=load_state)
     # vertex_quality_trainer_obj.make_plots(filename=f'plots_{i+1}.pdf',testing_file=training_data_loader.get_file_names())
-
-
 

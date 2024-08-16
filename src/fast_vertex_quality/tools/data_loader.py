@@ -351,6 +351,8 @@ class dataset:
         self.all_data = {"processed": None, "physical": None}
         self.filenames = filenames
 
+        self.reweight_for_training_bool = False
+
     def fill_stripping_bool(self):
 
         self.all_data["physical"]["pass_stripping"] = np.zeros(self.all_data["physical"].shape[0])
@@ -522,7 +524,7 @@ class dataset:
 
         for column in list(processed_data.keys()):
 
-            if column == "file":
+            if column == "file" or column == "training_weight":
                 df[column] = processed_data[column]
             else:
                 df[column] = self.Transformers[column].unprocess(
@@ -758,7 +760,7 @@ class dataset:
 
         for column in list(physical_data.keys()):
 
-            if column == "file" or column == "pass_stripping":
+            if column == "file" or column == "pass_stripping" or column == "training_weight":
                 df[column] = physical_data[column]
             else:
                 # if "TRUEID" in column:
@@ -804,6 +806,26 @@ class dataset:
         )
     # def load_transformers(self, file):
     #     self.Transformers = pickle.load(open(file, "rb"))
+
+    def reweight_for_training(self, variable):
+
+        plt.hist(self.all_data['physical'][variable], bins=75)
+        plt.savefig('reweight_before.pdf')
+        plt.close('all')
+
+        weight = np.ones(np.shape(self.all_data['physical'][variable]))
+
+        weight[np.where((self.all_data['physical'][variable]>5.27934-0.05)&(self.all_data['physical'][variable]<5.27934+0.05))] = 50.
+        # weight[np.where((self.all_data['physical'][variable]>5.27934-0.05)&(self.all_data['physical'][variable]<5.27934+0.05))] = 1.
+
+        plt.hist(self.all_data['physical'][variable], bins=75, weights=weight)
+        plt.savefig('reweight_after.pdf')
+        plt.close('all')
+
+        self.all_data['physical']['training_weight'] = weight
+        self.all_data['processed']['training_weight'] = weight
+
+        self.reweight_for_training_bool = True
 
     def shape(self):
         return self.all_data['physical'].shape

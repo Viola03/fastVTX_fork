@@ -25,7 +25,7 @@ network_option = 'VAE'
 # load_state = f"networks/vertex_job_{network_option}general_3"
 # load_state = f"networks/vertex_job_{network_option}general_5"
 # load_state = f"networks/vertex_job_{network_option}general_6"
-load_state = f"networks/vertex_job_{network_option}general_7"
+load_state = f"networks/vertex_job_{network_option}general_8"
 # rd.latent = 6 # noise dims
 # D_architecture=[1000,2000,2000,1000]
 # G_architecture=[1000,2000,2000,1000]
@@ -87,9 +87,9 @@ conditions = [
     "missing_B_plus_PT",
     "missing_J_psi_1S_P",
     "missing_J_psi_1S_PT",
-    "m_01",
-    "m_02",
-    "m_12",
+    # "m_01",
+    # "m_02",
+    # "m_12",
     "K_Kst_FLIGHT",
     "e_plus_FLIGHT",
     "e_minus_FLIGHT",
