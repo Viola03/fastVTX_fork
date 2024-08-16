@@ -1602,7 +1602,8 @@ class BDT_tester:
                 ],
                 transformers=self.transformers,
                 convert_to_RK_branch_names=True,
-                conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
+                conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
+                name=sample_loc.split('/')[-1].replace('.root','')+f'Gen:{generate}, RS:{rapidsim}',
             )
 
             if "Partreco" in sample_loc:
@@ -1612,7 +1613,8 @@ class BDT_tester:
                     ],
                     transformers=self.transformers,
                     convert_to_RK_branch_names=True,
-                    conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
+                    conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
+                    name=sample_loc.split('/')[-1].replace('.root','')+f'Gen:{generate}, RS:{rapidsim}',
                 )
                 # event_loader.sample_with_replacement_with_reweight(target_loader=event_loader_target, reweight_vars=['m_01','m_02','m_12'])
             if "BuD0enuKenu" in sample_loc:
@@ -1637,7 +1639,8 @@ class BDT_tester:
                     ],
                     transformers=self.transformers,
                     convert_to_RK_branch_names=True,
-                    conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
+                    conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
+                    name=sample_loc.split('/')[-1].replace('.root','')+f'Gen:{generate}, RS:{rapidsim}',
                 )
             else:
                 event_loader = data_loader.load_data(
@@ -1645,6 +1648,7 @@ class BDT_tester:
                         sample_loc,
                     ],
                     transformers=self.transformers,
+                    name=sample_loc.split('/')[-1].replace('.root','')+f'Gen:{generate}, RS:{rapidsim}',
                 )
 
         if cut is not None:
@@ -1899,7 +1903,10 @@ class BDT_tester:
         
 
         for loader_idx, loader in enumerate([event_loader_MC, event_loader_gen_MC, event_loader_RapidSim]):
-
+            
+            if loader == None:
+                continue
+            
             branches = [xvar, yvar]
             values_no_cut = loader.get_branches(branches, processed=False)
 
@@ -2080,7 +2087,8 @@ class BDT_tester:
         vertex_quality_trainer_obj,
         filename,
         only_signal=False,
-        BDT_cut=0.9
+        BDT_cut=0.9,
+        avoid_rapidsim=False,
     ):  
         self.conditions = conditions
         self.targets = targets
@@ -2152,27 +2160,28 @@ class BDT_tester:
 
 
             ###############
-            event_loader_RapidSim = self.get_event_loader(
-                # "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root",
-                "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_LARGE_NNvertex_more_vars.root",
-                vertex_quality_trainer_obj,
-                generate=True,
-                # N=10000,
-                N=-1,
-                convert_branches=True,
-                rapidsim=True,
-            )  
-            print("Cutting pass_stripping for rapidsim")
-            event_loader_RapidSim.fill_stripping_bool()
-            event_loader_RapidSim.cut("pass_stripping")
-            print("Cut")
-            BDT_scores = self.get_BDT_scores(
-                event_loader_RapidSim,
-                generate=True
-            )  
-            event_loader_RapidSim.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
-            event_loader_RapidSim.add_dalitz_masses()
-            # event_loader_RapidSim.add_eta_phi()
+            if not avoid_rapidsim:
+                event_loader_RapidSim = self.get_event_loader(
+                    # "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root",
+                    "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_LARGE_NNvertex_more_vars.root",
+                    vertex_quality_trainer_obj,
+                    generate=True,
+                    # N=10000,
+                    N=-1,
+                    convert_branches=True,
+                    rapidsim=True,
+                )  
+                print("Cutting pass_stripping for rapidsim")
+                event_loader_RapidSim.fill_stripping_bool()
+                event_loader_RapidSim.cut("pass_stripping")
+                print("Cut")
+                BDT_scores = self.get_BDT_scores(
+                    event_loader_RapidSim,
+                    generate=True
+                )  
+                event_loader_RapidSim.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
+                event_loader_RapidSim.add_dalitz_masses()
+                # event_loader_RapidSim.add_eta_phi()
 
 
             
@@ -2189,17 +2198,24 @@ class BDT_tester:
             self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, None, None, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Kee)$ (GeV)', signal=True)
 
 
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "q2", f"BDT_score>{BDT_cut}", [0,25], r"$B^+\to K^+e^+e^-$", xlabel=r'$q^2$ (GeV$^2$)', signal=True)
+            if not avoid_rapidsim:
+                self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "q2", f"BDT_score>{BDT_cut}", [0,25], r"$B^+\to K^+e^+e^-$", xlabel=r'$q^2$ (GeV$^2$)', signal=True)
 
-            # self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Kee)_{TRUE}$ (GeV)', signal=True)
+                self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "dalitz_mass_mkl", f"BDT_score>{BDT_cut}", [0,5.3], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Ke)$ (GeV)', signal=True)
 
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "dalitz_mass_mkl", f"BDT_score>{BDT_cut}", [0,5.3], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Ke)$ (GeV)', signal=True)
+                self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Kee)$ (GeV)', signal=True)
 
-            self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Kee)$ (GeV)', signal=True)
+                self.plot_efficiency_as_a_function_of_variable_2D(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, xvar="dalitz_mass_mee", yvar="dalitz_mass_mkl", cut=f"BDT_score>{BDT_cut}", title=r"$B^+\to K^+e^+e^-$", xlabel=r'$m(e^+e^-)$ (GeV)', ylabel=r'$m(K^+e^-)$ (GeV)')
 
-            self.plot_efficiency_as_a_function_of_variable_2D(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, xvar="dalitz_mass_mee", yvar="dalitz_mass_mkl", cut=f"BDT_score>{BDT_cut}", title=r"$B^+\to K^+e^+e^-$", xlabel=r'$m(e^+e^-)$ (GeV)', ylabel=r'$m(K^+e^-)$ (GeV)')
+            else:
+                self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, None, "q2", f"BDT_score>{BDT_cut}", [0,25], r"$B^+\to K^+e^+e^-$", xlabel=r'$q^2$ (GeV$^2$)', signal=True)
 
-            # self.plot_efficiency_as_a_function_of_variable_2D(pdf, event_loader_MC, event_loader_gen_MC, event_loader_RapidSim, xvar="phi_B", yvar="eta_B", cut=f"BDT_score>{BDT_cut}", title=r"$B^+\to K^+e^+e^-$", xlabel=r'$\phi$', ylabel=r'$\eta$')
+                self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, None, "dalitz_mass_mkl", f"BDT_score>{BDT_cut}", [0,5.3], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Ke)$ (GeV)', signal=True)
+
+                self.plot_efficiency_as_a_function_of_variable(pdf, event_loader_MC, event_loader_gen_MC, None, "B_plus_M_Kee_reco", f"BDT_score>{BDT_cut}", [4,5.7], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Kee)$ (GeV)', signal=True)
+
+                self.plot_efficiency_as_a_function_of_variable_2D(pdf, event_loader_MC, event_loader_gen_MC, None, xvar="dalitz_mass_mee", yvar="dalitz_mass_mkl", cut=f"BDT_score>{BDT_cut}", title=r"$B^+\to K^+e^+e^-$", xlabel=r'$m(e^+e^-)$ (GeV)', ylabel=r'$m(K^+e^-)$ (GeV)')
+
 
             print('mkl next')
 
@@ -2561,7 +2577,8 @@ class BDT_tester:
         targets,
         vertex_quality_trainer_obj,
         filename,
-        only_signal=False
+        only_signal=False,
+        avoid_rapidsim=False,
     ):  
         self.conditions = conditions
         self.targets = targets
@@ -2610,17 +2627,22 @@ class BDT_tester:
             plt.close()
             
 
-            signal_gen_rapidsim, signal_gen_rapidsim_stripping_eff = self.get_sample_and_stripping_eff(
-                "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root",
-                vertex_quality_trainer_obj,
-                generate=True,
-                N=10000,
-                rapidsim=True,
-            )  
+            if not avoid_rapidsim:
+                signal_gen_rapidsim, signal_gen_rapidsim_stripping_eff = self.get_sample_and_stripping_eff(
+                    "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root",
+                    vertex_quality_trainer_obj,
+                    generate=True,
+                    N=10000,
+                    rapidsim=True,
+                )  
+                samples = [signal_gen, signal_gen_rapidsim]
+                labels = [self.signal_label, self.background_label, r"Generated $B^+\to K^+e^+e^-$ (MC)", r"Generated $B^+\to K^+e^+e^-$ (Rapidsim)"]
+                colours = ["tab:blue", "tab:red", "tab:green", "tab:orange"]
+            else:
+                samples = [signal_gen]
+                labels = [self.signal_label, self.background_label, r"Generated $B^+\to K^+e^+e^-$ (MC)"]
+                colours = ["tab:blue", "tab:red", "tab:green"]
 
-            samples = [signal_gen, signal_gen_rapidsim]
-            labels = [self.signal_label, self.background_label, r"Generated $B^+\to K^+e^+e^-$ (MC)", r"Generated $B^+\to K^+e^+e^-$ (Rapidsim)"]
-            colours = ["tab:blue", "tab:red", "tab:green", "tab:orange"]
 
             self.query_and_plot_samples_pages(
                 pdf,
@@ -2644,7 +2666,8 @@ class BDT_tester:
             plt.title(r"$B^+\to K^+e^+e^-$")
             plt.errorbar(np.arange(np.shape(self.BDTs[0]["signal_stripping_eff"])[0]), self.BDTs[0]["signal_stripping_eff"][:,0], yerr=self.BDTs[0]["signal_stripping_eff"][:,1],label=self.signal_label,color='tab:blue',linestyle='-')
             plt.errorbar(np.arange(np.shape(signal_gen_stripping_eff)[0]), signal_gen_stripping_eff[:,0], yerr=signal_gen_stripping_eff[:,1],label=r"Generated $B^+\to K^+e^+e^-$ (MC)",color='tab:green')
-            plt.errorbar(np.arange(np.shape(signal_gen_rapidsim_stripping_eff)[0]), signal_gen_rapidsim_stripping_eff[:,0], yerr=signal_gen_rapidsim_stripping_eff[:,1],label=r"Generated $B^+\to K^+e^+e^-$ (Rapidsim)",color='tab:orange')
+            if not avoid_rapidsim:
+                plt.errorbar(np.arange(np.shape(signal_gen_rapidsim_stripping_eff)[0]), signal_gen_rapidsim_stripping_eff[:,0], yerr=signal_gen_rapidsim_stripping_eff[:,1],label=r"Generated $B^+\to K^+e^+e^-$ (Rapidsim)",color='tab:orange')
             plt.ylim(0,1)
             cuts_ticks = ['All']+list(self.cuts.keys())
             plt.xticks(np.arange(len(cuts_ticks)), cuts_ticks, rotation=90)
@@ -2658,18 +2681,32 @@ class BDT_tester:
             pdf.savefig(bbox_inches="tight")
             plt.close()
 
-            self.compare_stripping_eff_plots(
-                pdf,
-                # ["datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root", "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root", "datasets/cocktail_hierarchy_cut_more_vars.root", "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root"],
-                ["datasets/dedicated_Kee_MC_hierachy_All_cut_more_vars.root", "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root", "datasets/cocktail_hierarchy_cut_more_vars.root", "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root"],
-                vertex_quality_trainer_obj,
-                generate=[False, True, False, True],
-                convert_branches=[True, True, True, True],
-                rapidsim=[False, True, False, False],
-                N=10000,
-                extra_labels=[r'MC - $B^+\to K^+e^+e^-$','Generated (Rapidsim)','MC - Cocktail','Generated (MC)'],
-                colours=['tab:blue','tab:orange','tab:green','tab:red']
-            )  
+            if not avoid_rapidsim:
+                self.compare_stripping_eff_plots(
+                    pdf,
+                    # ["datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root", "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root", "datasets/cocktail_hierarchy_cut_more_vars.root", "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root"],
+                    ["datasets/dedicated_Kee_MC_hierachy_All_cut_more_vars.root", "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root", "datasets/general_sample_intermediate_All_more_vars_HEADfactor10.root", "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root"],
+                    vertex_quality_trainer_obj,
+                    generate=[False, True, False, True],
+                    convert_branches=[True, True, True, True],
+                    rapidsim=[False, True, False, False],
+                    N=10000,
+                    extra_labels=[r'MC - $B^+\to K^+e^+e^-$','Generated (Rapidsim)','MC - Cocktail','Generated (MC)'],
+                    colours=['tab:blue','tab:orange','tab:green','tab:red']
+                )  
+            else:
+                self.compare_stripping_eff_plots(
+                    pdf,
+                    ["datasets/dedicated_Kee_MC_hierachy_All_cut_more_vars.root", "datasets/general_sample_intermediate_All_more_vars_HEADfactor10.root", "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root"],
+                    vertex_quality_trainer_obj,
+                    generate=[False, False, True],
+                    convert_branches=[True, True, True],
+                    rapidsim=[False, False, False],
+                    N=10000,
+                    extra_labels=[r'MC - $B^+\to K^+e^+e^-$','MC - Cocktail','Generated (MC)'],
+                    colours=['tab:blue','tab:orange','tab:green','tab:red']
+                )  
+
 
             if only_signal:
                 return

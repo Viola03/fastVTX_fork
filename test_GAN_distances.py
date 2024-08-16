@@ -19,25 +19,10 @@ from particle import Particle
 use_intermediate = False
 
 network_option = 'VAE'
-# load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions4"
-# load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions6"
-# load_state = f"networks/vertex_job_{network_option}general_2"
-# load_state = f"networks/vertex_job_{network_option}general_3"
-# load_state = f"networks/vertex_job_{network_option}general_5"
-# load_state = f"networks/vertex_job_{network_option}general_6"
-load_state = f"networks/vertex_job_{network_option}general_8"
-# rd.latent = 6 # noise dims
-# D_architecture=[1000,2000,2000,1000]
-# G_architecture=[1000,2000,2000,1000]
+load_state = f"networks/vertex_job_{network_option}general_9"
 rd.latent = 7 # VAE latent dims
 D_architecture=[1600,2600,2600,1600]
 G_architecture=[1600,2600,2600,1600]
-
-# network_option = 'WGAN'
-# load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions4"
-# rd.latent = 50 # noise dims
-# D_architecture=[1000,2000,2000,1000]
-# G_architecture=[1000,2000,2000,1000]
 
 
 ####################################################################################################################################
@@ -52,14 +37,11 @@ rd.intermediate_particle = 'J_psi_1S'
 print(f"Loading data...")
 training_data_loader = data_loader.load_data(
     [
-        # "datasets/cocktail_hierarchy_cut_more_vars.root",
-        # "datasets/general_sample_more_vars.root",
         "datasets/general_sample_intermediate_more_vars.root",
     ],
     transformers=transformers,
     convert_to_RK_branch_names=True,
     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
-    # conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus'}
 )
 transformers = training_data_loader.get_transformers()
 
@@ -102,7 +84,9 @@ conditions = [
     "K_Kst_TRUEID",
     "e_plus_TRUEID",
     "e_minus_TRUEID",
+    # "nSPDHits" # rapid sim wont give us this
 ]
+
 
 targets = [
     "B_plus_ENDVERTEX_CHI2",
@@ -153,57 +137,56 @@ BDT_tester_obj = BDT_tester(
     use_intermediate=use_intermediate
 )
 
-scores = BDT_tester_obj.plot_detailed_metrics(
-    conditions,
-    targets,
-    vertex_quality_trainer_obj, f"metrics_{network_option}.pdf",
-    only_signal=True,
-    # only_signal=False,
-)
-
-
-scores = BDT_tester_obj.plot_differential_metrics(
-    conditions,
-    targets,
-    vertex_quality_trainer_obj, f"differential_metrics_{network_option}.pdf",
-    only_signal=True,
-    # only_signal=False,
-    BDT_cut=0.9
-)
-
-quit()
-
-# print(f"Initialising BDT tester...")
-# BDT_tester_obj = BDT_tester(
-#     transformers=transformers,
-#     tag="networks/BDT_sig_prc_WGANcocktail_newconditions",
-#     train=False,
-#     BDT_vars=targets,
-#     # signal="datasets/Kee_2018_truthed_more_vars.csv",
-#     signal="datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
-#     background="datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
-#     signal_label=r"Signal $B^+\to K^+e^+e^-$ MC",
-#     background_label=r"Part. Reco. $B^0\to K^{*0}e^+e^-$ MC",
-#     gen_track_chi2=False,
-#     signal_convert_branches=True,
-#     background_convert_branches=True,
-# )
-
 # scores = BDT_tester_obj.plot_detailed_metrics(
 #     conditions,
 #     targets,
-#     vertex_quality_trainer_obj, f"metrics_{network_option}_prcBDT.pdf",
-#     only_signal=False
+#     vertex_quality_trainer_obj, f"metrics_{network_option}.pdf",
+#     # only_signal=True,
+#     # avoid_rapidsim=True,
 # )
+
 
 # scores = BDT_tester_obj.plot_differential_metrics(
 #     conditions,
 #     targets,
-#     vertex_quality_trainer_obj, f"differential_metrics_{network_option}_prcBDT.pdf",
+#     vertex_quality_trainer_obj, f"differential_metrics_{network_option}.pdf",
 #     # only_signal=True,
-#     only_signal=False,
-#     BDT_cut=0.55
+#     BDT_cut=0.9,
+#     # avoid_rapidsim=True,
 # )
+
+
+print(f"Initialising BDT tester...")
+BDT_tester_obj = BDT_tester(
+    transformers=transformers,
+    tag="networks/BDT_sig_prc_WGANcocktail_newconditions",
+    train=False,
+    BDT_vars=targets,
+    # signal="datasets/Kee_2018_truthed_more_vars.csv",
+    signal="datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
+    background="datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
+    signal_label=r"Signal $B^+\to K^+e^+e^-$ MC",
+    background_label=r"Part. Reco. $B^0\to K^{*0}e^+e^-$ MC",
+    gen_track_chi2=False,
+    signal_convert_branches=True,
+    background_convert_branches=True,
+)
+
+scores = BDT_tester_obj.plot_detailed_metrics(
+    conditions,
+    targets,
+    vertex_quality_trainer_obj, f"metrics_{network_option}_prcBDT.pdf",
+    only_signal=False
+)
+
+scores = BDT_tester_obj.plot_differential_metrics(
+    conditions,
+    targets,
+    vertex_quality_trainer_obj, f"differential_metrics_{network_option}_prcBDT.pdf",
+    # only_signal=True,
+    only_signal=False,
+    BDT_cut=0.55
+)
 
 
 

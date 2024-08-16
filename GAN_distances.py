@@ -18,24 +18,10 @@ from matplotlib.backends.backend_pdf import PdfPages
 # rd.latent = 50 # noise dims
 
 network_option = 'VAE'
-# load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions4"
-# rd.latent = 6 # VAE latent dims
-# D_architecture=[1000,2000,2000,1000]
-# G_architecture=[1000,2000,2000,1000]
-# load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions6"
-# load_state = f"networks/vertex_job_{network_option}general_6"
-load_state = f"networks/vertex_job_{network_option}general_8"
+load_state = f"networks/vertex_job_{network_option}general_9"
 rd.latent = 7 # VAE latent dims
 D_architecture=[1600,2600,2600,1600]
 G_architecture=[1600,2600,2600,1600]
-# rd.beta = 750
-
-# network_option = 'WGAN'
-# load_state = f"networks/vertex_job_{network_option}cocktail_distances_newconditions4"
-# rd.latent = 50 # VAE latent dims
-# D_architecture=[1000,2000,2000,1000]
-# G_architecture=[1000,2000,2000,1000]
-
 
 
 ####################################################################################################################################
@@ -50,15 +36,10 @@ training_data_loader = data_loader.load_data(
     [
         # "datasets/cocktail_hierarchy_cut_more_vars.root",
         # "datasets/cocktail_x5_MC_hierachy_cut_more_vars.root",
-        # "datasets/general_sample_more_vars.root",
-        # "datasets/general_sample_intermediate_more_vars.root",
-        # "datasets/general_sample_intermediate_All_more_vars.root",
-        "datasets/general_sample_intermediate_All_more_vars_HEADfactor10.root",
+        "datasets/general_sample_intermediate_All_more_vars.root",
     ],
     convert_to_RK_branch_names=True,
     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
-    # conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus'},
-    # N=5000,
 )
 transformers = training_data_loader.get_transformers()
 print(training_data_loader.shape())
@@ -67,11 +48,6 @@ print(training_data_loader.shape())
 training_data_loader.reweight_for_training("B_plus_M")
 
 
-# training_data_loader.cut("abs(K_Kst_TRUEID)==321")
-# training_data_loader.cut("abs(e_plus_TRUEID)==11")
-# training_data_loader.cut("abs(e_minus_TRUEID)==11")
-# print(training_data_loader.shape())
-# quit()
 
 print(f"Creating vertex_quality_trainer...")
 
@@ -87,9 +63,9 @@ conditions = [
     "e_plus_eta",
     "e_minus_eta",
     "IP_B_plus_true_vertex",
-    # "IP_K_Kst_true_vertex",
-    # "IP_e_plus_true_vertex",
-    # "IP_e_minus_true_vertex",
+    "IP_K_Kst_true_vertex",
+    "IP_e_plus_true_vertex",
+    "IP_e_minus_true_vertex",
     "FD_B_plus_true_vertex",
     "DIRA_B_plus_true_vertex",
     "missing_B_plus_P",
@@ -108,9 +84,10 @@ conditions = [
     "delta_1_PT",
     "delta_2_P",
     "delta_2_PT",
-    # "K_Kst_TRUEID",
-    # "e_plus_TRUEID",
-    # "e_minus_TRUEID",
+    "K_Kst_TRUEID",
+    "e_plus_TRUEID",
+    "e_minus_TRUEID",
+    # "nSPDHits"
 ]
 
 targets = [
@@ -156,4 +133,6 @@ for i in range(70):
     vertex_quality_trainer_obj.train_more_steps(steps=steps_for_plot)
     vertex_quality_trainer_obj.save_state(tag=load_state)
     # vertex_quality_trainer_obj.make_plots(filename=f'plots_{i+1}.pdf',testing_file=training_data_loader.get_file_names())
+
+
 

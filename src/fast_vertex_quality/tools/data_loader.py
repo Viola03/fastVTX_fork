@@ -13,6 +13,7 @@ import numpy as np
 import pickle
 from particle import Particle
 from hep_ml.reweight import BinsReweighter, GBReweighter, FoldingReweighter
+from termcolor import colored
 
 def write_df_to_root(df, output_name):
 	branch_dict = {}
@@ -289,13 +290,15 @@ class Transformer:
             data = data - self.shift
             data = symsqrt(data)
 
-        # # Threshold cut for DIRA and IP
-        # if "DIRA" in self.column and "true_vertex" in self.column and rd.mother_particle in self.column:
-        #     where_over_threshold = np.where(data<-7.6)
-        #     data[where_over_threshold] = -7.6
-        # if "IP" in self.column and "true_vertex" in self.column and rd.mother_particle in self.column:
-        #     where_over_threshold = np.where(data<-2.6)
-        #     data[where_over_threshold] = -2.6
+        # # # # # # # # # # # # # # # 
+        # Threshold cut for DIRA and IP
+        if "DIRA" in self.column and "true_vertex" in self.column and rd.mother_particle in self.column:
+            where_over_threshold = np.where(data<-7.6)
+            data[where_over_threshold] = -7.6
+        if "IP" in self.column and "true_vertex" in self.column and rd.mother_particle in self.column:
+            where_over_threshold = np.where(data<-2.6)
+            data[where_over_threshold] = -2.6
+        # # # # # # # # # # # # # # # 
 
         if "DIRA" in self.column:
             where = np.where(np.isnan(data))
@@ -345,13 +348,14 @@ class Transformer:
 
 class dataset:
 
-    def __init__(self, filenames, transformers=None):
+    def __init__(self, filenames, transformers=None, name=''):
 
         self.Transformers = transformers
         self.all_data = {"processed": None, "physical": None}
         self.filenames = filenames
 
         self.reweight_for_training_bool = False
+        self.name = name
 
     def fill_stripping_bool(self):
 
@@ -815,7 +819,7 @@ class dataset:
 
         weight = np.ones(np.shape(self.all_data['physical'][variable]))
 
-        weight[np.where((self.all_data['physical'][variable]>5.27934-0.05)&(self.all_data['physical'][variable]<5.27934+0.05))] = 50.
+        weight[np.where((self.all_data['physical'][variable]>5.27934-0.05)&(self.all_data['physical'][variable]<5.27934+0.05))] = 100.
         # weight[np.where((self.all_data['physical'][variable]>5.27934-0.05)&(self.all_data['physical'][variable]<5.27934+0.05))] = 1.
 
         plt.hist(self.all_data['physical'][variable], bins=75, weights=weight)
@@ -932,7 +936,7 @@ class dataset:
                                      pass_tot_err, gen_tot_err)
 
 
-        print(f'INFO getEff(): {eff:.4f}+-{effErr:.4f}')
+        print(f'INFO getEff({cut}): {eff:.4f}+-{effErr:.4f} \t\t {self.name}')
 
         return eff, effErr
 
@@ -1043,7 +1047,7 @@ def convert_branches_to_RK_branch_names(columns, conversions):
 
     return new_columns
 
-def load_data(path, equal_sizes=True, N=-1, transformers=None, convert_to_RK_branch_names=False, conversions=None, turn_off_processing=False,avoid_physics_variables=False):
+def load_data(path, equal_sizes=True, N=-1, transformers=None, convert_to_RK_branch_names=False, conversions=None, turn_off_processing=False,avoid_physics_variables=False, name=''):
 
     if isinstance(path, list):
         for i in range(0, len(path)):
@@ -1092,7 +1096,20 @@ def load_data(path, equal_sizes=True, N=-1, transformers=None, convert_to_RK_bra
 
     events = events.loc[:, ~events.columns.str.contains("^Unnamed")]
 
-    events_dataset = dataset(filenames=path, transformers=transformers)
+    if "nSPDHits" not in list(events.keys()):
+        print(colored("WE DO NOT HAVE nSPD",'red'))
+        shape_required = events.shape[0]
+        N_load = 50000
+        file_nSPD = uproot.open("datasets/general_sample_intermediate_All_more_vars_HEADfactor10.root")['DecayTree']
+        events_nSPD = file_nSPD.arrays(['nSPDHits'], library='pd', entry_stop=N_load)
+        nSPDHits = np.asarray(events_nSPD['nSPDHits'])
+        nSPDHits = nSPDHits[np.random.randint(0, N_load, shape_required)]
+        events['nSPDHits'] = nSPDHits
+        # "datasets/general_sample_intermediate_All_more_vars_HEADfactor10.root",
+        print(colored("filled nSPDHits",'green'))
+
+
+    events_dataset = dataset(filenames=path, transformers=transformers, name=name)
     events_dataset.fill(events, turn_off_processing, avoid_physics_variables=avoid_physics_variables)
 
     return events_dataset
