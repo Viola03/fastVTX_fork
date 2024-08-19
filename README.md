@@ -48,6 +48,8 @@ python scripts/variables_root.py
 ```
 again the options inside the files will need to be adapted.
 
+https://twiki.cern.ch/twiki/bin/viewauth/LHCb/FAQ/GangaLHCbFAQ#How_do_I_automatically_reduce_my
+
 ### Training the vertex smearing network
 
 On `gpu01` run:
@@ -108,3 +110,27 @@ python scripts/plot_conditional_variables.py
 
 [Paper](https://arxiv.org/pdf/2012.09903)
 [ANA](https://cds.cern.ch/record/2714688/files/LHCb-ANA-2020-024.pdf)
+
+## Notes
+
+error matrix per track
+
+brem fixed maybe 
+
+slides for thursday
+
+vertex info out of network 
+
+hannae K*tautau (K*uu)
+
+stripping and BDT cuts how they affect momenta distributions 
+
+fix rapid sim P an PT distbutions 
+
+isolation?
+
+mass constrained varaibles = track error matrix 
+
+add isolation, add vertex 
+
+- Kee isolation variables as a function of all stuff i condition on 
