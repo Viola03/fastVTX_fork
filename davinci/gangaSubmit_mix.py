@@ -73,16 +73,11 @@ LFNs = pickle.load(filehandler)
 extend = False
 
 
-# nfiles_per_event_typs = 30
-# filesPerJob = 5
-# nfiles_per_event_typs = 150
-# filesPerJob = 5
-# nfiles_per_event_typs = 10
-nfiles_per_event_typs = 3
-filesPerJob = 1
+# nfiles_per_event_typs = 3
+# filesPerJob = 1
 
-# print(len(list(LFNs.keys())))
-# quit()
+nfiles_per_event_typs = 9
+filesPerJob = 3
 
 total = 0
 for target in list(LFNs.keys()):

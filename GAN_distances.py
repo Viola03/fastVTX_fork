@@ -105,6 +105,41 @@ targets = [
     "J_psi_1S_IPCHI2_OWNPV",
 ]
 
+new_targets = [
+    "J_psi_1S_ENDVERTEX_CHI2",
+    "J_psi_1S_DIRA_OWNPV",
+    # VertexIsoBDTInfo:
+    "B_plus_VTXISOBDTHARDFIRSTVALUE",
+    "B_plus_VTXISOBDTHARDSECONDVALUE",
+    "B_plus_VTXISOBDTHARDTHIRDVALUE",
+    # TupleToolVtxIsoln:
+    "B_plus_SmallestDeltaChi2OneTrack",
+    "B_plus_SmallestDeltaChi2TwoTracks",
+    # TupleToolTrackIsolation:
+    "B_plus_cp_0.70",
+    "B_plus_cpt_0.70",
+    "B_plus_cmult_0.70",
+    # Ghost:
+    "DAUGHTER1_TRACK_GhostProb",
+    "DAUGHTER2_TRACK_GhostProb",
+    "DAUGHTER3_TRACK_GhostProb",
+    # Vertex info - for rerunning DecayTreeFitter (for mass constrained variables):
+    "MOTHER_OWNPV_X",
+    "MOTHER_ENDVERTEX_X",
+    "INTERMEDIATE_ENDVERTEX_X",
+    "MOTHER_OWNPV_Y",
+    "MOTHER_ENDVERTEX_Y",
+    "INTERMEDIATE_ENDVERTEX_Y",
+    "MOTHER_OWNPV_Z",
+    "MOTHER_ENDVERTEX_Z",
+    "INTERMEDIATE_ENDVERTEX_Z",
+    "MOTHER_OWNPV_COV_", # these are 9 values each!
+    "MOTHER_ENDVERTEX_COV_",
+    "INTERMEDIATE_ENDVERTEX_COV_", # Also need XERR?
+]
+print(new_targets)
+quit()
+
 # training_data_loader.print_branches()
 print("plot conditions...")
 training_data_loader.plot('conditions.pdf',conditions)
