@@ -45,7 +45,7 @@ transformers = training_data_loader.get_transformers()
 print(training_data_loader.shape())
 
 # # temporary function!
-training_data_loader.reweight_for_training("B_plus_M")
+training_data_loader.reweight_for_training("B_plus_M", weight_value=100.)
 
 
 

@@ -811,7 +811,7 @@ class dataset:
     # def load_transformers(self, file):
     #     self.Transformers = pickle.load(open(file, "rb"))
 
-    def reweight_for_training(self, variable):
+    def reweight_for_training(self, variable, weight_value):
 
         plt.hist(self.all_data['physical'][variable], bins=75)
         plt.savefig('reweight_before.pdf')
@@ -819,8 +819,7 @@ class dataset:
 
         weight = np.ones(np.shape(self.all_data['physical'][variable]))
 
-        weight[np.where((self.all_data['physical'][variable]>5.27934-0.05)&(self.all_data['physical'][variable]<5.27934+0.05))] = 100.
-        # weight[np.where((self.all_data['physical'][variable]>5.27934-0.05)&(self.all_data['physical'][variable]<5.27934+0.05))] = 1.
+        weight[np.where((self.all_data['physical'][variable]>5.27934-0.05)&(self.all_data['physical'][variable]<5.27934+0.05))] = weight_value
 
         plt.hist(self.all_data['physical'][variable], bins=75, weights=weight)
         plt.savefig('reweight_after.pdf')
