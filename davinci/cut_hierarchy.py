@@ -192,7 +192,7 @@ def cut(loc, out_loc, file, throw_away_partreco_frac=0.):
 
 	for file in files:
 
-		print(file)
+		print(f'\nWorking on {file}...')
 
 		with uproot.open(file) as ur_file:
 			
