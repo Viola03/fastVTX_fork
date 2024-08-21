@@ -96,36 +96,63 @@ branches_to_keep = [
 
 ]
 
-# Define the cut condition
-cut_condition = "(MOTHER_TRUEID != 0) & (MOTHER_BKGCAT < 60)"
+mother_masses = {}
+mother_masses[411] = 1.86962
+mother_masses[421] = 1.86484
+mother_masses[431] = 1.96847
 
-# name = 'cocktail_hierarchy'
-# name = 'dedicated_Kee_MC_hierachy'
-# name = 'dedicated_Kstee_MC_hierachy'
-# name = 'dedicated_BuD0enuKenu_MC_hierachy'
-# name = 'dedicated_BuD0piKenu_MC_hierachy'
-# name = 'cocktail_x5_MC_hierachy'
-name = 'dedicated_Kee_MC_hierachy_All'
+mother_masses[511] = 5.27965
+mother_masses[521] = 5.27934
+mother_masses[531] = 5.36688
+mother_masses[541] = 6.2749
 
-with uproot.open(f'/users/am13743/fast_vertexing_variables/datasets/raw/{name}.root') as ur_file:
+def cut(loc, out_loc, file, throw_away_partreco_frac=0.):
+
+	if '*' in file:
+		files = glob.glob(f'{loc}/{file}')
+	else:
+		files = [f'{loc}/{file}']
 	
-	for key in ur_file.keys():
-		if 'DecayTree' in key:
-			key = key[:-2]
-			break
+	# Define the cut condition
+	cut_condition = "(MOTHER_TRUEID != 0) & (MOTHER_BKGCAT < 60)"
 
-	tree = ur_file[key]
-	# try:
-	# 	tree = ur_file["B2Kee_Tuple/DecayTree"]
-	# except:
-	# 	tree = ur_file["B2Kmumu_Tuple/DecayTree"]
-	
-	data = tree.arrays(branches_to_keep, library="pd")
+	for file in files:
 
-	filtered_data = data.query(cut_condition)
+		with uproot.open(file) as ur_file:
+			
+			for key in ur_file.keys():
+				if 'DecayTree' in key:
+					key = key[:-2]
+					break
 
-	if "dedicated_Kee_MC" in name:
-		filtered_data = filtered_data.query("MOTHER_BKGCAT<11")
+			tree = ur_file[key]
+			
+			data = tree.arrays(branches_to_keep, library="pd")
+
+			filtered_data = data.query(cut_condition)
+
+			if "dedicated_Kee_MC" in file:
+				filtered_data = filtered_data.query("MOTHER_BKGCAT<11")
+
+			mother_masses = np.ones(filtered_data.shape[0])
+			print(np.shape(mother_masses))
+			print(filtered_data.shape)
+			print(file)
+			quit()
+
+# mass[np.where(mass==411)] = 1.86962
+# mass[np.where(mass==421)] = 1.86484
+# mass[np.where(mass==431)] = 1.96847
+
+# mass[np.where(mass==511)] = 5.27965
+# mass[np.where(mass==521)] = 5.27934
+# mass[np.where(mass==531)] = 5.36688
+# mass[np.where(mass==541)] = 6.2749
 
 
-write_df_to_root(filtered_data, f'/users/am13743/fast_vertexing_variables/datasets/{name}_cut.root')
+			# if throw_away_partreco_frac > 0.:
+
+
+		# write_df_to_root(filtered_data, f'{out_loc}/{file[:-5]}_cut.root')
+
+cut(loc='.', out_loc='.', file='MergeTest_*', throw_away_partreco_frac=0.5)

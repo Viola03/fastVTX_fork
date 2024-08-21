@@ -37,34 +37,38 @@ from ROOT import TFile, TTree, TList
 import time
 import numpy as np
 from termcolor import colored
+import ROOT
 
+import signal
 
-black_list = ['xrootd.grid.surfsara.nl']
+class timeout_class:
+	def __init__(self, seconds=1, error_message='Timeout'):
+		self.seconds = seconds
+		self.error_message = error_message
+	def handle_timeout(self, signum, frame):
+		raise TimeoutError(self.error_message)
+	def __enter__(self):
+		signal.signal(signal.SIGALRM, self.handle_timeout)
+		signal.alarm(self.seconds)
+	def __exit__(self, type, value, traceback):
+		signal.alarm(0)
 
-class FileLoader(threading.Thread):
-	def __init__(self, path):
-		threading.Thread.__init__(self)
-		self.path = path
-		self.file = None
+black_list_sites = ['xrootd.grid.surfsara.nl']
 
-	def run(self):
-		# if np.random.uniform() < 0.5:
-		# 	print('SLEEPY')
-		# 	time.sleep(30)
-		self.file = TFile.Open(self.path, 'read')
-
-def open_file_with_timeout(path, timeout=30):
-	file_loader = FileLoader(path)
-	file_loader.start()
-	file_loader.join(timeout)
-	
-	if file_loader.is_alive():
-		print(colored(f"File {path} took too long to load and was skipped.",'red'))
+def open_file_with_timeout(name, timeout):
+	handle = ROOT.TFile.AsyncOpen(name)
+	while timeout > 0 and ROOT.TFile.GetAsyncOpenStatus(handle) == 1: # kAOSInProgress
+		time.sleep(1)
+		timeout -= 1
+	if timeout == 0:
+		print(colored(f"File {name} TIMED OUT.",'red'))
 		return None
-	else:
-		return file_loader.file
+	tfile = ROOT.TFile.Open(handle)
+	if tfile.IsOpen():
+		return tfile
+	return None
 	
-def merge_root_files(pickle_file, output_file_name_prefix, timeout=30, split_up=1):
+def merge_root_files(pickle_file, output_file_name_prefix, timeout=30, split_up=1, skip_splits=-1):
 	# Load the list of paths from the pickle file
 	with open(pickle_file, 'rb') as filehandler:
 		pathList = pickle.load(filehandler)
@@ -73,6 +77,10 @@ def merge_root_files(pickle_file, output_file_name_prefix, timeout=30, split_up=
 	pathLists = np.array_split(pathList, split_up)
 
 	for idx, pathList in enumerate(pathLists):
+		
+		if idx<=skip_splits: 
+			print(f'Skipping {idx}')
+			continue
 
 		outname = f"{output_file_name_prefix}_{idx}.root"
 
@@ -87,10 +95,9 @@ def merge_root_files(pickle_file, output_file_name_prefix, timeout=30, split_up=
 		for path_idx, path in enumerate(pathList):
 			print(f"Path {path_idx}/{len_pathList}: {path}")
 
-			contains_blacklist_string = any(blacklist_item in path for blacklist_item in black_list)
-
+			contains_blacklist_string = any(blacklist_item in path for blacklist_item in black_list_sites)
 			if contains_blacklist_string:
-				print(colored(f"black_list {path}",'red'))
+				print(colored(f"black_list_sites {path}",'red'))
 				continue
 
 			inputFile = open_file_with_timeout(path, timeout)
@@ -126,4 +133,4 @@ if __name__ == "__main__":
 	output_file_name_prefix = "MergeTest"
 	
 	# Call the merge function with desired basket size and timeout
-	merge_root_files(pickle_file, output_file_name_prefix, timeout=30, split_up=10)
+	merge_root_files(pickle_file, output_file_name_prefix, timeout=15, split_up=10)
