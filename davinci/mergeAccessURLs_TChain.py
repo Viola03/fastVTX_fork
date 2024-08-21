@@ -1,3 +1,4 @@
+
 # # source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_102b_LHCB_Core x86_64-centos9-gcc11-opt
 
 # import pickle
@@ -63,61 +64,66 @@ def open_file_with_timeout(path, timeout=30):
 	else:
 		return file_loader.file
 	
-def merge_root_files(pickle_file, output_file_name, timeout=30):
+def merge_root_files(pickle_file, output_file_name_prefix, timeout=30, split_up=1):
 	# Load the list of paths from the pickle file
 	with open(pickle_file, 'rb') as filehandler:
 		pathList = pickle.load(filehandler)
 	
-	treeList = TList()
-	outputFile = TFile(output_file_name, 'recreate')
-	pyfilelist = []
-	pytreelist = []
 
-	total_entries = 0
-	len_pathList = len(pathList)
+	pathLists = np.array_split(pathList, split_up)
 
-	for path_idx, path in enumerate(pathList):
-		print(f"Path {path_idx}/{len_pathList}: {path}")
+	for idx, pathList in enumerate(pathLists):
 
-		contains_blacklist_string = any(blacklist_item in path for blacklist_item in black_list)
+		outname = f"{output_file_name_prefix}_{idx}.root"
 
-		if contains_blacklist_string:
-			print(colored(f"black_list {path}",'red'))
-			continue
+		treeList = TList()
+		outputFile = TFile(outname, 'recreate')
+		pyfilelist = []
+		pytreelist = []
 
-		inputFile = open_file_with_timeout(path, timeout)
+		total_entries = 0
+		len_pathList = len(pathList)
 
-		if inputFile:
-			print("Got file")
-			pyfilelist.append(inputFile)  # Make this TFile survive the loop
-			inputTree = inputFile.Get('DecayTree')
-			entries = inputTree.GetEntries()
+		for path_idx, path in enumerate(pathList):
+			print(f"Path {path_idx}/{len_pathList}: {path}")
 
-			total_entries += entries
+			contains_blacklist_string = any(blacklist_item in path for blacklist_item in black_list)
 
-			print('\t{:<15} : {:>12} : Total: {:>12}'.format('Entries', entries, total_entries))
+			if contains_blacklist_string:
+				print(colored(f"black_list {path}",'red'))
+				continue
 
-			pytreelist.append(inputTree)  # Make this TTree survive the loop
-			treeList.Add(inputTree)
+			inputFile = open_file_with_timeout(path, timeout)
 
-		# if path_idx == 5:
-		# 		break
-		
-	print('\t{:<15} : {:>12}'.format('*'*15, '*'*12))
-	print('\t{:<15} : {:>12}'.format('TOTAL ENTRIES', total_entries))
-		
-	outputFile.cd()
-	print("\n BEGIN MERGE...")
-	outputTree = TTree.MergeTrees(treeList)
-	outputFile.Write()
-	outputFile.Close()
+			if inputFile:
+				print("Got file")
+				pyfilelist.append(inputFile)  # Make this TFile survive the loop
+				inputTree = inputFile.Get('DecayTree')
+				entries = inputTree.GetEntries()
+
+				total_entries += entries
+
+				print('\t{:<15} : {:>12} : Total: {:>12}'.format('Entries', entries, total_entries))
+
+				pytreelist.append(inputTree)  # Make this TTree survive the loop
+				treeList.Add(inputTree)
+			
+		print('\t{:<15} : {:>12}'.format('*'*15, '*'*12))
+		print('\t{:<15} : {:>12}'.format('TOTAL ENTRIES', total_entries))
+			
+		outputFile.cd()
+		print("\n BEGIN MERGE...")
+		outputTree = TTree.MergeTrees(treeList)
+		outputFile.Write()
+		outputFile.Close()
+		print(f"{outname} DONE")
 
 if __name__ == "__main__":
 	# Path to the pickle file containing the list of input ROOT files
-	pickle_file = "OutputDataAccessURLs.pkl"
+	pickle_file = "OutputDataAccessURLs_2048.pkl"
 	
 	# Name of the output ROOT file
-	output_file_name = "MergeTest.root"
+	output_file_name_prefix = "MergeTest"
 	
 	# Call the merge function with desired basket size and timeout
-	merge_root_files(pickle_file, output_file_name, timeout=30)
+	merge_root_files(pickle_file, output_file_name_prefix, timeout=30, split_up=10)

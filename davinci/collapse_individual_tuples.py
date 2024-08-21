@@ -69,7 +69,78 @@ branches_to_keep = [
     "DAUGHTER3_MC_GD_MOTHER_ID",
     "DAUGHTER3_MC_GD_GD_MOTHER_ID",
 
+    "INTERMEDIATE_ENDVERTEX_CHI2",
+    "INTERMEDIATE_DIRA_OWNPV",
+    "MOTHER_VTXISOBDTHARDFIRSTVALUE",
+    "MOTHER_VTXISOBDTHARDSECONDVALUE",
+    "MOTHER_VTXISOBDTHARDTHIRDVALUE",
+    "MOTHER_SmallestDeltaChi2OneTrack",
+    "MOTHER_SmallestDeltaChi2TwoTracks",
+    "MOTHER_cp_0.70",
+    "MOTHER_cpt_0.70",
+    "MOTHER_cmult_0.70",
+    "DAUGHTER1_TRACK_GhostProb",
+    "DAUGHTER2_TRACK_GhostProb",
+    "DAUGHTER3_TRACK_GhostProb",
+    "MOTHER_OWNPV_X",
+    "MOTHER_ENDVERTEX_X",
+    "INTERMEDIATE_ENDVERTEX_X",
+    "MOTHER_OWNPV_Y",
+    "MOTHER_ENDVERTEX_Y",
+    "INTERMEDIATE_ENDVERTEX_Y",
+    "MOTHER_OWNPV_Z",
+    "MOTHER_ENDVERTEX_Z",
+    "INTERMEDIATE_ENDVERTEX_Z",
+    "MOTHER_OWNPV_XERR",
+    "MOTHER_ENDVERTEX_XERR",
+    "INTERMEDIATE_ENDVERTEX_XERR",
+    "MOTHER_OWNPV_YERR",
+    "MOTHER_ENDVERTEX_YERR",
+    "INTERMEDIATE_ENDVERTEX_YERR",
+    "MOTHER_OWNPV_ZERR",
+    "MOTHER_ENDVERTEX_ZERR",
+    "INTERMEDIATE_ENDVERTEX_ZERR",
+    "MOTHER_OWNPV_COV_", # these are 9 values each!
+    "MOTHER_ENDVERTEX_COV_",
+    "INTERMEDIATE_ENDVERTEX_COV_", # Also need XERR?
 ]
+
+
+
+new_targets = [
+    "J_psi_1S_ENDVERTEX_CHI2",
+    "J_psi_1S_DIRA_OWNPV",
+    # VertexIsoBDTInfo:
+    "B_plus_VTXISOBDTHARDFIRSTVALUE",
+    "B_plus_VTXISOBDTHARDSECONDVALUE",
+    "B_plus_VTXISOBDTHARDTHIRDVALUE",
+    # TupleToolVtxIsoln:
+    "B_plus_SmallestDeltaChi2OneTrack",
+    "B_plus_SmallestDeltaChi2TwoTracks",
+    # TupleToolTrackIsolation:
+    "B_plus_cp_0.70",
+    "B_plus_cpt_0.70",
+    "B_plus_cmult_0.70",
+    # Ghost:
+    "DAUGHTER1_TRACK_GhostProb",
+    "DAUGHTER2_TRACK_GhostProb",
+    "DAUGHTER3_TRACK_GhostProb",
+    # Vertex info - for rerunning DecayTreeFitter (for mass constrained variables):
+    "MOTHER_OWNPV_X",
+    "MOTHER_ENDVERTEX_X",
+    "INTERMEDIATE_ENDVERTEX_X",
+    "MOTHER_OWNPV_Y",
+    "MOTHER_ENDVERTEX_Y",
+    "INTERMEDIATE_ENDVERTEX_Y",
+    "MOTHER_OWNPV_Z",
+    "MOTHER_ENDVERTEX_Z",
+    "INTERMEDIATE_ENDVERTEX_Z",
+    "MOTHER_OWNPV_COV_", # these are 9 values each!
+    "MOTHER_ENDVERTEX_COV_",
+    "INTERMEDIATE_ENDVERTEX_COV_", # Also need XERR?
+]
+
+
 
 def trim_file_DecayTree(filename):
     # Open the old file

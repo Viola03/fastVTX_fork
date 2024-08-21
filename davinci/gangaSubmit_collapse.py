@@ -3,16 +3,18 @@ import numpy as np
 import time
 import pickle 
 
-# def dumpDataAccessURLs(job, output_filename):
-# 	files = job.backend.getOutputDataAccessURLs()
-# 	filehandler = open("OutputDataAccessURLs.pkl", 'wb') 
+# def dumpDataAccessURLs(jobs_i, output_name):
+# 	files = jobs_i.backend.getOutputDataAccessURLs()
+# 	filehandler = open(output_name, 'wb') 
 # 	pickle.dump(files, filehandler)
-# dumpDataAccessURLs(jobs(2041))
+
+# dumpDataAccessURLs(jobs(2048), "OutputDataAccessURLs_2048.pkl")
+
 # quit()
 
 # How do I run an executable job that uses input files on the Grid as arguments to the script?
 
-JOB_ID = 2011
+JOB_ID = 2046
 
 filesPerJob = 1
 
