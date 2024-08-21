@@ -8,8 +8,12 @@ from tqdm import tqdm
 import glob
 import uproot3 
 import pandas as pd
+from warnings import simplefilter
+simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
 
 def write_df_to_root(df, output_name):
+
+	print(f'Writing to {output_name}..')
 	branch_dict = {}
 	data_dict = {}
 	dtypes = df.dtypes
@@ -28,6 +32,7 @@ def write_df_to_root(df, output_name):
 	with uproot3.recreate(output_name) as f:
 		f["DecayTree"] = uproot3.newtree(branch_dict)
 		f["DecayTree"].extend(data_dict)
+	print("Written.")
 
 # List of branches to keep
 branches_to_keep = [
@@ -94,17 +99,86 @@ branches_to_keep = [
 	"DAUGHTER3_MC_GD_MOTHER_ID",
 	"DAUGHTER3_MC_GD_GD_MOTHER_ID",
 
+    "INTERMEDIATE_ENDVERTEX_CHI2",
+    "INTERMEDIATE_DIRA_OWNPV",
+    "MOTHER_VTXISOBDTHARDFIRSTVALUE",
+    "MOTHER_VTXISOBDTHARDSECONDVALUE",
+    "MOTHER_VTXISOBDTHARDTHIRDVALUE",
+    "MOTHER_SmallestDeltaChi2OneTrack",
+    "MOTHER_SmallestDeltaChi2TwoTracks",
+    "MOTHER_cp_0.70",
+    "MOTHER_cpt_0.70",
+    "MOTHER_cmult_0.70",
+    "DAUGHTER1_TRACK_GhostProb",
+    "DAUGHTER2_TRACK_GhostProb",
+    "DAUGHTER3_TRACK_GhostProb",
+    "MOTHER_OWNPV_X",
+    "MOTHER_ENDVERTEX_X",
+    "INTERMEDIATE_ENDVERTEX_X",
+    "MOTHER_OWNPV_Y",
+    "MOTHER_ENDVERTEX_Y",
+    "INTERMEDIATE_ENDVERTEX_Y",
+    "MOTHER_OWNPV_Z",
+    "MOTHER_ENDVERTEX_Z",
+    "INTERMEDIATE_ENDVERTEX_Z",
+    "MOTHER_OWNPV_XERR",
+    "MOTHER_ENDVERTEX_XERR",
+    "INTERMEDIATE_ENDVERTEX_XERR",
+    "MOTHER_OWNPV_YERR",
+    "MOTHER_ENDVERTEX_YERR",
+    "INTERMEDIATE_ENDVERTEX_YERR",
+    "MOTHER_OWNPV_ZERR",
+    "MOTHER_ENDVERTEX_ZERR",
+    "INTERMEDIATE_ENDVERTEX_ZERR",
+    "MOTHER_OWNPV_COV_", # these are 9 values each!
+    "MOTHER_ENDVERTEX_COV_",
+    "INTERMEDIATE_ENDVERTEX_COV_", # Also need XERR?
 ]
 
-mother_masses = {}
-mother_masses[411] = 1.86962
-mother_masses[421] = 1.86484
-mother_masses[431] = 1.96847
+particle_masses_dict_mothers = {}
 
-mother_masses[511] = 5.27965
-mother_masses[521] = 5.27934
-mother_masses[531] = 5.36688
-mother_masses[541] = 6.2749
+particle_masses_dict_mothers[411] = 1.86962
+particle_masses_dict_mothers[421] = 1.86484
+particle_masses_dict_mothers[431] = 1.96847
+
+particle_masses_dict_mothers[511] = 5.27965
+particle_masses_dict_mothers[521] = 5.27934
+particle_masses_dict_mothers[531] = 5.36688
+particle_masses_dict_mothers[541] = 6.2749
+
+particle_masses_dict_daughters = {}
+
+particle_masses_dict_daughters[321] = 493.677
+particle_masses_dict_daughters[211] = 139.57039
+particle_masses_dict_daughters[13] = 105.66
+particle_masses_dict_daughters[11] = 0.51099895000 * 1e-3
+
+def compute_mass_3(df, i, j, k):
+
+	PE = np.sqrt(
+		df[f"{i}_mass"]**2
+		+ df[f"{i}_TRUEP_X"] ** 2
+		+ df[f"{i}_TRUEP_Y"] ** 2
+		+ df[f"{i}_TRUEP_Z"] ** 2
+	) + np.sqrt(
+		df[f"{j}_mass"]**2
+		+ df[f"{j}_TRUEP_X"] ** 2
+		+ df[f"{j}_TRUEP_Y"] ** 2
+		+ df[f"{j}_TRUEP_Z"] ** 2
+	) + np.sqrt(
+		df[f"{k}_mass"]**2
+		+ df[f"{k}_TRUEP_X"] ** 2
+		+ df[f"{k}_TRUEP_Y"] ** 2
+		+ df[f"{k}_TRUEP_Z"] ** 2
+	)
+	PX = df[f"{i}_TRUEP_X"] + df[f"{j}_TRUEP_X"] + df[f"{k}_TRUEP_X"]
+	PY = df[f"{i}_TRUEP_Y"] + df[f"{j}_TRUEP_Y"] + df[f"{k}_TRUEP_Y"]
+	PZ = df[f"{i}_TRUEP_Z"] + df[f"{j}_TRUEP_Z"] + df[f"{k}_TRUEP_Z"]
+
+	mass = np.sqrt((PE**2 - PX**2 - PY**2 - PZ**2) * 1e-6)
+
+	return mass
+
 
 def cut(loc, out_loc, file, throw_away_partreco_frac=0.):
 
@@ -118,41 +192,49 @@ def cut(loc, out_loc, file, throw_away_partreco_frac=0.):
 
 	for file in files:
 
+		print(file)
+
 		with uproot.open(file) as ur_file:
 			
 			for key in ur_file.keys():
 				if 'DecayTree' in key:
-					key = key[:-2]
+					key = key.split(';')[0]
 					break
-
+			
 			tree = ur_file[key]
 			
-			data = tree.arrays(branches_to_keep, library="pd")
+			data = tree.arrays(list(np.unique(branches_to_keep)), library="pd")
 
 			filtered_data = data.query(cut_condition)
 
 			if "dedicated_Kee_MC" in file:
 				filtered_data = filtered_data.query("MOTHER_BKGCAT<11")
 
-			mother_masses = np.ones(filtered_data.shape[0])
-			print(np.shape(mother_masses))
-			print(filtered_data.shape)
-			print(file)
-			quit()
+			mother_masses = -1.*np.ones(filtered_data.shape[0])
+			mother_TRUEID = filtered_data["MOTHER_TRUEID"]
+			for PID in list(particle_masses_dict_mothers.keys()):
+				mother_masses[np.where(np.abs(mother_TRUEID.astype(int))==PID)] = particle_masses_dict_mothers[PID]
 
-# mass[np.where(mass==411)] = 1.86962
-# mass[np.where(mass==421)] = 1.86484
-# mass[np.where(mass==431)] = 1.96847
+			particles = ["DAUGHTER1", "DAUGHTER2", "DAUGHTER3"]
+			for particle in particles:
+				mass = np.asarray(filtered_data[f'{particle}_TRUEID']).astype('float32')
+				for pid in list(particle_masses_dict_daughters.keys()):
+					mass[np.where(np.abs(mass)==pid)] = particle_masses_dict_daughters[pid]
+				filtered_data[f'{particle}_mass'] = mass
 
-# mass[np.where(mass==511)] = 5.27965
-# mass[np.where(mass==521)] = 5.27934
-# mass[np.where(mass==531)] = 5.36688
-# mass[np.where(mass==541)] = 6.2749
+			filtered_data[f'MOTHER_M'] = compute_mass_3(filtered_data, "DAUGHTER1", "DAUGHTER2", "DAUGHTER3")
 
+			filtered_data['abs_mass_diff'] = np.abs(np.asarray(filtered_data["MOTHER_M"])-mother_masses)
+			
+			fully_reco = np.zeros(filtered_data.shape[0])
+			fully_reco[np.where(filtered_data['abs_mass_diff']<0.05)] = 1
+			filtered_data['fully_reco'] = fully_reco
 
-			# if throw_away_partreco_frac > 0.:
+			if throw_away_partreco_frac > 0.:
+				partially_reco_rows = filtered_data[filtered_data['fully_reco'] == 0]
+				sampled_zero_reco = partially_reco_rows.sample(frac=0.5)
+				filtered_data = filtered_data.drop(sampled_zero_reco.index)
 
-
-		# write_df_to_root(filtered_data, f'{out_loc}/{file[:-5]}_cut.root')
+		write_df_to_root(filtered_data, f'{out_loc}/{file[:-5]}_cut.root')
 
 cut(loc='.', out_loc='.', file='MergeTest_*', throw_away_partreco_frac=0.5)
