@@ -462,10 +462,30 @@ for idx, config_electron_i in enumerate(config_electron):
 from Configurables import TupleToolMCTruth
 from Configurables import TupleToolKinematic
 
-mc_truth = TupleToolMCTruth()
-mc_truth.ToolList = ["MCTupleToolKinematic", "MCTupleToolHierarchy"]
-
 for idx, tuple in enumerate(tuples):
+
+	MCtruth = tuple.addTupleTool("TupleToolMCTruth")
+	counts_tool = MCtruth.addTupleTool("LoKi::Hybrid::MCTupleTool/MCLoKiHybrid")
+	counts_tool.Variables = {
+		# "nPositive"  : "MCSUMTREE(MC3Q/3.,MC3Q > 0,1)",
+		# "nNegative"  : "MCSUMTREE(MC3Q/3.,MC3Q < 0,1)",
+		# "nNeutral"  : "MCSUMTREE(MC3Q/3.,MC3Q == 0,1)",
+
+		# "nPositive"  : "MCSUMTREE(MC3Q/3.,MC3Q > 0,1)",
+		# "nNegative"  : "MCSUMTREE((MC3Q/3.)+2.,MC3Q < 0,1)",
+		# "nNeutral"  : "MCSUMTREE((MC3Q/3.)+1.,MC3Q == 0,1)", # This includes photons
+
+		"nPositive_stable"  : "MCSUMTREE(MC3Q/3.,(MC3Q > 0) & (MCABSID==11),1) + MCSUMTREE(MC3Q/3.,(MC3Q > 0) & (MCABSID==321),1) + MCSUMTREE(MC3Q/3.,(MC3Q > 0) & (MCABSID==211),1) + MCSUMTREE(MC3Q/3.,(MC3Q > 0) & (MCABSID==13),1) + MCSUMTREE(MC3Q/3.,(MC3Q > 0) & (MCABSID==2212),1)",
+		"nNegative_stable"  : "MCSUMTREE((MC3Q/3.)+2.,(MC3Q < 0) & (MCABSID==11),1) + MCSUMTREE((MC3Q/3.)+2.,(MC3Q < 0) & (MCABSID==321),1) + MCSUMTREE((MC3Q/3.)+2.,(MC3Q < 0) & (MCABSID==211),1) + MCSUMTREE((MC3Q/3.)+2.,(MC3Q < 0) & (MCABSID==13),1) + MCSUMTREE((MC3Q/3.)+2.,(MC3Q < 0) & (MCABSID==2212),1)",
+		# "nNeutral"  : "MCSUMTREE((MC3Q/3.)+1.,MC3Q == 0,1)", # This includes photons
+
+		# Need to select only final state particles - so stable PDG codes?
+		}
+	# https://gitlab.cern.ch/lhcb/LHCb/-/blob/master/Phys/LoKiMC/python/LoKiMC/functions.py
+
+	
+	MCtruth.ToolList += ["MCTupleToolKinematic", "MCTupleToolHierarchy"]
+
 	tuple.ToolList += [
 		"TupleToolAngles",
 		"TupleToolEventInfo",
@@ -494,16 +514,9 @@ for idx, tuple in enumerate(tuples):
 
 	]
 
-	tuple.ToolList += ["TupleToolMCTruth"]
+
 	tuple.ToolList += ["MCTupleToolEventType"]
-
-
-	tuple.addTool(mc_truth)
 	tuple.TupleToolMCTruth.Verbose = True
-
-	# MCTupleToolHierarchyOtherTracks
-	# https://gitlab.cern.ch:8443/lhcb/Analysis/-/merge_requests/707/diffs#diff-content-279d6abf536ade7c3044e046262dba6dd103778c
-
 
 	tuple.ToolList += ["TupleToolKinematic"]
 	tuple.addTool(TupleToolKinematic, name="TupleToolKinematic")
@@ -521,6 +534,7 @@ for idx, tuple in enumerate(tuples):
 		for isovarwhich in ['FIRST', 'SECOND', 'THIRD']:
 			isovar_name = "VTXISOBDT{}{}VALUE".format(isovarbdt, isovarwhich)
 			LoKiTool.Variables[isovar_name] = "RELINFO('Phys/{}/{}', '{}', -1.)".format(stripping_line, cfg['ISO'], isovar_name)
+
 
 
 from Configurables import DaVinci
@@ -566,8 +580,8 @@ print("Local INFO    Simulation = {}".format(DaVinci().Simulation))
 from GaudiConf import IOHelper
 IOHelper().inputFiles(
 	[
-		"/afs/cern.ch/work/m/marshall/fast_vertexing_variables/davinci/Kee.dst"
-		# "/afs/cern.ch/work/m/marshall/fast_vertexing_variables/davinci/Kstee.dst"
+		# "/afs/cern.ch/work/m/marshall/fast_vertexing_variables/davinci/Kee.dst"
+		"/afs/cern.ch/work/m/marshall/fast_vertexing_variables/davinci/Kstee.dst"
 		# "/afs/cern.ch/work/m/marshall/fast_vertexing_variables/davinci/Kmumu.dst"
 	],
 	clear=True,

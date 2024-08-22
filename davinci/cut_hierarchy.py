@@ -10,6 +10,7 @@ import uproot3
 import pandas as pd
 from warnings import simplefilter
 simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
+import time
 
 def write_df_to_root(df, output_name):
 
@@ -32,6 +33,7 @@ def write_df_to_root(df, output_name):
 	with uproot3.recreate(output_name) as f:
 		f["DecayTree"] = uproot3.newtree(branch_dict)
 		f["DecayTree"].extend(data_dict)
+	del f
 	print("Written.")
 
 # List of branches to keep
@@ -191,6 +193,8 @@ def cut(loc, out_loc, file, throw_away_partreco_frac=0.):
 	cut_condition = "(MOTHER_TRUEID != 0) & (MOTHER_BKGCAT < 60)"
 
 	for file in files:
+		
+		t0 = time.time()
 
 		print(f'\nWorking on {file}...')
 
@@ -203,6 +207,7 @@ def cut(loc, out_loc, file, throw_away_partreco_frac=0.):
 			
 			tree = ur_file[key]
 			
+			# data = tree.arrays(list(np.unique(branches_to_keep)), library="pd", entry_stop=2500)
 			data = tree.arrays(list(np.unique(branches_to_keep)), library="pd")
 
 			filtered_data = data.query(cut_condition)
@@ -234,7 +239,16 @@ def cut(loc, out_loc, file, throw_away_partreco_frac=0.):
 				partially_reco_rows = filtered_data[filtered_data['fully_reco'] == 0]
 				sampled_zero_reco = partially_reco_rows.sample(frac=0.5)
 				filtered_data = filtered_data.drop(sampled_zero_reco.index)
+		
+		del ur_file
+		del data
+		del tree
 
 		write_df_to_root(filtered_data, f'{out_loc}/{file[:-5]}_cut.root')
+
+		del filtered_data
+		t1 = time.time()
+		total = t1-t0
+		print(f'TIME: {total:.2f}')
 
 cut(loc='.', out_loc='.', file='MergeTest_*', throw_away_partreco_frac=0.5)

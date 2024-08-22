@@ -4,6 +4,12 @@
 
 use_PFNs = False
 
+import os
+os.system("export ROOTSYS=/cvmfs/sft.cern.ch/lcg/views/LCG_102b_LHCB_Core/x86_64-centos9-gcc11-opt")
+os.system("export PYTHONPATH=$ROOTSYS/lib:$PYTHONPATH")
+os.system("export LD_LIBRARY_PATH=$ROOTSYS/lib:$LD_LIBRARY_PATH")
+os.system("export PATH=$ROOTSYS/bin:$PATH")
+
 if use_PFNs:
     import xml.etree.ElementTree as ET
     tree = ET.parse('pool_xml_catalog.xml')
