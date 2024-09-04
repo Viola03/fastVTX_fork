@@ -34,7 +34,7 @@ These `ganga` jobs will output small `*.root` files in their respective `ganga` 
 ### Processing data files
 
 UPDATE, output from `davinci_general_mcmatch_intermediates.py` can be manipulated with `davinci/collapse_individual_tuples.py`
-UPDATE UPDATE, output from `davinci_general_mcmatch_intermediates.py` is now kept on Dirac, output is manipulated with `davinci/gangaSubmit_collapse.py`, and then hadd with `davinci/mergeAccessURLs_TChain.py`. The TChain combines ROOT files using their PFNs, some can be at sites which cause slow loading and a blacklist might be required.
+UPDATE UPDATE, output from `davinci_general_mcmatch_intermediates.py` is now kept on Dirac, output is manipulated with `davinci/gangaSubmit_collapse.py`, and then hadd with `davinci/mergeAccessURLs_TChain.py`, (run `gangaSubmit_collapse.py` again to collect `OutputDataAccessURLs_XXXX.pkl` using the code at the top of the file). The TChain combines ROOT files using their PFNs, some can be at sites which cause slow loading and a blacklist might be required. `mergeAccessURLs_TChain.py` requires `source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_102b_LHCB_Core x86_64-centos9-gcc11-opt`.
 
 In `/davinci` run:
 ```

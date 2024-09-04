@@ -127,10 +127,10 @@ def merge_root_files(pickle_file, output_file_name_prefix, timeout=30, split_up=
 
 if __name__ == "__main__":
 	# Path to the pickle file containing the list of input ROOT files
-	pickle_file = "OutputDataAccessURLs_2048.pkl"
+	pickle_file = "OutputDataAccessURLs_2070.pkl"
 	
 	# Name of the output ROOT file
 	output_file_name_prefix = "MergeTest"
 	
 	# Call the merge function with desired basket size and timeout
-	merge_root_files(pickle_file, output_file_name_prefix, timeout=15, split_up=10)
+	merge_root_files(pickle_file, output_file_name_prefix, timeout=25, split_up=10)

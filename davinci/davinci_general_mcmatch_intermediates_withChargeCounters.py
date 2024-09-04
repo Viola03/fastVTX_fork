@@ -37,13 +37,13 @@ particle_dict = {
 -321:"K-", 321:"K+",
 }
 combinations = np.empty((0,3))
-# for p1 in positive_particles:
-# 	for p2 in positive_particles:
-# 		for n1 in negative_particles:
-# 			combinations = np.append(combinations, [[p1,p2,n1]], axis=0)
-# 			combinations = np.append(combinations, [[-1*p1,-1*p2,-1*n1]], axis=0)
+for p1 in positive_particles:
+	for p2 in positive_particles:
+		for n1 in negative_particles:
+			combinations = np.append(combinations, [[p1,p2,n1]], axis=0)
+			combinations = np.append(combinations, [[-1*p1,-1*p2,-1*n1]], axis=0)
 
-combinations = np.append(combinations, [[321,-11,11]], axis=0)
+# combinations = np.append(combinations, [[321,-11,11]], axis=0)
 # combinations = np.append(combinations, [[-321,11,-11]], axis=0)
 
 

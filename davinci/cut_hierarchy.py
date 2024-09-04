@@ -135,7 +135,10 @@ branches_to_keep = [
     "MOTHER_OWNPV_COV_", # these are 9 values each!
     "MOTHER_ENDVERTEX_COV_",
     "INTERMEDIATE_ENDVERTEX_COV_", # Also need XERR?
-]
+
+    "MOTHER_nPositive_stable", 
+    "MOTHER_nNegative_stable", 
+	]
 
 particle_masses_dict_mothers = {}
 
@@ -251,4 +254,5 @@ def cut(loc, out_loc, file, throw_away_partreco_frac=0.):
 		total = t1-t0
 		print(f'TIME: {total:.2f}')
 
-cut(loc='.', out_loc='.', file='MergeTest_*', throw_away_partreco_frac=0.5)
+# cut(loc='.', out_loc='.', file='MergeTest_*', throw_away_partreco_frac=0.5)
+cut(loc='.', out_loc='.', file='MergeTest.root', throw_away_partreco_frac=0.)

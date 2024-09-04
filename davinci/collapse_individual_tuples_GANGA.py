@@ -4,11 +4,11 @@
 
 use_PFNs = False
 
-import os
-os.system("export ROOTSYS=/cvmfs/sft.cern.ch/lcg/views/LCG_102b_LHCB_Core/x86_64-centos9-gcc11-opt")
-os.system("export PYTHONPATH=$ROOTSYS/lib:$PYTHONPATH")
-os.system("export LD_LIBRARY_PATH=$ROOTSYS/lib:$LD_LIBRARY_PATH")
-os.system("export PATH=$ROOTSYS/bin:$PATH")
+# import os
+# os.system("export ROOTSYS=/cvmfs/sft.cern.ch/lcg/views/LCG_102b_LHCB_Core/x86_64-centos9-gcc11-opt")
+# os.system("export PYTHONPATH=$ROOTSYS/lib:$PYTHONPATH")
+# os.system("export LD_LIBRARY_PATH=$ROOTSYS/lib:$LD_LIBRARY_PATH")
+# os.system("export PATH=$ROOTSYS/bin:$PATH")
 
 if use_PFNs:
     import xml.etree.ElementTree as ET
@@ -124,7 +124,11 @@ branches_to_keep = [
     "MOTHER_OWNPV_COV_", # these are 9 values each!
     "MOTHER_ENDVERTEX_COV_",
     "INTERMEDIATE_ENDVERTEX_COV_", # Also need XERR?
-    
+
+    "MOTHER_nPositive_stable", 
+    "MOTHER_nNegative_stable", 
+    "EVT_GenEvent",
+
 ]
 
 def trim_file_directory_structure(filename_in, filename_out):
