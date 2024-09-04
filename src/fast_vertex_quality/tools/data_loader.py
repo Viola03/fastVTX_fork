@@ -35,6 +35,15 @@ def write_df_to_root(df, output_name):
 		f["DecayTree"] = uproot3.newtree(branch_dict)
 		f["DecayTree"].extend(data_dict)
 
+def symlog(x, linthresh=1.0):
+    sign = np.sign(x)
+    abs_x = np.abs(x)
+    return sign * np.log10(1 + abs_x / linthresh)
+
+def invsymlog(y, linthresh=1.0):
+    sign = np.sign(y)
+    abs_y = np.abs(y)
+    return sign * linthresh * (10**abs_y - 1)
 
 
 def produce_physics_variables(data):
@@ -133,6 +142,7 @@ class Transformer:
             f"{rd.daughter_particles[1]}_PZ",
             f"{rd.daughter_particles[2]}_PZ",
             f"{rd.mother_particle}_ENDVERTEX_CHI2",
+            f"{rd.intermediate_particle}_ENDVERTEX_CHI2",
             f"{rd.mother_particle}_IPCHI2_OWNPV",
             f"IP_{rd.mother_particle}",
             f"{rd.intermediate_particle}_FDCHI2_OWNPV",
@@ -189,6 +199,15 @@ class Transformer:
             f"{rd.daughter_particles[1]}_FLIGHT",
             f"{rd.daughter_particles[2]}_FLIGHT",
 
+            f"{rd.daughter_particles[0]}_TRACK_GhostProb",
+            f"{rd.daughter_particles[1]}_TRACK_GhostProb",
+            f"{rd.daughter_particles[2]}_TRACK_GhostProb",
+
+            f"{rd.mother_particle}_cp_0.70",
+            f"{rd.mother_particle}_cpt_0.70",
+            
+
+
             "delta_0_P",
             "delta_0_PT",
             "delta_1_P",
@@ -198,8 +217,12 @@ class Transformer:
 
         ]
 
-        self.one_minus_log_columns = [f"{rd.mother_particle}_DIRA_OWNPV", f"DIRA_{rd.mother_particle}", f"DIRA_{rd.mother_particle}_true_vertex"]
+        self.one_minus_log_columns = [f"{rd.mother_particle}_DIRA_OWNPV", f"DIRA_{rd.mother_particle}", f"DIRA_{rd.mother_particle}_true_vertex", f"{rd.intermediate_particle}_DIRA_OWNPV", f"DIRA_{rd.intermediate_particle}", f"DIRA_{rd.intermediate_particle}_true_vertex"]
         
+
+        self.symlog_columns = [f"{rd.mother_particle}_SmallestDeltaChi2OneTrack", f"{rd.mother_particle}_SmallestDeltaChi2TwoTracks"]
+        
+
         self.min_fills = {}
 
         # self.trueID_map = {-11:1, -13:2, 211:3, 321:4} # positive particles
@@ -243,6 +266,8 @@ class Transformer:
             self.shift = np.mean(data)
             data = data - self.shift
             data = symsqrt(data)
+        elif self.column in self.symlog_columns:
+            data = symlog(data)
 
         self.min = np.amin(data)
         self.max = np.amax(data)
@@ -289,6 +314,10 @@ class Transformer:
         elif self.column in self.shift_and_symsqrt_columns:
             data = data - self.shift
             data = symsqrt(data)
+
+        elif self.column in self.symlog_columns:
+            data = symlog(data)
+
 
         # # # # # # # # # # # # # # # 
         # Threshold cut for DIRA and IP
@@ -342,6 +371,10 @@ class Transformer:
         elif self.column in self.shift_and_symsqrt_columns:
             data = inv_symsqrt(data)
             data = data + self.shift
+
+        elif self.column in self.symlog_columns:
+            data = invsymlog(data)
+
 
         return data
 

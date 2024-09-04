@@ -20,9 +20,13 @@ use_intermediate = False
 
 network_option = 'VAE'
 load_state = f"networks/vertex_job_{network_option}general_9"
-rd.latent = 7 # VAE latent dims
+# rd.latent = 7 # VAE latent dims
+# D_architecture=[1600,2600,2600,1600]
+# G_architecture=[1600,2600,2600,1600]
+rd.latent = 10 # VAE latent dims
 D_architecture=[1600,2600,2600,1600]
 G_architecture=[1600,2600,2600,1600]
+rd.beta = 7500.
 
 
 ####################################################################################################################################
@@ -37,7 +41,8 @@ rd.intermediate_particle = 'J_psi_1S'
 print(f"Loading data...")
 training_data_loader = data_loader.load_data(
     [
-        "datasets/general_sample_intermediate_more_vars.root",
+        # "datasets/general_sample_intermediate_more_vars.root",
+        "datasets/general_sample_chargeCounters_cut_more_vars_HEADfactor20.root",
     ],
     transformers=transformers,
     convert_to_RK_branch_names=True,
@@ -84,9 +89,9 @@ conditions = [
     "K_Kst_TRUEID",
     "e_plus_TRUEID",
     "e_minus_TRUEID",
-    # "nSPDHits" # rapid sim wont give us this
+    # "B_plus_nPositive_missing",
+    # "B_plus_nNegative_missing",
 ]
-
 
 targets = [
     "B_plus_ENDVERTEX_CHI2",
@@ -101,7 +106,27 @@ targets = [
     "e_plus_TRACK_CHI2NDOF",
     "J_psi_1S_FDCHI2_OWNPV",
     "J_psi_1S_IPCHI2_OWNPV",
+    # # new targets
+    "J_psi_1S_ENDVERTEX_CHI2",
+    "J_psi_1S_DIRA_OWNPV",
+    # # VertexIsoBDTInfo:
+    "B_plus_VTXISOBDTHARDFIRSTVALUE",
+    "B_plus_VTXISOBDTHARDSECONDVALUE",
+    "B_plus_VTXISOBDTHARDTHIRDVALUE",
+    # # TupleToolVtxIsoln:
+    # "B_plus_SmallestDeltaChi2OneTrack",
+    # "B_plus_SmallestDeltaChi2TwoTracks",
+    # # TupleToolTrackIsolation:
+    # # "B_plus_cp_0.70",
+    # # "B_plus_cpt_0.70",
+    # # "B_plus_cmult_0.70",
+    # # Ghost:
+    "e_plus_TRACK_GhostProb",
+    "e_minus_TRACK_GhostProb",
+    "K_Kst_TRACK_GhostProb",
 ]
+
+
 
 
 vertex_quality_trainer_obj = vertex_quality_trainer(
@@ -118,8 +143,8 @@ vertex_quality_trainer_obj = vertex_quality_trainer(
 )
 
 vertex_quality_trainer_obj.load_state(tag=load_state)
-# vertex_quality_trainer_obj.make_plots(filename=f'example_training_plots_general',testing_file=training_data_loader.get_file_names(),offline=True)
-# quit()
+vertex_quality_trainer_obj.make_plots(filename=f'example_training_plots_general',testing_file=training_data_loader.get_file_names(),offline=True)
+quit()
 
 # print(f"Initialising BDT tester...")
 # BDT_tester_obj = BDT_tester(

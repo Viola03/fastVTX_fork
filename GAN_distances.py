@@ -19,9 +19,13 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 network_option = 'VAE'
 load_state = f"networks/vertex_job_{network_option}general_9"
-rd.latent = 7 # VAE latent dims
+# rd.latent = 7 # VAE latent dims
+# D_architecture=[1600,2600,2600,1600]
+# G_architecture=[1600,2600,2600,1600]
+rd.latent = 10 # VAE latent dims
 D_architecture=[1600,2600,2600,1600]
 G_architecture=[1600,2600,2600,1600]
+rd.beta = 7500.
 
 
 ####################################################################################################################################
@@ -36,7 +40,8 @@ training_data_loader = data_loader.load_data(
     [
         # "datasets/cocktail_hierarchy_cut_more_vars.root",
         # "datasets/cocktail_x5_MC_hierachy_cut_more_vars.root",
-        "datasets/general_sample_intermediate_All_more_vars.root",
+        # "datasets/general_sample_intermediate_All_more_vars.root",
+        "datasets/general_sample_chargeCounters_cut_more_vars_HEADfactor20.root",
     ],
     convert_to_RK_branch_names=True,
     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
@@ -46,7 +51,7 @@ print(training_data_loader.shape())
 
 # # temporary function!
 # training_data_loader.reweight_for_training("B_plus_M", weight_value=100.)
-training_data_loader.reweight_for_training("B_plus_M", weight_value=50.)
+# training_data_loader.reweight_for_training("B_plus_M", weight_value=50.)
 
 
 
@@ -88,7 +93,8 @@ conditions = [
     "K_Kst_TRUEID",
     "e_plus_TRUEID",
     "e_minus_TRUEID",
-    # "nSPDHits"
+    # "B_plus_nPositive_missing",
+    # "B_plus_nNegative_missing",
 ]
 
 targets = [
@@ -104,46 +110,32 @@ targets = [
     "e_plus_TRACK_CHI2NDOF",
     "J_psi_1S_FDCHI2_OWNPV",
     "J_psi_1S_IPCHI2_OWNPV",
-]
-
-new_targets = [
+    # # new targets
     "J_psi_1S_ENDVERTEX_CHI2",
     "J_psi_1S_DIRA_OWNPV",
-    # VertexIsoBDTInfo:
+    # # VertexIsoBDTInfo:
     "B_plus_VTXISOBDTHARDFIRSTVALUE",
     "B_plus_VTXISOBDTHARDSECONDVALUE",
     "B_plus_VTXISOBDTHARDTHIRDVALUE",
-    # TupleToolVtxIsoln:
-    "B_plus_SmallestDeltaChi2OneTrack",
-    "B_plus_SmallestDeltaChi2TwoTracks",
-    # TupleToolTrackIsolation:
-    "B_plus_cp_0.70",
-    "B_plus_cpt_0.70",
-    "B_plus_cmult_0.70",
-    # Ghost:
-    "DAUGHTER1_TRACK_GhostProb",
-    "DAUGHTER2_TRACK_GhostProb",
-    "DAUGHTER3_TRACK_GhostProb",
-    # Vertex info - for rerunning DecayTreeFitter (for mass constrained variables):
-    "MOTHER_OWNPV_X",
-    "MOTHER_ENDVERTEX_X",
-    "INTERMEDIATE_ENDVERTEX_X",
-    "MOTHER_OWNPV_Y",
-    "MOTHER_ENDVERTEX_Y",
-    "INTERMEDIATE_ENDVERTEX_Y",
-    "MOTHER_OWNPV_Z",
-    "MOTHER_ENDVERTEX_Z",
-    "INTERMEDIATE_ENDVERTEX_Z",
-    "MOTHER_OWNPV_COV_", # these are 9 values each!
-    "MOTHER_ENDVERTEX_COV_",
-    "INTERMEDIATE_ENDVERTEX_COV_", # Also need XERR?
+    # # TupleToolVtxIsoln:
+    # "B_plus_SmallestDeltaChi2OneTrack",
+    # "B_plus_SmallestDeltaChi2TwoTracks",
+    # # TupleToolTrackIsolation:
+    # # "B_plus_cp_0.70",
+    # # "B_plus_cpt_0.70",
+    # # "B_plus_cmult_0.70",
+    # # Ghost:
+    "e_plus_TRACK_GhostProb",
+    "e_minus_TRACK_GhostProb",
+    "K_Kst_TRACK_GhostProb",
 ]
-print(new_targets)
-quit()
 
 # training_data_loader.print_branches()
-print("plot conditions...")
-training_data_loader.plot('conditions.pdf',conditions)
+
+# print("plot conditions...")
+# training_data_loader.plot('conditions.pdf',conditions)
+# print("plot targets...")
+# training_data_loader.plot('targets.pdf',targets)
 # quit()
 
 
@@ -160,15 +152,15 @@ vertex_quality_trainer_obj = vertex_quality_trainer(
     network_option=network_option,
 )
 
-steps_for_plot = 5000
+steps_for_plot = 10000
 vertex_quality_trainer_obj.train(steps=steps_for_plot)
 vertex_quality_trainer_obj.save_state(tag=load_state)
-# vertex_quality_trainer_obj.make_plots(filename=f'plots_0.pdf',testing_file=training_data_loader.get_file_names())
+vertex_quality_trainer_obj.make_plots(filename=f'plots_0.pdf',testing_file=training_data_loader.get_file_names())
 
 for i in range(70):
     vertex_quality_trainer_obj.train_more_steps(steps=steps_for_plot)
     vertex_quality_trainer_obj.save_state(tag=load_state)
-    # vertex_quality_trainer_obj.make_plots(filename=f'plots_{i+1}.pdf',testing_file=training_data_loader.get_file_names())
+    vertex_quality_trainer_obj.make_plots(filename=f'plots_{i+1}.pdf',testing_file=training_data_loader.get_file_names())
 
 
 

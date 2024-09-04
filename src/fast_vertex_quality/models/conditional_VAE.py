@@ -91,9 +91,6 @@ class VAE_builder:
             H = Concatenate(axis=-1)([H, momentum_conditions])
 
         decoded_mean = Dense(self.target_dim, activation="tanh")(H)
-        # decoded_mean = Dense(self.target_dim)(H)
-        # decoded_mean = Dense(self.target_dim, activation="sigmoid")(H)
-        # decoded_mean = Dense(self.target_dim)(H)
         decoder = Model(
             inputs=[input_latent, momentum_conditions], outputs=[decoded_mean]
         )

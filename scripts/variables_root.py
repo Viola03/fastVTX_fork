@@ -63,7 +63,30 @@ for particle in particles:
 		mass[np.where(np.abs(mass)==pid)] = masses[pid]
 	events[f'{particle}_mass'] = mass
 
-# print(events.shape)
+PID_charges = {11:-1, -11:1, 13:-1, -13:1, 211:1, -211:-1, 321:1, -321:-1}
+
+EVT_GenEvent = np.asarray(events[f'EVT_GenEvent'])
+where_Kee = np.where(np.asarray(EVT_GenEvent)==12123003)
+
+nPositive = np.asarray(events[f'{mother}_nPositive_stable'])
+nNegative = np.asarray(events[f'{mother}_nNegative_stable'])
+print(nNegative, nNegative[where_Kee])
+print(nPositive, nPositive[where_Kee])
+
+for particle in particles:
+	charge_ = np.asarray(events[f'{particle}_TRUEID']).copy()
+	for key in list(PID_charges.keys()):
+		charge_[np.where(charge_==key)] = PID_charges[key]
+	nPositive[np.where(charge_>0)] = nPositive[np.where(charge_>0)]-1
+	nNegative[np.where(charge_<0)] = nNegative[np.where(charge_<0)]-1
+
+print("What are these decays with negative missing particles? Do they involve particles from different parts of the event?")
+print(nNegative, np.where(nNegative<0), nNegative[np.where(nNegative<0)])
+print(nPositive, np.where(nPositive<0), nPositive[np.where(nPositive<0)])
+print(EVT_GenEvent[np.where(nNegative<0)])
+
+events[f"{mother}_nPositive_missing"] = nPositive
+events[f"{mother}_nNegative_missing"] = nNegative
 
 print(events[f'{mother}_TRUEP_Z'])
 
