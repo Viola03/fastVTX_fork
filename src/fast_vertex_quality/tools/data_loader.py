@@ -1095,17 +1095,17 @@ def load_data(path, equal_sizes=True, N=-1, transformers=None, convert_to_RK_bra
 
     events = events.loc[:, ~events.columns.str.contains("^Unnamed")]
 
-    if "nSPDHits" not in list(events.keys()):
-        print(colored("WE DO NOT HAVE nSPD",'red'))
-        shape_required = events.shape[0]
-        N_load = 50000
-        file_nSPD = uproot.open("datasets/general_sample_intermediate_All_more_vars_HEADfactor10.root")['DecayTree']
-        events_nSPD = file_nSPD.arrays(['nSPDHits'], library='pd', entry_stop=N_load)
-        nSPDHits = np.asarray(events_nSPD['nSPDHits'])
-        nSPDHits = nSPDHits[np.random.randint(0, N_load, shape_required)]
-        events['nSPDHits'] = nSPDHits
-        # "datasets/general_sample_intermediate_All_more_vars_HEADfactor10.root",
-        print(colored("filled nSPDHits",'green'))
+    # if "nSPDHits" not in list(events.keys()):
+    #     print(colored("WE DO NOT HAVE nSPD",'red'))
+    #     shape_required = events.shape[0]
+    #     N_load = 50000
+    #     file_nSPD = uproot.open("datasets/general_sample_intermediate_All_more_vars_HEADfactor10.root")['DecayTree']
+    #     events_nSPD = file_nSPD.arrays(['nSPDHits'], library='pd', entry_stop=N_load)
+    #     nSPDHits = np.asarray(events_nSPD['nSPDHits'])
+    #     nSPDHits = nSPDHits[np.random.randint(0, N_load, shape_required)]
+    #     events['nSPDHits'] = nSPDHits
+    #     # "datasets/general_sample_intermediate_All_more_vars_HEADfactor10.root",
+    #     print(colored("filled nSPDHits",'green'))
 
 
     events_dataset = dataset(filenames=path, transformers=transformers, name=name)
