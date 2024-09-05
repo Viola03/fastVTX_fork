@@ -17,15 +17,22 @@ from matplotlib.backends.backend_pdf import PdfPages
 # network_option = 'WGAN'
 # rd.latent = 50 # noise dims
 
-network_option = 'VAE'
-load_state = f"networks/vertex_job_{network_option}general_9"
-# rd.latent = 7 # VAE latent dims
+# network_option = 'VAE'
+# load_state = f"networks/vertex_job_{network_option}general_9"
+# # rd.latent = 7 # VAE latent dims
+# # D_architecture=[1600,2600,2600,1600]
+# # G_architecture=[1600,2600,2600,1600]
+# rd.latent = 10 # VAE latent dims
 # D_architecture=[1600,2600,2600,1600]
 # G_architecture=[1600,2600,2600,1600]
-rd.latent = 10 # VAE latent dims
+# rd.beta = 7500.
+
+network_option = 'VAE'
+load_state = f"networks/vertex_job_testing"
+rd.latent = 7 # VAE latent dims
 D_architecture=[1600,2600,2600,1600]
 G_architecture=[1600,2600,2600,1600]
-rd.beta = 7500.
+rd.beta = 750.
 
 
 ####################################################################################################################################
@@ -41,7 +48,8 @@ training_data_loader = data_loader.load_data(
         # "datasets/cocktail_hierarchy_cut_more_vars.root",
         # "datasets/cocktail_x5_MC_hierachy_cut_more_vars.root",
         # "datasets/general_sample_intermediate_All_more_vars.root",
-        "datasets/general_sample_chargeCounters_cut_more_vars_HEADfactor20.root",
+        "datasets/general_sample_chargeCounters_cut_more_vars.root",
+        # "datasets/general_sample_chargeCounters_cut_more_vars_HEADfactor20.root",
     ],
     convert_to_RK_branch_names=True,
     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
@@ -50,7 +58,7 @@ transformers = training_data_loader.get_transformers()
 print(training_data_loader.shape())
 
 # # temporary function!
-# training_data_loader.reweight_for_training("B_plus_M", weight_value=100.)
+training_data_loader.reweight_for_training("B_plus_M", weight_value=100.)
 # training_data_loader.reweight_for_training("B_plus_M", weight_value=50.)
 
 
@@ -110,24 +118,24 @@ targets = [
     "e_plus_TRACK_CHI2NDOF",
     "J_psi_1S_FDCHI2_OWNPV",
     "J_psi_1S_IPCHI2_OWNPV",
-    # # new targets
-    "J_psi_1S_ENDVERTEX_CHI2",
-    "J_psi_1S_DIRA_OWNPV",
-    # # VertexIsoBDTInfo:
-    "B_plus_VTXISOBDTHARDFIRSTVALUE",
-    "B_plus_VTXISOBDTHARDSECONDVALUE",
-    "B_plus_VTXISOBDTHARDTHIRDVALUE",
-    # # TupleToolVtxIsoln:
-    # "B_plus_SmallestDeltaChi2OneTrack",
-    # "B_plus_SmallestDeltaChi2TwoTracks",
-    # # TupleToolTrackIsolation:
-    # # "B_plus_cp_0.70",
-    # # "B_plus_cpt_0.70",
-    # # "B_plus_cmult_0.70",
-    # # Ghost:
-    "e_plus_TRACK_GhostProb",
-    "e_minus_TRACK_GhostProb",
-    "K_Kst_TRACK_GhostProb",
+    # # # new targets
+    # "J_psi_1S_ENDVERTEX_CHI2",
+    # "J_psi_1S_DIRA_OWNPV",
+    # # # VertexIsoBDTInfo:
+    # "B_plus_VTXISOBDTHARDFIRSTVALUE",
+    # "B_plus_VTXISOBDTHARDSECONDVALUE",
+    # "B_plus_VTXISOBDTHARDTHIRDVALUE",
+    # # # TupleToolVtxIsoln:
+    # # "B_plus_SmallestDeltaChi2OneTrack",
+    # # "B_plus_SmallestDeltaChi2TwoTracks",
+    # # # TupleToolTrackIsolation:
+    # # # "B_plus_cp_0.70",
+    # # # "B_plus_cpt_0.70",
+    # # # "B_plus_cmult_0.70",
+    # # # Ghost:
+    # "e_plus_TRACK_GhostProb",
+    # "e_minus_TRACK_GhostProb",
+    # "K_Kst_TRACK_GhostProb",
 ]
 
 # training_data_loader.print_branches()
