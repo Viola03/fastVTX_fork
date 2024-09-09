@@ -221,7 +221,6 @@ class Transformer:
 		
 
 		self.symlog_columns = [f"{rd.mother_particle}_SmallestDeltaChi2OneTrack", f"{rd.mother_particle}_SmallestDeltaChi2TwoTracks"]
-		
 
 		self.min_fills = {}
 
@@ -266,6 +265,7 @@ class Transformer:
 			self.shift = np.mean(data)
 			data = data - self.shift
 			data = symsqrt(data)
+			
 		elif self.column in self.symlog_columns:
 			data = symlog(data)
 
@@ -275,6 +275,12 @@ class Transformer:
 
 	def process(self, data_raw):
 		
+		try:
+			if self.symlog_columns:
+				pass
+		except:
+			self.symlog_columns = []
+
 		try:
 			data = data_raw.copy()
 		except:
@@ -353,6 +359,12 @@ class Transformer:
 
 	def unprocess(self, data_raw):
 
+		try:
+			if self.symlog_columns:
+				pass
+		except:
+			self.symlog_columns = []
+			
 		data = data_raw.copy()
 
 		data += 1

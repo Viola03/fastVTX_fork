@@ -177,15 +177,14 @@ scores = BDT_tester_obj.plot_detailed_metrics(
     # avoid_rapidsim=True,
 )
 
-
-# scores = BDT_tester_obj.plot_differential_metrics(
-#     conditions,
-#     targets,
-#     vertex_quality_trainer_obj, f"differential_metrics_{network_option}.pdf",
-#     # only_signal=True,
-#     BDT_cut=0.9,
-#     # avoid_rapidsim=True,
-# )
+scores = BDT_tester_obj.plot_differential_metrics(
+    conditions,
+    targets,
+    vertex_quality_trainer_obj, f"differential_metrics_{network_option}.pdf",
+    # only_signal=True,
+    BDT_cut=0.9,
+    # avoid_rapidsim=True,
+)
 quit()
 
 # print(f"Initialising BDT tester...")
@@ -211,14 +210,14 @@ quit()
 #     only_signal=False
 # )
 
-# # scores = BDT_tester_obj.plot_differential_metrics(
-# #     conditions,
-# #     targets,
-# #     vertex_quality_trainer_obj, f"differential_metrics_{network_option}_prcBDT.pdf",
-# #     # only_signal=True,
-# #     only_signal=False,
-# #     BDT_cut=0.55
-# # )
+# scores = BDT_tester_obj.plot_differential_metrics(
+#     conditions,
+#     targets,
+#     vertex_quality_trainer_obj, f"differential_metrics_{network_option}_prcBDT.pdf",
+#     # only_signal=True,
+#     only_signal=False,
+#     BDT_cut=0.55
+# )
 
 
 

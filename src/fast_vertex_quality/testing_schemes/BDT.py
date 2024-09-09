@@ -488,7 +488,7 @@ class BDT_tester:
                 event_loader_target = data_loader.load_data(
                     [
                         # "datasets/Kstee_cut_more_vars.root",
-                        "datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
+                        "datasets/Kstzeroee_Merge_chargeCounters_cut_more_vars.root",
                     ],
                     transformers=self.transformers,
                     convert_to_RK_branch_names=True,
@@ -684,7 +684,7 @@ class BDT_tester:
 
 
         part_reco_gen = self.get_sample_Kee(
-                        "datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
+                        "datasets/Kstzeroee_Merge_chargeCounters_cut_more_vars.root",
             vertex_quality_trainer_obj,
             generate=True,
             N=10000,
@@ -700,7 +700,7 @@ class BDT_tester:
         )  
         
         part_reco_MC = self.get_sample_Kee(
-                        "datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
+                        "datasets/Kstzeroee_Merge_chargeCounters_cut_more_vars.root",
             vertex_quality_trainer_obj,
             generate=False,
             N=10000,
@@ -1543,7 +1543,7 @@ class BDT_tester:
             if "Partreco" in sample_loc:
                 event_loader_target = data_loader.load_data(
                     [
-                        "datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
+                        "datasets/Kstzeroee_Merge_chargeCounters_cut_more_vars.root",
                     ],
                     transformers=self.transformers,
                     convert_to_RK_branch_names=True,
@@ -1580,6 +1580,10 @@ class BDT_tester:
                 event_loader
             )
 
+        # if rapidsim:
+        #     print("RAPIDSIM TRUE MASS CUT")
+        #     event_loader.cut('B_plus_M>4.5')
+
         return event_loader
     
 
@@ -1610,7 +1614,7 @@ class BDT_tester:
             if "Partreco" in sample_loc:
                 event_loader_target = data_loader.load_data(
                     [
-                        "datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
+                        "datasets/Kstzeroee_Merge_chargeCounters_cut_more_vars.root",
                     ],
                     transformers=self.transformers,
                     convert_to_RK_branch_names=True,
@@ -2101,7 +2105,8 @@ class BDT_tester:
             ###############
             event_loader_MC = self.get_event_loader(
                 # "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
-                "datasets/dedicated_Kee_MC_hierachy_All_cut_more_vars.root",
+                # "datasets/dedicated_Kee_MC_hierachy_All_cut_more_vars.root",
+                "datasets/Kee_Merge_cut_chargeCounters_more_vars.root",
                 vertex_quality_trainer_obj,
                 generate=False,
                 # N=10000,
@@ -2136,7 +2141,8 @@ class BDT_tester:
             ###############
             event_loader_gen_MC = self.get_event_loader(
                 # "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
-                "datasets/dedicated_Kee_MC_hierachy_All_cut_more_vars.root",
+                # "datasets/dedicated_Kee_MC_hierachy_All_cut_more_vars.root",
+                "datasets/Kee_Merge_cut_chargeCounters_more_vars.root",
                 vertex_quality_trainer_obj,
                 generate=True,
                 # N=10000,
@@ -2238,7 +2244,7 @@ class BDT_tester:
             ###############
             ###############
             event_loader_MC = self.get_event_loader(
-                "datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
+                "datasets/Kstzeroee_Merge_chargeCounters_cut_more_vars.root",
                 vertex_quality_trainer_obj,
                 generate=False,
                 # N=10000,
@@ -2262,7 +2268,7 @@ class BDT_tester:
 
             ###############
             event_loader_gen_MC = self.get_event_loader(
-                "datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
+                "datasets/Kstzeroee_Merge_chargeCounters_cut_more_vars.root",
                 vertex_quality_trainer_obj,
                 generate=True,
                 # N=10000,
@@ -2613,7 +2619,8 @@ class BDT_tester:
 
             signal_gen, signal_gen_stripping_eff = self.get_sample_and_stripping_eff(
                 # "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
-                "datasets/dedicated_Kee_MC_hierachy_All_cut_more_vars.root",
+                # "datasets/dedicated_Kee_MC_hierachy_All_cut_more_vars.root",
+                "datasets/Kee_Merge_cut_chargeCounters_more_vars.root",
                 vertex_quality_trainer_obj,
                 generate=True,
                 N=10000,
@@ -2694,7 +2701,9 @@ class BDT_tester:
                 self.compare_stripping_eff_plots(
                     pdf,
                     # ["datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root", "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root", "datasets/cocktail_hierarchy_cut_more_vars.root", "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root"],
-                    ["datasets/dedicated_Kee_MC_hierachy_All_cut_more_vars.root", "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root", "datasets/general_sample_chargeCounters_cut_more_vars_HEADfactor20.root", "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root"],
+                    
+                    ["datasets/Kee_Merge_cut_chargeCounters_more_vars.root", "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root", "datasets/general_sample_chargeCounters_cut_more_vars_HEADfactor20.root", "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root"],
+                    # ["datasets/dedicated_Kee_MC_hierachy_All_cut_more_vars.root", "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root", "datasets/general_sample_chargeCounters_cut_more_vars_HEADfactor20.root", "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root"],
                     vertex_quality_trainer_obj,
                     generate=[False, True, False, True],
                     convert_branches=[True, True, True, True],
@@ -2706,7 +2715,8 @@ class BDT_tester:
             else:
                 self.compare_stripping_eff_plots(
                     pdf,
-                    ["datasets/dedicated_Kee_MC_hierachy_All_cut_more_vars.root", "datasets/general_sample_chargeCounters_cut_more_vars_HEADfactor20.root", "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root"],
+                    ["datasets/Kee_Merge_cut_chargeCounters_more_vars.root.root", "datasets/general_sample_chargeCounters_cut_more_vars_HEADfactor20.root", "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root"],
+                    # ["datasets/dedicated_Kee_MC_hierachy_All_cut_more_vars.root", "datasets/general_sample_chargeCounters_cut_more_vars_HEADfactor20.root", "datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root"],
                     vertex_quality_trainer_obj,
                     generate=[False, False, True],
                     convert_branches=[True, True, True],
@@ -2722,7 +2732,8 @@ class BDT_tester:
 
 
             part_reco_gen, part_reco_gen_stripping_eff = self.get_sample_and_stripping_eff(
-                "datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
+                # "datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
+                "datasets/Kstzeroee_Merge_chargeCounters_cut_more_vars.root",
                 vertex_quality_trainer_obj,
                 generate=True,
                 N=10000,
@@ -2737,7 +2748,7 @@ class BDT_tester:
                 rapidsim=True,
             )  
             part_reco_MC, part_reco_MC_stripping_eff = self.get_sample_and_stripping_eff(
-                "datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
+                "datasets/Kstzeroee_Merge_chargeCounters_cut_more_vars.root",
                 vertex_quality_trainer_obj,
                 generate=False,
                 N=10000,
