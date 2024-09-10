@@ -272,10 +272,14 @@ class Transformer:
 		self.min = np.amin(data)
 		self.max = np.amax(data)
 
-		# qt = QuantileTransformer(
-		# 	n_quantiles=500, output_distribution="normal", random_state=rng
-		# )
-
+		# if rd.use_QuantileTransformer and (str(self.column) in list(rd.targets)):
+		# if rd.use_QuantileTransformer and (str(self.column) in list(rd.targets) or str(self.column) in list(rd.conditions)):
+		# if rd.use_QuantileTransformer and (str(self.column) in list(rd.conditions)):
+		if rd.use_QuantileTransformer and (str(self.column) in list(rd.conditions) or str(self.column) in list(rd.targets)):
+				self.qt = QuantileTransformer(
+					n_quantiles=500, output_distribution="normal"
+				)
+				self.qt_fit = False
 
 
 	def process(self, data_raw):
@@ -360,6 +364,17 @@ class Transformer:
 
 		data = np.clip(data, -1, 1)
 
+		# if rd.use_QuantileTransformer and (str(self.column) in list(rd.targets)):
+		# if rd.use_QuantileTransformer and (str(self.column) in list(rd.targets) or str(self.column) in list(rd.conditions)):
+		# if rd.use_QuantileTransformer and (str(self.column) in list(rd.conditions)):
+		if rd.use_QuantileTransformer and (str(self.column) in list(rd.conditions) or str(self.column) in list(rd.targets)):
+				if not self.qt_fit:
+					self.qt.fit(data.reshape(-1, 1))
+					self.qt_fit = True
+				data = self.qt.transform(data.reshape(-1, 1))[:,0]
+				data = np.clip(data, -5, 5)
+				data = data/5.
+
 		return data
 
 	def unprocess(self, data_raw):
@@ -371,6 +386,14 @@ class Transformer:
 			self.symlog_columns = []
 			
 		data = data_raw.copy()
+
+		# if rd.use_QuantileTransformer and (str(self.column) in list(rd.targets)):
+		# if rd.use_QuantileTransformer and (str(self.column) in list(rd.targets) or str(self.column) in list(rd.conditions)):
+		# if rd.use_QuantileTransformer and (str(self.column) in list(rd.conditions)):
+		if rd.use_QuantileTransformer and (str(self.column) in list(rd.conditions) or str(self.column) in list(rd.targets)):
+			data = data*5.
+			data = self.qt.inverse_transform(data.reshape(-1, 1))[:,0]
+		
 
 		data += 1
 		data *= 0.5
@@ -392,6 +415,7 @@ class Transformer:
 		elif self.column in self.symlog_columns:
 			data = invsymlog(data)
 
+		
 
 		return data
 
@@ -577,7 +601,6 @@ class dataset:
 		df = {}
 
 		for column in list(processed_data.keys()):
-
 			if column == "file" or column == "training_weight":
 				df[column] = processed_data[column]
 			else:
@@ -1129,6 +1152,8 @@ class dataset:
 
 
 	def convert_value_to_processed(self, name, value):
+		print('convert_value_to_processed', name, value)
+		print(self.Transformers[name].process(value))
 		return self.Transformers[name].process(value)
 	
 	def plot(self,filename, variables=None,save_vars=False):

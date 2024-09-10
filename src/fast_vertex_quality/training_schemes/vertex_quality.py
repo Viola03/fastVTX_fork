@@ -41,7 +41,7 @@ class vertex_quality_trainer:
 		if load_config:
 
 			tag = load_config
-			rd.network_option, rd.latent, rd.D_architecture, rd.G_architecture, rd.beta, rd.conditions, rd.targets = pickle.load(open(f"{tag}_configs.pkl", "rb"))
+			rd.network_option, rd.latent, rd.D_architecture, rd.G_architecture, rd.beta, rd.conditions, rd.targets, rd.use_QuantileTransformer = pickle.load(open(f"{tag}_configs.pkl", "rb"))
 
 			self.targets = rd.targets
 			self.conditions = rd.conditions
@@ -737,7 +737,7 @@ class vertex_quality_trainer:
 			),
 		)
 
-		objects = (rd.network_option, rd.latent, rd.D_architecture, rd.G_architecture, rd.beta, rd.conditions, rd.targets)
+		objects = (rd.network_option, rd.latent, rd.D_architecture, rd.G_architecture, rd.beta, rd.conditions, rd.targets, rd.use_QuantileTransformer)
 
 		pickle.dump(
 			objects,
