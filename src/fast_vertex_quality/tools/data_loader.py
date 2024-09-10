@@ -272,6 +272,11 @@ class Transformer:
 		self.min = np.amin(data)
 		self.max = np.amax(data)
 
+		# qt = QuantileTransformer(
+		# 	n_quantiles=500, output_distribution="normal", random_state=rng
+		# )
+
+
 
 	def process(self, data_raw):
 		
