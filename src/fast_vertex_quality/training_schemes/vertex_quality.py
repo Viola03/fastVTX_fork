@@ -41,7 +41,10 @@ class vertex_quality_trainer:
 		if load_config:
 
 			tag = load_config
-			rd.network_option, rd.latent, rd.D_architecture, rd.G_architecture, rd.beta, rd.conditions, rd.targets, rd.use_QuantileTransformer = pickle.load(open(f"{tag}_configs.pkl", "rb"))
+			try:
+				rd.network_option, rd.latent, rd.D_architecture, rd.G_architecture, rd.beta, rd.conditions, rd.targets, rd.use_QuantileTransformer = pickle.load(open(f"{tag}_configs.pkl", "rb"))
+			except:
+				rd.network_option, rd.latent, rd.D_architecture, rd.G_architecture, rd.beta, rd.conditions, rd.targets = pickle.load(open(f"{tag}_configs.pkl", "rb"))
 
 			self.targets = rd.targets
 			self.conditions = rd.conditions
@@ -102,7 +105,17 @@ class vertex_quality_trainer:
 		self.conditions_dim = len(self.conditions)
 		self.cut_idx = self.target_dim
 
-		self.optimizer = Adam(learning_rate=0.0005)
+		# self.optimizer = Adam(learning_rate=0.0005) # default
+		# self.optimizer = Adam(learning_rate=0.00005)
+		
+		# self.optimizer = Adam(learning_rate=0.000005)
+		gen_lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+					initial_learning_rate=0.000005,
+					decay_steps=5000,
+					decay_rate=0.5)
+		# self.optimizer = Adam(learning_rate=0.000005, amsgrad=True)
+		self.optimizer = Adam(learning_rate=0.000005)
+
 		# self.optimizer = Adam(learning_rate=0.00075, beta_1=0.5, amsgrad=True)
 		# self.optimizer = SGD(learning_rate=0.0005)
 
@@ -489,14 +502,31 @@ class vertex_quality_trainer:
 
 		self.trained_weights = self.get_weights()
 
-		plt.subplot(1, 3, 1)
-		plt.title('disc')
+		plt.subplot(2, 3, 1)
+		plt.title('KL loss')
 		plt.plot(self.loss_list[:, 0], self.loss_list[:, 1])
-		plt.subplot(1, 3, 2)
-		plt.title('gen')
+		plt.plot(self.loss_list[:, 0][0::100], self.loss_list[:, 1][0::100])
+		plt.subplot(2, 3, 2)
+		plt.title('Reco loss')
 		plt.plot(self.loss_list[:, 0], self.loss_list[:, 2])
-		plt.subplot(1, 3, 3)
+		plt.plot(self.loss_list[:, 0][0::100], self.loss_list[:, 2][0::100])
+		plt.subplot(2, 3, 3)
+		plt.title('Reco loss raw')
 		plt.plot(self.loss_list[:, 0], self.loss_list[:, 3])
+		plt.plot(self.loss_list[:, 0][0::100], self.loss_list[:, 3][0::100])
+
+		try:
+			plt.subplot(2, 3, 4)
+			plt.title('KL loss')
+			plt.plot(self.loss_list[-5000:, 0], self.loss_list[-5000:, 1])
+			plt.subplot(2, 3, 5)
+			plt.title('Reco loss')
+			plt.plot(self.loss_list[-5000:, 0], self.loss_list[-5000:, 2])
+			plt.subplot(2, 3, 6)
+			plt.title('Reco loss raw')
+			plt.plot(self.loss_list[-5000:, 0], self.loss_list[-5000:, 3])
+		except:
+			pass
 		plt.savefig("Losses.png")
 		plt.close("all")
 

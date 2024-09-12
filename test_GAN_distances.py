@@ -25,7 +25,8 @@ use_intermediate = False
 # load_state = f"networks/vertex_job_9thSept_D"
 # load_state = f"networks/vertex_job_9thSept_E_best"
 # load_state = f"networks/vertex_job_9thSept_E"
-load_state = f"networks/vertex_job_9thSept_RAIN"
+# load_state = f"networks/vertex_job_9thSept_RAIN"
+load_state = f"networks/vertex_job_9thSept_RAIN_best"
 
 
 ####################################################################################################################################
@@ -107,18 +108,18 @@ scores = BDT_tester_obj.plot_detailed_metrics(
     rd.conditions,
     rd.targets,
     vertex_quality_trainer_obj, f"metrics_{rd.network_option}.pdf",
-    only_signal=True,
+    # only_signal=True,
     # avoid_rapidsim=True,
 )
 
-# scores = BDT_tester_obj.plot_differential_metrics(
-#     rd.conditions,
-#     rd.targets,
-#     vertex_quality_trainer_obj, f"differential_metrics_{rd.network_option}.pdf",
-#     only_signal=True,
-#     BDT_cut=0.9,
-#     # avoid_rapidsim=True,
-# )
+scores = BDT_tester_obj.plot_differential_metrics(
+    rd.conditions,
+    rd.targets,
+    vertex_quality_trainer_obj, f"differential_metrics_{rd.network_option}.pdf",
+    # only_signal=True,
+    BDT_cut=0.9,
+    # avoid_rapidsim=True,
+)
 quit()
 
 # print(f"Initialising BDT tester...")
@@ -126,7 +127,7 @@ quit()
 #     transformers=transformers,
 #     tag="networks/BDT_sig_prc_WGANcocktail_newconditions",
 #     train=False,
-#     BDT_vars=rd.targets,
+#     BDT_vars=BDT_targets,
 #     # signal="datasets/Kee_2018_truthed_more_vars.csv",
 #     signal="datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
 #     background="datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",

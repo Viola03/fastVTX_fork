@@ -11,10 +11,14 @@ def reco_loss(x, x_decoded_mean):
 	return xent_loss
 
 
-def kl_loss(z_mean, z_log_var):
-	kl_loss = -0.5 * K.sum(1 + z_log_var - K.square(z_mean) - K.exp(z_log_var), axis=-1)
-	return kl_loss
-
+# def kl_loss(z_mean, z_log_var):
+# 	kl_loss = -0.5 * K.sum(1 + z_log_var - K.square(z_mean) - K.exp(z_log_var), axis=-1)
+# 	return kl_loss
+def kl_loss(z_mean, z_log_var, variance_penalty=1e-2):
+    kl_loss = -0.5 * K.sum(1 + z_log_var - K.square(z_mean) - K.exp(z_log_var), axis=-1)
+    # Penalize large values of z_log_var
+    penalty = variance_penalty * K.sum(K.square(z_log_var), axis=-1)
+    return kl_loss + penalty
 
 @tf.function
 def train_step_vertexing(
@@ -37,7 +41,14 @@ def train_step_vertexing(
 
 	grad_vae = tape.gradient(vae_loss, vae.trainable_variables)
 
-	optimizer.apply_gradients(zip(grad_vae, vae.trainable_variables))
+	# optimizer.apply_gradients(zip(grad_vae, vae.trainable_variables))
+	
+	clip_value = 1.0 # looks like it helps
+	# clip_value = 0.5 # looks worse than 1.0
+	# clip_value = 3.
+	# clip_value = 0.75 
+	clipped_grads, _ = tf.clip_by_global_norm(grad_vae, clip_value)
+	optimizer.apply_gradients(zip(clipped_grads, vae.trainable_variables))
 
 	return vae_kl_loss, vae_reco_loss, vae_reco_loss_raw
 

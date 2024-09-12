@@ -25,13 +25,16 @@ rd.network_option = 'VAE'
 # load_state = f"networks/vertex_job_9thSept_C" # looks good
 # load_state = f"networks/vertex_job_9thSept_D" decent
 load_state = f"networks/vertex_job_9thSept_RAIN"
-rd.latent = 6 # VAE latent dims
+# rd.latent = 6 # VAE latent dims
 # rd.latent = 4 # VAE latent dims
+rd.latent = 5 # VAE latent dims
 rd.D_architecture=[1600,2600,2600,1600]
 rd.G_architecture=[1600,2600,2600,1600]
 # rd.D_architecture=[1600/2,2600/2,2600/2,1600/2]
 # rd.G_architecture=[1600/2,2600/2,2600/2,1600/2]
 rd.beta = 750.
+# rd.batch_size = 64
+rd.batch_size = 100
 
 
 # network_option = 'VAE'
@@ -202,7 +205,7 @@ vertex_quality_trainer_obj = vertex_quality_trainer(
 	targets=rd.targets,
 	beta=float(rd.beta),
 	latent_dim=rd.latent,
-	batch_size=64,
+	batch_size=rd.batch_size,
 	D_architecture=rd.D_architecture,
 	G_architecture=rd.G_architecture,
 	network_option=rd.network_option,
@@ -241,24 +244,26 @@ BDT_tester_obj = BDT_tester(
 
 steps_for_plot = 5000
 # steps_for_plot = 50
-# steps_for_plot = 1000
 
 # vertex_quality_trainer_obj.load_state(tag=load_state)
 
 chi2_collect = np.empty((0,3))
+chi2_collect_best = np.empty((0,3))
 
 vertex_quality_trainer_obj.train(steps=steps_for_plot)
 vertex_quality_trainer_obj.save_state(tag=load_state)
-vertex_quality_trainer_obj.make_plots(filename=f'plots_0.pdf',testing_file=["datasets/general_sample_chargeCounters_cut_more_vars_HEADfactor20.root"])
+# vertex_quality_trainer_obj.make_plots(filename=f'plots_0.pdf',testing_file=["datasets/general_sample_chargeCounters_cut_more_vars_HEADfactor20.root"])
 # vertex_quality_trainer_obj.make_plots(filename=f'example_training_plots_general.pdf',testing_file=training_data_loader.get_file_names(),offline=True)
 vertex_quality_trainer_obj.initalise_BDT_test(BDT_tester_obj, BDT_cut=0.9)
 chi2 = vertex_quality_trainer_obj.run_BDT_test(filename=f'plots_BDT_0.pdf')
 chi2_collect = np.append(chi2_collect, [chi2], axis=0)
+chi2_collect_best = np.append(chi2_collect_best, [chi2], axis=0)
 min_mean_chi2 = np.mean(chi2)
+best_chi2 = chi2
 
 for i in range(70):
 	vertex_quality_trainer_obj.train_more_steps(steps=steps_for_plot)
-	vertex_quality_trainer_obj.make_plots(filename=f'plots_{i+1}.pdf',testing_file=["datasets/general_sample_chargeCounters_cut_more_vars_HEADfactor20.root"])
+	# vertex_quality_trainer_obj.make_plots(filename=f'plots_{i+1}.pdf',testing_file=["datasets/general_sample_chargeCounters_cut_more_vars_HEADfactor20.root"])
 	chi2 = vertex_quality_trainer_obj.run_BDT_test(filename=f'plots_BDT_{i+1}.pdf')
 	chi2_collect = np.append(chi2_collect, [chi2], axis=0)
 
@@ -269,13 +274,23 @@ for i in range(70):
 		print("NEW BEST MEAN_CHI2")
 		min_mean_chi2 = mean_chi2
 		vertex_quality_trainer_obj.save_state(tag=load_state+"_best")
-	
+		best_chi2 = chi2
+
+	chi2_collect_best = np.append(chi2_collect_best, [best_chi2], axis=0)
+
 
 	plt.plot(chi2_collect[:,0],label=r'$q^2$')
 	plt.plot(chi2_collect[:,1],label=r'$m(Ke)$')
 	plt.plot(chi2_collect[:,2],label=r'$m(Kee)$')
 	plt.legend()
 	plt.savefig('Progress')
+	plt.close('all')
+
+	plt.plot(chi2_collect_best[:,0],label=r'$q^2$')
+	plt.plot(chi2_collect_best[:,1],label=r'$m(Ke)$')
+	plt.plot(chi2_collect_best[:,2],label=r'$m(Kee)$')
+	plt.legend()
+	plt.savefig('Progress_best')
 	plt.close('all')
 
 
