@@ -1783,7 +1783,7 @@ class BDT_tester:
             plt.legend(loc='upper left', frameon=False)
             plt.xlabel(f'Processed({cut})')
             plt.xlim(-1,1)
-            plt.axvline(x=loader.convert_value_to_processed(cut, cut_value),c='k')
+            # plt.axvline(x=loader.convert_value_to_processed(cut, cut_value),c='k')
 
             # plt.subplot(1,2,2)
             # plt.hist(results_physical, bins=75, density=True, histtype='step', label=labels)

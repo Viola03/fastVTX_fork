@@ -15,6 +15,10 @@ from particle import Particle
 from hep_ml.reweight import BinsReweighter, GBReweighter, FoldingReweighter
 from termcolor import colored
 
+# from fast_vertex_quality.tools.transformers import OriginalTransformer as Transformer
+from fast_vertex_quality.tools.transformers import UpdatedTransformer as Transformer
+
+
 def write_df_to_root(df, output_name):
 	branch_dict = {}
 	data_dict = {}
@@ -34,16 +38,6 @@ def write_df_to_root(df, output_name):
 	with uproot3.recreate(output_name) as f:
 		f["DecayTree"] = uproot3.newtree(branch_dict)
 		f["DecayTree"].extend(data_dict)
-
-def symlog(x, linthresh=1.0):
-	sign = np.sign(x)
-	abs_x = np.abs(x)
-	return sign * np.log10(1 + abs_x / linthresh)
-
-def invsymlog(y, linthresh=1.0):
-	sign = np.sign(y)
-	abs_y = np.abs(y)
-	return sign * linthresh * (10**abs_y - 1)
 
 
 def produce_physics_variables(data):
@@ -104,320 +98,6 @@ def produce_physics_variables(data):
 
 class NoneError(Exception):
 	pass
-
-
-def symsqrt(x, c=1):
-	"""Apply symmetric logarithm transformation."""
-	# return np.sign(x) * np.log10(c * np.abs(x) + 1)
-	return np.sign(x) * np.sqrt(np.abs(x))
-
-def inv_symsqrt(y, c=1):
-	"""Apply inverse symmetric logarithm transformation."""
-	# return np.sign(y) * (10**np.abs(y) - 1) / c
-	return np.sign(y) * np.abs(y)**2
-
-class Transformer:
-
-	def __init__(self):
-
-		self.abs_columns = [
-			f"{rd.mother_particle}_TRUEID",
-			f"{rd.daughter_particles[0]}_TRUEID",
-			f"{rd.daughter_particles[1]}_TRUEID",
-			f"{rd.daughter_particles[2]}_TRUEID",
-							]
-
-		self.shift_and_symsqrt_columns = [
-			f"{rd.mother_particle}_TRUEORIGINVERTEX_X",
-			f"{rd.mother_particle}_TRUEORIGINVERTEX_Y"
-		]
-
-		self.log_columns = [
-			f"{rd.mother_particle}_FDCHI2_OWNPV",
-			f"{rd.daughter_particles[0]}_IPCHI2_OWNPV",
-			f"{rd.daughter_particles[1]}_IPCHI2_OWNPV",
-			f"{rd.daughter_particles[2]}_IPCHI2_OWNPV",
-			f"{rd.intermediate_particle}_IPCHI2_OWNPV",
-			f"{rd.daughter_particles[0]}_PZ",
-			f"{rd.daughter_particles[1]}_PZ",
-			f"{rd.daughter_particles[2]}_PZ",
-			f"{rd.mother_particle}_ENDVERTEX_CHI2",
-			f"{rd.intermediate_particle}_ENDVERTEX_CHI2",
-			f"{rd.mother_particle}_IPCHI2_OWNPV",
-			f"IP_{rd.mother_particle}",
-			f"{rd.intermediate_particle}_FDCHI2_OWNPV",
-			f"{rd.intermediate_particle}_FLIGHT",
-
-			f"{rd.mother_particle}_TRUE_FD",
-
-			f"{rd.mother_particle}_P",
-			f"{rd.mother_particle}_PT",
-			f"IP_{rd.daughter_particles[0]}",
-			f"IP_{rd.daughter_particles[1]}",
-			f"IP_{rd.daughter_particles[2]}",
-			f"FD_{rd.mother_particle}",
-			f"IP_{rd.daughter_particles[0]}_true_vertex",
-			f"IP_{rd.daughter_particles[1]}_true_vertex",
-			f"IP_{rd.daughter_particles[2]}_true_vertex",
-			f"IP_{rd.mother_particle}_true_vertex",
-			f"FD_{rd.mother_particle}_true_vertex",
-
-			f"{rd.intermediate_particle}_TRUEID_width",
-			f"{rd.intermediate_particle}_MC_MOTHER_ID_width",
-			f"{rd.intermediate_particle}_MC_GD_MOTHER_ID_width",
-			f"{rd.intermediate_particle}_MC_GD_GD_MOTHER_ID_width",
-
-			f"{rd.daughter_particles[0]}_MC_MOTHER_ID_width",
-			f"{rd.daughter_particles[0]}_MC_GD_MOTHER_ID_width",
-			f"{rd.daughter_particles[0]}_MC_GD_GD_MOTHER_ID_width",
-
-			f"{rd.daughter_particles[1]}_MC_MOTHER_ID_width",
-			f"{rd.daughter_particles[1]}_MC_GD_MOTHER_ID_width",
-			f"{rd.daughter_particles[1]}_MC_GD_GD_MOTHER_ID_width",
-
-			f"{rd.daughter_particles[2]}_MC_MOTHER_ID_width",
-			f"{rd.daughter_particles[2]}_MC_GD_MOTHER_ID_width",
-			f"{rd.daughter_particles[2]}_MC_GD_GD_MOTHER_ID_width",
-
-			f"{rd.intermediate_particle}_MC_MOTHER_ID_mass",
-			f"{rd.intermediate_particle}_MC_GD_MOTHER_ID_mass",
-			f"{rd.intermediate_particle}_MC_GD_GD_MOTHER_ID_mass",
-
-			f"{rd.daughter_particles[0]}_MC_MOTHER_ID_mass",
-			f"{rd.daughter_particles[0]}_MC_GD_MOTHER_ID_mass",
-			f"{rd.daughter_particles[0]}_MC_GD_GD_MOTHER_ID_mass",
-
-			f"{rd.daughter_particles[1]}_MC_MOTHER_ID_mass",
-			f"{rd.daughter_particles[1]}_MC_GD_MOTHER_ID_mass",
-			f"{rd.daughter_particles[1]}_MC_GD_GD_MOTHER_ID_mass",
-
-			f"{rd.daughter_particles[2]}_MC_MOTHER_ID_mass",
-			f"{rd.daughter_particles[2]}_MC_GD_MOTHER_ID_mass",
-			f"{rd.daughter_particles[2]}_MC_GD_GD_MOTHER_ID_mass",
-
-			f"{rd.daughter_particles[0]}_FLIGHT",
-			f"{rd.daughter_particles[1]}_FLIGHT",
-			f"{rd.daughter_particles[2]}_FLIGHT",
-
-			f"{rd.daughter_particles[0]}_TRACK_GhostProb",
-			f"{rd.daughter_particles[1]}_TRACK_GhostProb",
-			f"{rd.daughter_particles[2]}_TRACK_GhostProb",
-
-			f"{rd.mother_particle}_cp_0.70",
-			f"{rd.mother_particle}_cpt_0.70",
-			
-
-
-			"delta_0_P",
-			"delta_0_PT",
-			"delta_1_P",
-			"delta_1_PT",
-			"delta_2_P",
-			"delta_2_PT",
-
-		]
-
-		self.one_minus_log_columns = [f"{rd.mother_particle}_DIRA_OWNPV", f"DIRA_{rd.mother_particle}", f"DIRA_{rd.mother_particle}_true_vertex", f"{rd.intermediate_particle}_DIRA_OWNPV", f"DIRA_{rd.intermediate_particle}", f"DIRA_{rd.intermediate_particle}_true_vertex"]
-		
-
-		self.symlog_columns = [f"{rd.mother_particle}_SmallestDeltaChi2OneTrack", f"{rd.mother_particle}_SmallestDeltaChi2TwoTracks"]
-
-		self.min_fills = {}
-
-		# self.trueID_map = {-11:1, -13:2, 211:3, 321:4} # positive particles
-		# for pid in list(self.trueID_map.keys()):
-		#     self.trueID_map[-pid] = -self.trueID_map[pid]
-		self.trueID_map = {11:1, 13:2, 211:3, 321:4} # positive particles
-
-		values = list(self.trueID_map.values())
-		values_max = np.amax(values)
-		values_min = np.amin(values)
-		for pid in list(self.trueID_map.keys()):
-			self.trueID_map[pid] = (((self.trueID_map[pid]-values_min)/(values_max-values_min))*2.-1.)*0.8
-
-	def map_pdg_codes(self, data):
-		mapped_values = np.vectorize(lambda pid: self.trueID_map.get(pid, -1 if pid < 0 else 1))(np.abs(data))
-		return mapped_values.astype(np.float64)
-
-
-	def fit(self, data_raw, column):
-
-		self.column = column
-
-		data = data_raw.copy()
-
-		if column in self.log_columns:
-			if "width" in self.column or "mass" in self.column:
-				data[np.where(data==0)] = np.amin(data[np.where(data!=0)])/2.
-				self.min_fills[self.column] = np.amin(data[np.where(data!=0)])/2.
-			else:
-				data[np.where(data==0)] = 1E-6
-			data = np.log10(data)
-		elif column in self.one_minus_log_columns:
-			data[np.where(data==1)] = 1.-1E-15
-			data[np.where(data>1)] = 1.-1E-15
-			data[np.where(np.isnan(data))] = 1.-1E-15
-			data[np.where(np.isinf(data))] = 1.-1E-15
-			data = np.log10(1.0 - data)
-		elif self.column in self.abs_columns:
-			data = np.abs(data)
-		elif self.column in self.shift_and_symsqrt_columns:
-			self.shift = np.mean(data)
-			data = data - self.shift
-			data = symsqrt(data)
-			
-		elif self.column in self.symlog_columns:
-			data = symlog(data)
-
-		self.min = np.amin(data)
-		self.max = np.amax(data)
-
-		# if rd.use_QuantileTransformer and (str(self.column) in list(rd.targets)):
-		# if rd.use_QuantileTransformer and (str(self.column) in list(rd.targets) or str(self.column) in list(rd.conditions)):
-		# if rd.use_QuantileTransformer and (str(self.column) in list(rd.conditions)):
-		if rd.use_QuantileTransformer and (str(self.column) in list(rd.conditions) or str(self.column) in list(rd.targets)):
-				self.qt = QuantileTransformer(
-					n_quantiles=500, output_distribution="normal"
-				)
-				self.qt_fit = False
-
-
-	def process(self, data_raw):
-		
-		try:
-			if self.symlog_columns:
-				pass
-		except:
-			self.symlog_columns = []
-
-		try:
-			data = data_raw.copy()
-		except:
-			# pass # value is likely a single element
-			data = np.asarray(data_raw).astype('float64')
-
-		block_scaling = False
-
-		if "TRUEID" in self.column:
-			# print(data)
-			data = self.map_pdg_codes(data)
-			# print(data)
-			# print(np.where(np.abs(data)>1.))
-			# quit()
-			block_scaling = True
-		elif self.column in self.log_columns:
-			try:
-				if "width" in self.column or "mass" in self.column:
-					data[np.where(data==0)] = self.min_fills[self.column]
-				else:
-					data[np.where(data==0)] = 1E-6
-			except:
-				pass
-			data = np.log10(data)
-		elif self.column in self.one_minus_log_columns:
-			try:
-				data[np.where(data==1)] = 1.-1E-15
-				data[np.where(np.isnan(data))] = 1.-1E-15
-				data[np.where(np.isinf(data))] = 1.-1E-15
-			except Exception as e:
-				print(f"\n\nAn error occurred: {e}")
-			data = np.log10(1.0 - data)
-
-		elif self.column in self.abs_columns:
-			data = np.abs(data)
-
-		elif self.column in self.shift_and_symsqrt_columns:
-			data = data - self.shift
-			data = symsqrt(data)
-
-		elif self.column in self.symlog_columns:
-			data = symlog(data)
-
-
-		# # # # # # # # # # # # # # # 
-		# Threshold cut for DIRA and IP
-		if "DIRA" in self.column and "true_vertex" in self.column and rd.mother_particle in self.column:
-			where_over_threshold = np.where(data<-7.6)
-			data[where_over_threshold] = -7.6
-		if "IP" in self.column and "true_vertex" in self.column and rd.mother_particle in self.column:
-			where_over_threshold = np.where(data<-2.6)
-			data[where_over_threshold] = -2.6
-		# # # # # # # # # # # # # # # 
-
-		if "DIRA" in self.column:
-			where = np.where(np.isnan(data))
-			where_not_nan = np.where(np.logical_not(np.isnan(data)))
-
-		if not block_scaling:
-			data = data - self.min
-			data = data / (self.max - self.min)
-			data *= 2
-			data += -1
-
-		try:
-			if "DIRA" in self.column:
-				data[where] = np.amin(data[where_not_nan])
-				# data[where] = -1
-		except Exception as e:
-			print("ERROR in data_loader:",e)
-			print("Continuing, might not be essential")
-
-		data = np.clip(data, -1, 1)
-
-		# if rd.use_QuantileTransformer and (str(self.column) in list(rd.targets)):
-		# if rd.use_QuantileTransformer and (str(self.column) in list(rd.targets) or str(self.column) in list(rd.conditions)):
-		# if rd.use_QuantileTransformer and (str(self.column) in list(rd.conditions)):
-		if rd.use_QuantileTransformer and (str(self.column) in list(rd.conditions) or str(self.column) in list(rd.targets)):
-				if not self.qt_fit:
-					self.qt.fit(data.reshape(-1, 1))
-					self.qt_fit = True
-				data = self.qt.transform(data.reshape(-1, 1))[:,0]
-				data = np.clip(data, -5, 5)
-				data = data/5.
-
-		return data
-
-	def unprocess(self, data_raw):
-
-		try:
-			if self.symlog_columns:
-				pass
-		except:
-			self.symlog_columns = []
-			
-		data = data_raw.copy()
-
-		# if rd.use_QuantileTransformer and (str(self.column) in list(rd.targets)):
-		# if rd.use_QuantileTransformer and (str(self.column) in list(rd.targets) or str(self.column) in list(rd.conditions)):
-		# if rd.use_QuantileTransformer and (str(self.column) in list(rd.conditions)):
-		if rd.use_QuantileTransformer and (str(self.column) in list(rd.conditions) or str(self.column) in list(rd.targets)):
-			data = data*5.
-			data = self.qt.inverse_transform(data.reshape(-1, 1))[:,0]
-		
-
-		data += 1
-		data *= 0.5
-		data = data * (self.max - self.min)
-		data = data + self.min
-
-		if "TRUEID" in self.column:
-			pass # not currently inverting the processing of TRUEID values
-		elif self.column in self.log_columns:
-			data = np.power(10, data)
-		elif self.column in self.one_minus_log_columns:
-			data = np.power(10, data)
-			data = 1.0 - data
-
-		elif self.column in self.shift_and_symsqrt_columns:
-			data = inv_symsqrt(data)
-			data = data + self.shift
-
-		elif self.column in self.symlog_columns:
-			data = invsymlog(data)
-
-		
-
-		return data
 
 
 class dataset:
@@ -517,12 +197,17 @@ class dataset:
 		self.all_data['physical'].reset_index(drop=True, inplace=True)
 
 
-	def fill(self, data, turn_off_processing=False, avoid_physics_variables=False):
+	def fill(self, data, turn_off_processing=False, avoid_physics_variables=False, testing_frac=0.1):
 
 		self.turn_off_processing = turn_off_processing
 
 		if not isinstance(data, pd.DataFrame):
 			raise NoneError("Dataset must be a pd.dataframe.")
+
+		in_training = np.ones(data.shape[0])
+		# in_training[np.random.choice(np.arange(data.shape[0]),size=int(testing_frac*data.shape[0]))] = 0
+		in_training[-int(testing_frac*data.shape[0]):] = 0
+		data['in_training'] = in_training
 
 		self.all_data["physical"] = data
 		if self.turn_off_processing:
@@ -673,7 +358,7 @@ class dataset:
 	def get_physical(self):
 		return self.all_data["physical"]
 
-	def get_branches(self, branches, processed=True):
+	def get_branches(self, branches, processed=True, option=''):
 
 		if not isinstance(branches, list):
 			branches = [branches]
@@ -689,7 +374,10 @@ class dataset:
 			if len(missing) > 0:
 				print(f"missing branches: {missing}\n {self.filenames} \n")
 
-			output = self.all_data["processed"][branches]
+			if option != '':
+				output = self.all_data["processed"][branches+['in_training']]
+			else:
+				output = self.all_data["processed"][branches]
 
 		else:
 			missing = list(
@@ -702,7 +390,17 @@ class dataset:
 			if len(missing) > 0:
 				print(f"missing branches: {missing}\n {self.filenames} \n")
 
-			output = self.all_data["physical"][branches]
+			if option != '':
+				output = self.all_data["physical"][branches+['in_training']]
+			else:
+				output = self.all_data["physical"][branches]
+
+		if option == 'training':
+			output = output.query('in_training==1.0')
+			output = output[branches]
+		elif option == 'testing':
+			output = output.query('in_training==0.0')
+			output = output[branches]
 
 		return output
 
@@ -952,7 +650,7 @@ class dataset:
 
 		for column in list(physical_data.keys()):
 
-			if column == "file" or column == "pass_stripping" or column == "training_weight":
+			if column == "file" or column == "pass_stripping" or column == "training_weight" or column == "in_training":
 				df[column] = physical_data[column]
 			else:
 				# if "TRUEID" in column:
@@ -978,7 +676,7 @@ class dataset:
 							np.asarray(physical_data[column]).copy()
 						)
 					# except Exception as e:
-					#     print(f"\n\n pre_process: An error occurred: {e}")
+					    # print(f"\n\n pre_process: An error occurred: {e}")
 					except:
 						pass
 			# print(np.shape(df[column]), column)
@@ -999,22 +697,39 @@ class dataset:
 	# def load_transformers(self, file):
 	#     self.Transformers = pickle.load(open(file, "rb"))
 
-	def reweight_for_training(self, variable, weight_value):
-
-		plt.hist(self.all_data['physical'][variable], bins=75)
-		plt.savefig('reweight_before.pdf')
-		plt.close('all')
+	def reweight_for_training(self, variable, weight_value, plot_variable=''):
+		
+		if plot_variable != '':
+			plt.hist(self.all_data['physical'][plot_variable], bins=75)
+			plt.savefig('reweight_before.pdf')
+			plt.close('all')
 
 		weight = np.ones(np.shape(self.all_data['physical'][variable]))
 
-		weight[np.where((self.all_data['physical'][variable]>5.27934-0.05)&(self.all_data['physical'][variable]<5.27934+0.05))] = weight_value
+		if variable == 'fully_reco':
 
-		plt.hist(self.all_data['physical'][variable], bins=75, weights=weight)
-		plt.savefig('reweight_after.pdf')
-		plt.close('all')
+			frac_fully_reco_pre = np.sum(self.all_data['physical']['fully_reco'])/np.shape(self.all_data['physical']['fully_reco'])[0]
+			print(f"full reco frac: {frac_fully_reco_pre}")
+
+			weight[np.where(self.all_data['physical'][variable])] = weight_value
+		else:
+			print('data_loader.py, reweight_for_training(), other variables not set')
+			quit()
+
+		# weight[np.where((self.all_data['physical'][variable]>5.27934-0.05)&(self.all_data['physical'][variable]<5.27934+0.05))] = weight_value
+		
+		if plot_variable != '':
+			plt.hist(self.all_data['physical'][plot_variable], bins=75, weights=weight)
+			plt.savefig('reweight_after.pdf')
+			plt.close('all')
 
 		self.all_data['physical']['training_weight'] = weight
 		self.all_data['processed']['training_weight'] = weight
+
+		if variable == 'fully_reco':
+			frac_fully_reco_pre = np.sum(self.all_data['physical']['fully_reco']*self.all_data['physical']['training_weight'])/np.sum(self.all_data['physical']['training_weight'])
+			print(f"full reco frac: {frac_fully_reco_pre}")
+
 
 		self.reweight_for_training_bool = True
 
@@ -1150,6 +865,36 @@ class dataset:
 		np.asarray(physical_data[column]).copy()
 		)
 
+	def add_missing_mass_frac_branch(self):
+
+
+
+		data = self.get_branches(['B_plus_TRUEID'],processed=False)
+		data = np.asarray(data['B_plus_TRUEID']).astype(np.float64)
+		unique, counts = np.unique(data, return_counts=True)
+
+		found = [0,0]
+		for i in range(np.shape(unique)[0]):
+			# print(unique[i], counts[i])
+			try:
+				# print(Particle.from_pdgid(unique[i]).mass)
+				found[0] += counts[i]
+				data[np.where(data==unique[i])] = Particle.from_pdgid(int(unique[i])).mass*1E-3
+			except:
+				# print(f'{unique[i]} not found')
+				found[1] += counts[i]
+				data[np.where(data==unique[i])] = -1
+		print(found)
+
+		self.all_data["physical"]['MOTHER_TRUE_MASS'] = data
+
+		self.cut("MOTHER_TRUE_MASS>=0")
+		
+		# self.add_branch_and_process('missing_mass_frac','(MOTHER_TRUE_MASS-B_plus_M_reco)/MOTHER_TRUE_MASS')
+		self.add_branch_and_process('missing_mass_frac','(MOTHER_TRUE_MASS-B_plus_M)/MOTHER_TRUE_MASS')
+
+
+
 
 	def convert_value_to_processed(self, name, value):
 		print('convert_value_to_processed', name, value)
@@ -1236,7 +981,7 @@ def convert_branches_to_RK_branch_names(columns, conversions):
 
 	return new_columns
 
-def load_data(path, equal_sizes=True, N=-1, transformers=None, convert_to_RK_branch_names=False, conversions=None, turn_off_processing=False,avoid_physics_variables=False, name=''):
+def load_data(path, equal_sizes=True, N=-1, transformers=None, convert_to_RK_branch_names=False, conversions=None, turn_off_processing=False,avoid_physics_variables=False, name='', testing_frac=0.1):
 
 	if isinstance(path, list):
 		for i in range(0, len(path)):
@@ -1299,6 +1044,6 @@ def load_data(path, equal_sizes=True, N=-1, transformers=None, convert_to_RK_bra
 
 
 	events_dataset = dataset(filenames=path, transformers=transformers, name=name)
-	events_dataset.fill(events, turn_off_processing, avoid_physics_variables=avoid_physics_variables)
+	events_dataset.fill(events, turn_off_processing, avoid_physics_variables=avoid_physics_variables, testing_frac=testing_frac)
 
 	return events_dataset

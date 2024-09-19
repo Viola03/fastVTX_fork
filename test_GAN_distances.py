@@ -26,7 +26,9 @@ use_intermediate = False
 # load_state = f"networks/vertex_job_9thSept_E_best"
 # load_state = f"networks/vertex_job_9thSept_E"
 # load_state = f"networks/vertex_job_9thSept_RAIN"
-load_state = f"networks/vertex_job_9thSept_RAIN_best"
+# load_state = f"networks/vertex_job_9thSept_RAIN_best"
+# load_state = f"networks/vertex_job_9thSept_RAIN_best"
+load_state = f"networks/testing_50"
 
 
 ####################################################################################################################################
@@ -47,6 +49,8 @@ training_data_loader = data_loader.load_data(
     convert_to_RK_branch_names=True,
     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
 )
+training_data_loader.add_missing_mass_frac_branch()
+
 transformers = training_data_loader.get_transformers()
 
 

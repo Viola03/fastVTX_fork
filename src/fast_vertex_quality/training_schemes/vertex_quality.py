@@ -14,6 +14,7 @@ import fast_vertex_quality.tools.data_loader as data_loader
 import matplotlib.pyplot as plt
 import tensorflow_addons as tfa
 from tensorflow.keras.optimizers.legacy import Adam
+from tensorflow.keras.optimizers.legacy import RMSprop
 from tensorflow.keras.optimizers.legacy import SGD
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.colors import LogNorm
@@ -105,16 +106,16 @@ class vertex_quality_trainer:
 		self.conditions_dim = len(self.conditions)
 		self.cut_idx = self.target_dim
 
-		# self.optimizer = Adam(learning_rate=0.0005) # default
-		# self.optimizer = Adam(learning_rate=0.00005)
+		self.optimizer = Adam(learning_rate=0.0005) # default
+		# # self.optimizer = Adam(learning_rate=0.00005)
 		
+		# # self.optimizer = Adam(learning_rate=0.000005)
+		# gen_lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+		# 			initial_learning_rate=0.000005,
+		# 			decay_steps=5000,
+		# 			decay_rate=0.5)
+		# # self.optimizer = Adam(learning_rate=0.000005, amsgrad=True)
 		# self.optimizer = Adam(learning_rate=0.000005)
-		gen_lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
-					initial_learning_rate=0.000005,
-					decay_steps=5000,
-					decay_rate=0.5)
-		# self.optimizer = Adam(learning_rate=0.000005, amsgrad=True)
-		self.optimizer = Adam(learning_rate=0.000005)
 
 		# self.optimizer = Adam(learning_rate=0.00075, beta_1=0.5, amsgrad=True)
 		# self.optimizer = SGD(learning_rate=0.0005)
@@ -134,23 +135,38 @@ class vertex_quality_trainer:
 			# self.gen_optimizer = tfa.optimizers.Yogi(learning_rate=0.00005, beta1=0.5)#tf.keras.optimizers.Adam(learning_rate=0.0002, beta_1=0.5, beta_2=0.9)
 			# self.disc_optimizer = tfa.optimizers.Yogi(learning_rate=0.0001, beta1=0.5)#tf.keras.optimizers.Adam(learning_rate=0.0002, beta_1=0.5, beta_2=0.9)
 
-			gen_lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
-					initial_learning_rate=0.00005,
-					decay_steps=5000,
-					decay_rate=0.9,
-				)
-			self.gen_optimizer = tfa.optimizers.Yogi(learning_rate=gen_lr_schedule, beta1=0.5)
-			disc_lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
-					initial_learning_rate=0.0001,
-					decay_steps=5000,
-					decay_rate=0.9,
-				)
-			self.disc_optimizer = tfa.optimizers.Yogi(learning_rate=disc_lr_schedule, beta1=0.5)
-			
+			# gen_lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+			# 		initial_learning_rate=0.00005,
+			# 		# initial_learning_rate=0.000005,
+			# 		decay_steps=5000,
+			# 		decay_rate=0.9,
+			# 	)
+			# self.gen_optimizer = tfa.optimizers.Yogi(learning_rate=gen_lr_schedule, beta1=0.5)
+			# disc_lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+			# 		initial_learning_rate=0.0001,
+			# 		# initial_learning_rate=0.00001,
+			# 		decay_steps=5000,
+			# 		decay_rate=0.9,
+			# 	)
+			# self.disc_optimizer = tfa.optimizers.Yogi(learning_rate=disc_lr_schedule, beta1=0.5)
+
+
+			# self.gen_optimizer = tfa.optimizers.Yogi(learning_rate=0.00001, beta1=0.5)
+			# self.disc_optimizer = tfa.optimizers.Yogi(learning_rate=0.000005, beta1=0.5)
+			# self.gen_optimizer = tfa.optimizers.Yogi(learning_rate=0.00005)
+			# self.disc_optimizer = tfa.optimizers.Yogi(learning_rate=0.000005)
+			self.gen_optimizer = tfa.optimizers.Yogi(learning_rate=0.00005)
+			self.disc_optimizer = tfa.optimizers.Yogi(learning_rate=0.0001)
+
+
 			# self.gen_optimizer = tf.keras.optimizers.RMSprop(learning_rate=0.0004)
 			# self.disc_optimizer = tf.keras.optimizers.RMSprop(learning_rate=0.0004)
+			# self.gen_optimizer = RMSprop(learning_rate=0.0004)
+			# self.disc_optimizer = RMSprop(learning_rate=0.0004)
 
-
+			# self.gen_optimizer = Adam(learning_rate=0.0004, beta_1=0.5, amsgrad=True)
+			# self.disc_optimizer = Adam(learning_rate=0.0004, beta_1=0.5, amsgrad=True)
+			
 
 		if self.network_option == 'VAE':
 			self.encoder, self.decoder, self.vae = self.build_VAE()
@@ -279,6 +295,18 @@ class vertex_quality_trainer:
 			convert_branches=True,
 			rapidsim=True,
 		)  
+
+		# self.event_loader_RapidSim = self.get_event_loader(
+		# 	"datasets/Kee_Merge_cut_chargeCounters_more_vars.root",
+		# 	vertex_quality_trainer_obj,
+		# 	generate=True,
+		# 	N=100000,
+		# 	# N=-1,
+		# 	convert_branches=True,
+		# 	rapidsim=False,
+		# )  
+
+
 		self.event_loader_RapidSim.add_dalitz_masses()
 
 		self.event_loader_RapidSim = self.predict_from_data_loader(
@@ -393,7 +421,7 @@ class vertex_quality_trainer:
 				plt.close('all')
 
 
-			return [self.iteration, kl_loss_np, reco_loss_np, reco_loss_np_raw]
+			return [self.iteration, kl_loss_np, reco_loss_np, reco_loss_np_raw, 0., 0.]
 		
 		elif self.network_option == 'GAN':
 			disc_loss_np, gen_loss_np = train_step_GAN(
@@ -406,10 +434,10 @@ class vertex_quality_trainer:
 				self.cut_idx,
 				self.latent_dim,
 			)
-			return [self.iteration, disc_loss_np, gen_loss_np, 0.]
+			return [self.iteration, disc_loss_np, gen_loss_np, 0., 0., 0.]
 
 		elif self.network_option == 'WGAN':
-			disc_loss_np, gen_loss_np = train_step_WGAN(
+			disc_loss_np, gen_loss_np, disc_grad_norm_np, gen_grad_norm_np = train_step_WGAN(
 				self.batch_size,
 				self.generator,
 				self.discriminator,
@@ -419,9 +447,15 @@ class vertex_quality_trainer:
 				self.cut_idx,
 				self.latent_dim,
 			)
-			return [self.iteration, disc_loss_np, gen_loss_np, 0.]
+			# print('loss', disc_loss_np, gen_loss_np)
+			# print('norms', disc_grad_norm_np, gen_grad_norm_np)
+			return [self.iteration, disc_loss_np, gen_loss_np, 0.,disc_grad_norm_np, gen_grad_norm_np]
 
-	def train_more_steps(self, steps=10000):
+	def train_more_steps(self, steps=10000, reset_optimizer_state=False):
+		
+		if reset_optimizer_state:
+			self.gen_optimizer.set_weights(self.gen_optimizer_weights)
+			self.disc_optimizer.set_weights(self.disc_optimizer_weights)
 
 		private_iteration = -1
 
@@ -429,17 +463,19 @@ class vertex_quality_trainer:
 		for epoch in range(int(1e30)):
 
 			if self.data_loader_obj.reweight_for_training_bool:
+				print("loading training events with weights")
 				X_train_data_all_pp = self.data_loader_obj.get_branches(
-					self.targets + self.conditions + ['training_weight'], processed=True
+					self.targets + self.conditions + ['training_weight'], processed=True, option='training'
 				)
 				X_train_data_all_pp = X_train_data_all_pp.sample(frac=1, weights=X_train_data_all_pp['training_weight'],replace=True)
 				X_train_data_all_pp = X_train_data_all_pp.drop(columns=['training_weight'])
 
 			else:
 				X_train_data_all_pp = self.data_loader_obj.get_branches(
-					self.targets + self.conditions, processed=True
+					self.targets + self.conditions, processed=True, option='training'
 				)
 				X_train_data_all_pp = X_train_data_all_pp.sample(frac=1)
+
 
 			X_train_data_all_pp = X_train_data_all_pp[self.targets + self.conditions]
 
@@ -502,32 +538,55 @@ class vertex_quality_trainer:
 
 		self.trained_weights = self.get_weights()
 
-		plt.subplot(2, 3, 1)
-		plt.title('KL loss')
+		self.plot_losses()
+
+	def plot_losses(self):
+
+		plt.figure(figsize=(12,12))
+
+		plt.subplot(3, 3, 1)
+		plt.title('KL loss/critic loss')
 		plt.plot(self.loss_list[:, 0], self.loss_list[:, 1])
 		plt.plot(self.loss_list[:, 0][0::100], self.loss_list[:, 1][0::100])
-		plt.subplot(2, 3, 2)
-		plt.title('Reco loss')
+		plt.subplot(3, 3, 2)
+		plt.title('Reco loss/gen loss')
 		plt.plot(self.loss_list[:, 0], self.loss_list[:, 2])
 		plt.plot(self.loss_list[:, 0][0::100], self.loss_list[:, 2][0::100])
-		plt.subplot(2, 3, 3)
+		plt.subplot(3, 3, 3)
 		plt.title('Reco loss raw')
 		plt.plot(self.loss_list[:, 0], self.loss_list[:, 3])
 		plt.plot(self.loss_list[:, 0][0::100], self.loss_list[:, 3][0::100])
 
 		try:
-			plt.subplot(2, 3, 4)
-			plt.title('KL loss')
+			plt.subplot(3, 3, 4)
+			plt.title('KL loss/critic loss')
 			plt.plot(self.loss_list[-5000:, 0], self.loss_list[-5000:, 1])
-			plt.subplot(2, 3, 5)
-			plt.title('Reco loss')
+			plt.subplot(3, 3, 5)
+			plt.title('Reco loss/ gen loss')
 			plt.plot(self.loss_list[-5000:, 0], self.loss_list[-5000:, 2])
-			plt.subplot(2, 3, 6)
+			plt.subplot(3, 3, 6)
 			plt.title('Reco loss raw')
 			plt.plot(self.loss_list[-5000:, 0], self.loss_list[-5000:, 3])
 		except:
 			pass
-		plt.savefig("Losses.png")
+
+		try:
+			plt.subplot(3, 3, 7)
+			plt.title('norm grad critic')
+			plt.plot(self.loss_list[:, 0], self.loss_list[:, 4])
+			# plt.axhline(y=1,c='k',alpha=0.25)
+			plt.subplot(3, 3, 9)
+			plt.title('norm grad critic, last 100')
+			plt.plot(self.loss_list[-100:, 0], self.loss_list[-100:, 4])
+			# plt.axhline(y=1,c='k',alpha=0.25)
+			plt.subplot(3, 3, 8)
+			plt.title('norm grad gen')
+			plt.plot(self.loss_list[:, 0], self.loss_list[:, 5])
+			# plt.axhline(y=1,c='k',alpha=0.25)
+		except:
+			pass
+
+		plt.savefig(f"{rd.test_loc}Losses.png")
 		plt.close("all")
 
 	def train(self, steps=10000):
@@ -536,7 +595,7 @@ class vertex_quality_trainer:
 
 		self.iteration = -1
 
-		self.loss_list = np.empty((0, 4))
+		self.loss_list = np.empty((0, 6))
 
 		break_option = False
 		for epoch in range(int(1e30)):
@@ -544,14 +603,14 @@ class vertex_quality_trainer:
 			if self.data_loader_obj.reweight_for_training_bool:
 				print("loading training events with weights")
 				X_train_data_all_pp = self.data_loader_obj.get_branches(
-					self.targets + self.conditions + ['training_weight'], processed=True
+					self.targets + self.conditions + ['training_weight'], processed=True, option='training'
 				)
 				X_train_data_all_pp = X_train_data_all_pp.sample(frac=1, weights=X_train_data_all_pp['training_weight'],replace=True)
 				X_train_data_all_pp = X_train_data_all_pp.drop(columns=['training_weight'])
 
 			else:
 				X_train_data_all_pp = self.data_loader_obj.get_branches(
-					self.targets + self.conditions, processed=True
+					self.targets + self.conditions, processed=True, option='training'
 				)
 				X_train_data_all_pp = X_train_data_all_pp.sample(frac=1)
 
@@ -610,33 +669,49 @@ class vertex_quality_trainer:
 					break_option = True
 					break
 				
+				# if self.iteration == 1:
+				# 	self.gen_optimizer_weights = self.gen_optimizer.get_weights()
+				# 	self.disc_optimizer_weights = self.disc_optimizer.get_weights()
+
 				if self.iteration % 500 == 0 and self.iteration > 1:
-					plt.subplot(1, 3, 1)
-					plt.title('disc')
-					plt.plot(self.loss_list[:, 0], self.loss_list[:, 1])
-					plt.subplot(1, 3, 2)
-					plt.title('gen')
-					plt.plot(self.loss_list[:, 0], self.loss_list[:, 2])
-					plt.subplot(1, 3, 3)
-					plt.plot(self.loss_list[:, 0], self.loss_list[:, 3])
-					plt.savefig("Losses.png")
-					plt.close("all")
+					# plt.subplot(1, 3, 1)
+					# plt.title('disc')
+					# # for i in range(10):
+					# # 	if i*100 <= self.iteration:
+					# # 		plt.axvline(x=i*100.,c='k',alpha=0.25)
+					# plt.plot(self.loss_list[:, 0], self.loss_list[:, 1])
+					# plt.subplot(1, 3, 2)
+					# plt.title('gen')
+					# # for i in range(10):
+					# # 	if i*100 <= self.iteration:
+					# # 		plt.axvline(x=i*100.,c='k',alpha=0.25)
+					# plt.plot(self.loss_list[:, 0], self.loss_list[:, 2])
+					# plt.subplot(1, 3, 3)
+					# plt.plot(self.loss_list[:, 0], self.loss_list[:, 3])
+					# plt.savefig("Losses.png")
+					# plt.close("all")
+
+					self.plot_losses()
 
 			if break_option:
 				break
 
 		self.trained_weights = self.get_weights()
 
-		plt.subplot(1, 3, 1)
-		plt.title('disc')
-		plt.plot(self.loss_list[:, 0], self.loss_list[:, 1])
-		plt.subplot(1, 3, 2)
-		plt.title('gen')
-		plt.plot(self.loss_list[:, 0], self.loss_list[:, 2])
-		plt.subplot(1, 3, 3)
-		plt.plot(self.loss_list[:, 0], self.loss_list[:, 3])
-		plt.savefig("Losses.png")
-		plt.close("all")
+		# plt.subplot(1, 3, 1)
+		# plt.title('disc')
+		# plt.plot(self.loss_list[:, 0], self.loss_list[:, 1])
+		# plt.subplot(1, 3, 2)
+		# plt.title('gen')
+		# plt.plot(self.loss_list[:, 0], self.loss_list[:, 2])
+		# plt.subplot(1, 3, 3)
+		# plt.plot(self.loss_list[:, 0], self.loss_list[:, 3])
+		# plt.savefig("Losses.png")
+		# plt.close("all")
+		self.plot_losses()
+
+		self.gen_optimizer_weights = self.gen_optimizer.get_weights()
+		self.disc_optimizer_weights = self.disc_optimizer.get_weights()
 
 	def make_plots(self, N=10000, filename=f"plots", testing_file="datasets/B2KEE_three_body_cut_more_vars.root", offline=False):
 
@@ -657,6 +732,7 @@ class vertex_quality_trainer:
 					convert_to_RK_branch_names=True,
 					conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
 				)
+		X_test_data_loader.add_missing_mass_frac_branch()
 
 
 		X_test_data_loader.select_randomly(Nevents=N)
