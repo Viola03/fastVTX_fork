@@ -26,6 +26,8 @@ rd.use_QuantileTransformer = False # doesnt work well
 
 use_intermediate = False
 
+rd.current_mse_raw = tf.convert_to_tensor(1.0)
+
 # fix DIRA_B_plus_true_vertex
 # need to stabalise training - 
 
@@ -41,8 +43,18 @@ use_intermediate = False
 # rd.beta = 750.
 # rd.batch_size = 64
 
-test_tag = 'VAE'
+# test_tag = 'VAE_latent_10'
+# test_tag = 'VAE_latent_10_missing_mass_in_conditions'
+# test_tag = 'VAE_beta_2500'
+# test_tag = 'VAE_balanced'
+# test_tag = 'VAE_apply_grads'
+# test_tag = 'VAE_apply_clipped_grads_1'
+# test_tag = 'VAE_apply_clipped_grads_05'
+# test_tag = 'VAE_lower_LR_extra_layer'
+# test_tag = '20th_VAE_beta_2000_nodropout'
+test_tag = 'test'
 
+#/software/am13743/env_may_2024/bin/python3.9 GAN_distances.py -processID 1
 
 test_loc = f'test_runs/{test_tag}/'
 try:
@@ -55,14 +67,28 @@ rd.test_loc = test_loc
 # 0.92 - didnt improve much yet 
 rd.network_option = 'VAE'
 load_state = f"{test_loc}/networks/{test_tag}"
-rd.latent = 5 # VAE latent dims
+# rd.latent = 5 # VAE latent dims
+rd.latent = 10 # VAE latent dims
 # rd.D_architecture=[1600,2600,1600]
 # rd.G_architecture=[1600,2600,1600]
-rd.D_architecture=[512,1024,512]
-rd.G_architecture=[512,1024,512]
-rd.beta = 750.
+# rd.D_architecture=[512,1024,512]
+# rd.G_architecture=[512,1024,512]
+# rd.D_architecture=[512,1024,1024,512] # couldnt get to work
+# rd.G_architecture=[512,1024,1024,512]
+rd.D_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)] # couldnt get to work
+rd.G_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
+rd.include_dropout = False
+# rd.D_architecture=[128,256,512,1024] # decent
+# rd.G_architecture=[1024,512,256,128]
+
+# rd.beta = 750. # this is the minimum value of beta, the annealing means it starts from higher
+
+rd.beta = 2000.
+
+# rd.beta = 2500. # maybe good
 # rd.batch_size = 1024
 rd.batch_size = 256
+# rd.batch_size = 64
 
 # # 0.94
 # rd.network_option = 'VAE'
@@ -133,6 +159,7 @@ rd.conditions = [
 	"B_plus_nPositive_missing",
 	"B_plus_nNegative_missing",
 	"fully_reco",
+	"missing_mass_frac",
 ]
 
 rd.targets = [
@@ -166,11 +193,10 @@ rd.targets = [
 	"e_plus_TRACK_GhostProb",
 	"e_minus_TRACK_GhostProb",
 	"K_Kst_TRACK_GhostProb",
-
-	"missing_mass_frac",
 ]
 
-rd.conditional_targets = ['missing_mass_frac']
+rd.conditional_targets = []
+# rd.conditional_targets = ['missing_mass_frac']
 
 
 ####################################################################################################################################
@@ -348,10 +374,10 @@ def test_with_ROC(training_data_loader_roc, vertex_quality_trainer_obj, it, last
 	if rd.network_option == 'VAE':
 
 		z, z_mean, z_log_var = np.asarray(vertex_quality_trainer_obj.encoder([X_test_targets, X_test_conditions]))
-		images = np.asarray(vertex_quality_trainer_obj.decoder([z, X_test_conditions]))
+		images_cheating = np.asarray(vertex_quality_trainer_obj.decoder([z, X_test_conditions]))
 
-		# gen_noise = np.random.normal(0, 1, (np.shape(X_test_conditions)[0], rd.latent))
-		# images = np.asarray(vertex_quality_trainer_obj.decoder([gen_noise, X_test_conditions]))
+		gen_noise = np.random.normal(0, 1, (np.shape(X_test_conditions)[0], rd.latent))
+		images = np.asarray(vertex_quality_trainer_obj.decoder([gen_noise, X_test_conditions]))
 	elif rd.network_option == 'WGAN':
 		gen_noise = np.random.normal(0, 1, (np.shape(X_test_conditions)[0], rd.latent))
 		images = np.asarray(vertex_quality_trainer_obj.generator([gen_noise, X_test_conditions]))
@@ -370,6 +396,12 @@ def test_with_ROC(training_data_loader_roc, vertex_quality_trainer_obj, it, last
 		# if rd.targets[i] in BDT_targets:
 		images_true_dict[ROC_vars[i]] = images_true[:,i]
 	images_true = training_data_loader_roc.post_process(pd.DataFrame(images_true_dict))
+
+	if rd.network_option == 'VAE':
+		images_cheating_dict = {}
+		for i in range(len(ROC_vars)):
+			images_cheating_dict[ROC_vars[i]] = images_cheating[:,i]
+		images_cheating = np.squeeze(training_data_loader_roc.post_process(pd.DataFrame(images_cheating_dict)))
 
 
 	# with PdfPages('testing.pdf') as pdf:
@@ -416,10 +448,13 @@ def test_with_ROC(training_data_loader_roc, vertex_quality_trainer_obj, it, last
 
 	out_fake = clf.predict_proba(fake_test_data)
 	
-	
-	plt.hist([out_real[:,1],out_fake[:,1]], bins = 100,label=['real','gen'], histtype='step', color=['tab:red','tab:blue'])
+	if rd.network_option == 'VAE':
+		out_cheat = clf.predict_proba(images_cheating)
+		plt.hist([out_real[:,1],out_fake[:,1], out_cheat[:,1]], bins = 100,label=['real','gen','gen - cheat'], histtype='step', color=['tab:red','tab:blue','tab:green'], density=True)
+	else:
+		plt.hist([out_real[:,1],out_fake[:,1]], bins = 100,label=['real','gen'], histtype='step', color=['tab:red','tab:blue'], density=True)
 	if last_BDT_distributions:
-		plt.hist(last_BDT_distributions, bins = 100,alpha=0.5, histtype='step', color=['tab:red','tab:blue'])
+		plt.hist(last_BDT_distributions, bins = 100,alpha=0.5, histtype='step', color=['tab:red','tab:blue'], density=True)
 	last_BDT_distributions = [out_real[:,1],out_fake[:,1]]
 	plt.xlabel('Output of BDT')
 	plt.legend(loc='upper right')
@@ -457,6 +492,9 @@ def test_with_ROC(training_data_loader_roc, vertex_quality_trainer_obj, it, last
 
 ROC_collect = np.empty((0,2))
 ROC_collect_Kee = np.empty((0,2))
+ROC_collect = np.append(ROC_collect, [[0, 1.]], axis=0)
+ROC_collect_Kee = np.append(ROC_collect_Kee, [[0, 1.]], axis=0)
+
 chi2_collect = np.empty((0,3))
 chi2_collect_best = np.empty((0,3))
 

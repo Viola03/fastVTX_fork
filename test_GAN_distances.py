@@ -28,7 +28,8 @@ use_intermediate = False
 # load_state = f"networks/vertex_job_9thSept_RAIN"
 # load_state = f"networks/vertex_job_9thSept_RAIN_best"
 # load_state = f"networks/vertex_job_9thSept_RAIN_best"
-load_state = f"networks/testing_50"
+# load_state = f"networks/testing_50"
+load_state = f"test_runs/VAE_lower_LR/networks/VAE_lower_LR"
 
 
 ####################################################################################################################################

@@ -1539,6 +1539,7 @@ class BDT_tester:
                 conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
                 N=N
             )
+            event_loader.add_missing_mass_frac_branch()
 
             if "Partreco" in sample_loc:
                 event_loader_target = data_loader.load_data(
@@ -1550,6 +1551,7 @@ class BDT_tester:
                     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
                 N=N
                 )
+                event_loader.add_missing_mass_frac_branch()
 
             if "BuD0enuKenu" in sample_loc:
                 event_loader.cut('m_12>3.674')
@@ -1566,6 +1568,7 @@ class BDT_tester:
                     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
                 N=N
                 )
+                event_loader.add_missing_mass_frac_branch()
             else:
                 event_loader = data_loader.load_data(
                     [
@@ -2015,6 +2018,11 @@ class BDT_tester:
         # pdf.savefig(bbox_inches="tight")
         # plt.close()
         
+        
+
+
+
+
         if signal:
             colour_MC = 'tab:blue'
             colour_gen_MC = 'tab:green'
@@ -2026,24 +2034,48 @@ class BDT_tester:
 
 
 
-        x, eff_A, effErr_A, pass_tot_val, gen_tot_val, pass_tot_err, gen_tot_err = self.get_efficiency_as_a_function_of_variable(event_loader_MC, cut=cut, variable=variable, variable_range=range_array)
+        x, eff_A, effErr_A, pass_tot_val, gen_tot_val, pass_tot_err, gen_tot_err, hist_pre_MC, hist_post_MC = self.get_efficiency_as_a_function_of_variable(event_loader_MC, cut=cut, variable=variable, variable_range=range_array)
         plt.errorbar(x, eff_A, yerr=effErr_A,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='MC', color=colour_MC)
 
         if event_loader_gen_MC:
-            x, eff_B, effErr_B, pass_tot_val, gen_tot_val, pass_tot_err, gen_tot_err = self.get_efficiency_as_a_function_of_variable(event_loader_gen_MC, cut=cut, variable=variable, variable_range=range_array)
+            x, eff_B, effErr_B, pass_tot_val, gen_tot_val, pass_tot_err, gen_tot_err, hist_pre_gen_MC, hist_post_gen_MC = self.get_efficiency_as_a_function_of_variable(event_loader_gen_MC, cut=cut, variable=variable, variable_range=range_array)
             plt.errorbar(x, eff_B, yerr=effErr_B,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='Generated (MC)', color=colour_gen_MC)
 
         if event_loader_RapidSim:
-            x, eff_C, effErr_C, pass_tot_val, gen_tot_val, pass_tot_err, gen_tot_err = self.get_efficiency_as_a_function_of_variable(event_loader_RapidSim, cut=cut, variable=variable, variable_range=range_array)
+            x, eff_C, effErr_C, pass_tot_val, gen_tot_val, pass_tot_err, gen_tot_err, hist_pre_RS, hist_post_RS = self.get_efficiency_as_a_function_of_variable(event_loader_RapidSim, cut=cut, variable=variable, variable_range=range_array)
             plt.errorbar(x, eff_C, yerr=effErr_C,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='Generated (Rapidsim)', color=colour_gen_RapidSim)
 
         plt.xlabel(xlabel)
+        plt.ylabel("BDT cut efficiency")
         plt.title(title)
         plt.legend()    
         plt.ylim(0,1)
     
         pdf.savefig(bbox_inches="tight")
         plt.close()
+
+
+        ### ### ### ### ###
+        x = hist_post_MC[1][:-1]+(hist_post_MC[1][1]-hist_post_MC[1][0])/2.
+        ax = plt.subplot(1,1,1)
+        plt.errorbar(x, hist_pre_MC[0]/np.sum(hist_pre_MC[0]), yerr=np.sqrt(hist_pre_MC[0])/np.sum(hist_pre_MC[0]),marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=0.25, color=colour_MC)
+        plt.errorbar(x, hist_post_MC[0]/np.sum(hist_pre_MC[0]), yerr=np.sqrt(hist_post_MC[0])/np.sum(hist_pre_MC[0]),marker='o',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='MC', color=colour_MC)
+
+        if event_loader_gen_MC:
+            plt.errorbar(x, hist_pre_gen_MC[0]/np.sum(hist_pre_gen_MC[0]), yerr=np.sqrt(hist_pre_gen_MC[0])/np.sum(hist_pre_gen_MC[0]),marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=0.25, color=colour_gen_MC)
+            plt.errorbar(x, hist_post_gen_MC[0]/np.sum(hist_pre_gen_MC[0]), yerr=np.sqrt(hist_post_gen_MC[0])/np.sum(hist_pre_gen_MC[0]),marker='o',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='Generated (MC)', color=colour_gen_MC)
+
+        if event_loader_RapidSim:
+            plt.errorbar(x, hist_pre_RS[0]/np.sum(hist_pre_RS[0]), yerr=np.sqrt(hist_pre_RS[0])/np.sum(hist_pre_RS[0]),marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=0.25, color=colour_gen_RapidSim)
+            plt.errorbar(x, hist_post_RS[0]/np.sum(hist_pre_RS[0]), yerr=np.sqrt(hist_post_RS[0])/np.sum(hist_pre_RS[0]),marker='o',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='Generated (Rapidsim)', color=colour_gen_RapidSim)
+
+        plt.legend()
+        plt.xlabel(xlabel)
+        plt.title(title)
+        pdf.savefig(bbox_inches="tight")
+        plt.close()
+        ### ### ### ### ###
+
         
         if return_values:
             return eff_A, effErr_A, eff_C, effErr_C
@@ -2086,7 +2118,7 @@ class BDT_tester:
         # plt.errorbar(x, eff, yerr=effErr,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8,alpha=1.)
         # plt.savefig('eff.png')
 
-        return x, eff, effErr, pass_tot_val, gen_tot_val, pass_tot_err, gen_tot_err
+        return x, eff, effErr, pass_tot_val, gen_tot_val, pass_tot_err, gen_tot_err, hist_pre, hist_post
 
 
     def get_event_loaders_for_live_tests(self, vertex_quality_trainer_obj):
@@ -2097,6 +2129,7 @@ class BDT_tester:
             vertex_quality_trainer_obj,
             generate=False,
             N=100000,
+            # N=200000,
             # N=-1,
             convert_branches=True,
         )  

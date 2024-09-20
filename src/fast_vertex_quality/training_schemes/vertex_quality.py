@@ -106,8 +106,8 @@ class vertex_quality_trainer:
 		self.conditions_dim = len(self.conditions)
 		self.cut_idx = self.target_dim
 
-		self.optimizer = Adam(learning_rate=0.0005) # default
-		# # self.optimizer = Adam(learning_rate=0.00005)
+		# self.optimizer = Adam(learning_rate=0.0005) # default
+		self.optimizer = Adam(learning_rate=0.00005)
 		
 		# # self.optimizer = Adam(learning_rate=0.000005)
 		# gen_lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
@@ -291,21 +291,12 @@ class vertex_quality_trainer:
 			self,
 			generate=True,
 			N=100000,
+			# N=200000,
 			# N=-1,
 			convert_branches=True,
 			rapidsim=True,
 		)  
-
-		# self.event_loader_RapidSim = self.get_event_loader(
-		# 	"datasets/Kee_Merge_cut_chargeCounters_more_vars.root",
-		# 	vertex_quality_trainer_obj,
-		# 	generate=True,
-		# 	N=100000,
-		# 	# N=-1,
-		# 	convert_branches=True,
-		# 	rapidsim=False,
-		# )  
-
+		
 
 		self.event_loader_RapidSim.add_dalitz_masses()
 
@@ -320,37 +311,50 @@ class vertex_quality_trainer:
 			generate=True
 		)  
 		self.event_loader_RapidSim.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
+		########################
 
-		# ####
-		# self.event_loader_gen_MC = self.predict_from_data_loader(
-		#         self.event_loader_gen_MC
-		#     )
-		# self.event_loader_gen_MC.fill_stripping_bool()
-		# self.event_loader_gen_MC.cut("pass_stripping")
+		self.event_loader_gen_MC = self.BDT_tester_obj.get_event_loader(
+			"datasets/Kee_Merge_cut_chargeCounters_more_vars.root",
+			self,
+			generate=True,
+			N=100000,
+			# N=200000,
+			# N=-1,
+			convert_branches=True,
+			rapidsim=False,
+		)  
+		self.event_loader_gen_MC.add_dalitz_masses()
 
 
-		# BDT_scores = self.BDT_tester_obj.get_BDT_scores(
-		#     self.event_loader_gen_MC,
-		#     generate=True
-		# )  
+		self.event_loader_gen_MC = self.predict_from_data_loader(
+		        self.event_loader_gen_MC
+		    )
+		self.event_loader_gen_MC.fill_stripping_bool()
+		self.event_loader_gen_MC.cut("pass_stripping")
 
-		# self.event_loader_gen_MC.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
+
+		BDT_scores = self.BDT_tester_obj.get_BDT_scores(
+		    self.event_loader_gen_MC,
+		    generate=True
+		)  
+
+		self.event_loader_gen_MC.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
 
 		chi2 = [0,0,0]
 		with PdfPages(filename) as pdf:
 
-			eff_A, effErr_A, eff_C, effErr_C = self.BDT_tester_obj.plot_efficiency_as_a_function_of_variable(pdf, self.event_loader_MC, None, self.event_loader_RapidSim, "q2", f"BDT_score>{self.BDT_cut}", [0,25], r"$B^+\to K^+e^+e^-$", xlabel=r'$q^2$ (GeV$^2$)', signal=True, return_values=True)
+			eff_A, effErr_A, eff_C, effErr_C = self.BDT_tester_obj.plot_efficiency_as_a_function_of_variable(pdf, self.event_loader_MC, self.event_loader_gen_MC, self.event_loader_RapidSim, "q2", f"BDT_score>{self.BDT_cut}", [0,25], r"$B^+\to K^+e^+e^-$", xlabel=r'$q^2$ (GeV$^2$)', signal=True, return_values=True)
 
 			where = np.where((effErr_A<0.2)&(effErr_C<2)&(effErr_A>0))
 			dof = np.shape(where)[1]-1
 			chi2[0] = np.sum((eff_C[where]-eff_A[where])**2/(effErr_A[where]))/dof
 
-			eff_A, effErr_A, eff_C, effErr_C = self.BDT_tester_obj.plot_efficiency_as_a_function_of_variable(pdf, self.event_loader_MC, None, self.event_loader_RapidSim, "sqrt_dalitz_mass_mkl", f"BDT_score>{self.BDT_cut}", [0,5.3], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Ke)$ (GeV)', signal=True, return_values=True)
+			eff_A, effErr_A, eff_C, effErr_C = self.BDT_tester_obj.plot_efficiency_as_a_function_of_variable(pdf, self.event_loader_MC, self.event_loader_gen_MC, self.event_loader_RapidSim, "sqrt_dalitz_mass_mkl", f"BDT_score>{self.BDT_cut}", [0,5.3], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Ke)$ (GeV)', signal=True, return_values=True)
 			where = np.where((effErr_A<0.2)&(effErr_C<2)&(effErr_A>0))
 			dof = np.shape(where)[1]-1
 			chi2[1] = np.sum((eff_C[where]-eff_A[where])**2/(effErr_A[where]))/dof
 
-			eff_A, effErr_A, eff_C, effErr_C = self.BDT_tester_obj.plot_efficiency_as_a_function_of_variable(pdf, self.event_loader_MC, None, self.event_loader_RapidSim, "B_plus_M_Kee_reco", f"BDT_score>{self.BDT_cut}", [4,5.7], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Kee)$ (GeV)', signal=True, return_values=True)
+			eff_A, effErr_A, eff_C, effErr_C = self.BDT_tester_obj.plot_efficiency_as_a_function_of_variable(pdf, self.event_loader_MC, self.event_loader_gen_MC, self.event_loader_RapidSim, "B_plus_M_Kee_reco", f"BDT_score>{self.BDT_cut}", [4,5.7], r"$B^+\to K^+e^+e^-$", xlabel=r'$m(Kee)$ (GeV)', signal=True, return_values=True)
 			where = np.where((effErr_A<0.2)&(effErr_C<2)&(effErr_A>0))
 			dof = np.shape(where)[1]-1
 			chi2[2] = np.sum((eff_C[where]-eff_A[where])**2/(effErr_A[where]))/dof
@@ -359,7 +363,7 @@ class vertex_quality_trainer:
 		return chi2
 
 
-	def step(self, samples_for_batch):
+	def old_step(self, samples_for_batch):
 		
 		if self.network_option == 'VAE':
 			# if (
@@ -396,7 +400,9 @@ class vertex_quality_trainer:
 				tf.convert_to_tensor(self.kl_factor),
 				tf.convert_to_tensor(self.reco_factor),
 				toggle_kl,
+				rd.current_mse_raw,
 			)
+			rd.current_mse_raw = reco_loss_np_raw
 
 			plot_out_to = 5000
 			if self.iteration == 0:
@@ -450,12 +456,63 @@ class vertex_quality_trainer:
 			# print('loss', disc_loss_np, gen_loss_np)
 			# print('norms', disc_grad_norm_np, gen_grad_norm_np)
 			return [self.iteration, disc_loss_np, gen_loss_np, 0.,disc_grad_norm_np, gen_grad_norm_np]
+			
+	def step(self, samples_for_batch):
+		
+		if self.network_option == 'VAE':
+			
+			self.toggle_kl_value = 1.0
+
+			toggle_kl = tf.convert_to_tensor(self.toggle_kl_value)
+
+			kl_loss_np, reco_loss_np, reco_loss_np_raw = train_step(
+				self.vae,
+				self.optimizer,
+				samples_for_batch,
+				self.cut_idx,
+				tf.convert_to_tensor(self.kl_factor), # 1.
+				tf.convert_to_tensor(self.reco_factor),
+				toggle_kl,
+				rd.current_mse_raw,
+			)
+			rd.current_mse_raw = reco_loss_np_raw
+			
+			return [self.iteration, kl_loss_np, reco_loss_np, reco_loss_np_raw, 0., 0.]
+		
+		elif self.network_option == 'GAN':
+			disc_loss_np, gen_loss_np = train_step_GAN(
+				self.batch_size,
+				self.generator,
+				self.discriminator,
+				self.gen_optimizer,
+				self.disc_optimizer,
+				samples_for_batch,
+				self.cut_idx,
+				self.latent_dim,
+			)
+			return [self.iteration, disc_loss_np, gen_loss_np, 0., 0., 0.]
+
+		elif self.network_option == 'WGAN':
+			disc_loss_np, gen_loss_np, disc_grad_norm_np, gen_grad_norm_np = train_step_WGAN(
+				self.batch_size,
+				self.generator,
+				self.discriminator,
+				self.gen_optimizer,
+				self.disc_optimizer,
+				samples_for_batch,
+				self.cut_idx,
+				self.latent_dim,
+			)
+			# print('loss', disc_loss_np, gen_loss_np)
+			# print('norms', disc_grad_norm_np, gen_grad_norm_np)
+			return [self.iteration, disc_loss_np, gen_loss_np, 0.,disc_grad_norm_np, gen_grad_norm_np]
 
 	def train_more_steps(self, steps=10000, reset_optimizer_state=False):
 		
-		if reset_optimizer_state:
-			self.gen_optimizer.set_weights(self.gen_optimizer_weights)
-			self.disc_optimizer.set_weights(self.disc_optimizer_weights)
+		if rd.network_option == 'WGAN':
+			if reset_optimizer_state:
+				self.gen_optimizer.set_weights(self.gen_optimizer_weights)
+				self.disc_optimizer.set_weights(self.disc_optimizer_weights)
 
 		private_iteration = -1
 
@@ -710,8 +767,9 @@ class vertex_quality_trainer:
 		# plt.close("all")
 		self.plot_losses()
 
-		self.gen_optimizer_weights = self.gen_optimizer.get_weights()
-		self.disc_optimizer_weights = self.disc_optimizer.get_weights()
+		if rd.network_option == 'WGAN':
+			self.gen_optimizer_weights = self.gen_optimizer.get_weights()
+			self.disc_optimizer_weights = self.disc_optimizer.get_weights()
 
 	def make_plots(self, N=10000, filename=f"plots", testing_file="datasets/B2KEE_three_body_cut_more_vars.root", offline=False):
 

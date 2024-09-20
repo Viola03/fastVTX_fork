@@ -22,7 +22,7 @@ def kl_loss(z_mean, z_log_var):
 
 @tf.function
 def train_step_vertexing(
-	vae, optimizer, images, cut_idx, kl_factor, reco_factor, toggle_kl
+	vae, optimizer, images, cut_idx, kl_factor, reco_factor, toggle_kl, last_mse
 ):
 
 	sample_targets, sample_conditions = images[:, 0, :cut_idx], images[:, 0, cut_idx:]
@@ -36,19 +36,28 @@ def train_step_vertexing(
 		vae_reco_loss = vae_reco_loss_raw * reco_factor
 		vae_kl_loss = kl_loss(vae_z_mean, vae_z_log_var)
 		vae_kl_loss = tf.math.reduce_mean(vae_kl_loss) * toggle_kl * kl_factor
-
 		vae_loss = vae_kl_loss + vae_reco_loss
+
+		# # balancing 
+		# # https://xplorestaging.ieee.org/ielx7/6287639/8948470/09244048.pdf?arnumber=9244048 # this sounds like fiction
+		# # https://proceedings.mlr.press/v119/shao20b/shao20b.pdf # this sounds a bit better
+		# vae_reco_loss = reco_loss(sample_targets, vae_out)
+		# vae_reco_loss = tf.math.reduce_mean(vae_reco_loss)
+		# vae_reco_loss_raw = vae_reco_loss
+		# vae_kl_loss = kl_loss(vae_z_mean, vae_z_log_var)
+		# vae_kl_loss = tf.math.reduce_mean(vae_kl_loss)
+		# vae_loss = vae_kl_loss + vae_reco_loss/last_mse
 
 	grad_vae = tape.gradient(vae_loss, vae.trainable_variables)
 
 	optimizer.apply_gradients(zip(grad_vae, vae.trainable_variables))
 	
-	clip_value = 1.0 # looks like it helps
-	# clip_value = 0.5 # looks worse than 1.0
-	# clip_value = 3.
-	# clip_value = 0.75 
-	clipped_grads, _ = tf.clip_by_global_norm(grad_vae, clip_value)
-	optimizer.apply_gradients(zip(clipped_grads, vae.trainable_variables))
+	# clip_value = 1.0 # looks like it helps
+	# # clip_value = 0.5 # looks worse than 1.0
+	# # clip_value = 3.
+	# # clip_value = 0.75 
+	# clipped_grads, _ = tf.clip_by_global_norm(grad_vae, clip_value)
+	# optimizer.apply_gradients(zip(clipped_grads, vae.trainable_variables))
 
 	return vae_kl_loss, vae_reco_loss, vae_reco_loss_raw
 

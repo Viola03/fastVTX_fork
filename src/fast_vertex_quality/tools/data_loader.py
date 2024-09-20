@@ -867,8 +867,6 @@ class dataset:
 
 	def add_missing_mass_frac_branch(self):
 
-
-
 		data = self.get_branches(['B_plus_TRUEID'],processed=False)
 		data = np.asarray(data['B_plus_TRUEID']).astype(np.float64)
 		unique, counts = np.unique(data, return_counts=True)
