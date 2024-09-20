@@ -213,14 +213,16 @@ class primary_vertex_trainer:
     def step(self, samples_for_batch):
         
         if self.network_option == 'VAE':
-            if (
-                self.iteration % 1000 == 0
-            ):  # annealing https://arxiv.org/pdf/1511.06349.pdf
-                self.toggle_kl_value = 0.0
-            elif self.iteration % 1000 < 500:
-                self.toggle_kl_value += 1.0 / 500.0
-            else:
-                self.toggle_kl_value = 1.0
+            # if (
+            #     self.iteration % 1000 == 0
+            # ):  # annealing https://arxiv.org/pdf/1511.06349.pdf
+            #     self.toggle_kl_value = 0.0
+            # elif self.iteration % 1000 < 500:
+            #     self.toggle_kl_value += 1.0 / 500.0
+            # else:
+            #     self.toggle_kl_value = 1.0
+        
+            self.toggle_kl_value = 1.0
             toggle_kl = tf.convert_to_tensor(self.toggle_kl_value)
 
             kl_loss_np, reco_loss_np, reco_loss_np_raw = train_step(
@@ -556,8 +558,8 @@ class primary_vertex_trainer:
         self.set_trained_weights()
 
         for branch in list(conditions.keys()):
-            
-            conditions[branch] = self.transformers[branch.replace('MOTHER','B_plus')].process(conditions[branch])
+
+            conditions[branch] = self.transformers[branch.replace('MOTHER','B_plus')].process(np.asarray(conditions[branch]))
 
         events_gen = np.asarray(conditions)
         gen_noise = np.random.normal(0, 1, (np.shape(events_gen)[0], self.latent_dim))
@@ -569,7 +571,7 @@ class primary_vertex_trainer:
 
         for branch in list(conditions.keys()):
             
-            conditions[branch] = self.transformers[branch.replace('MOTHER','B_plus')].unprocess(conditions[branch])
+            conditions[branch] = self.transformers[branch.replace('MOTHER','B_plus')].unprocess(np.asarray(conditions[branch]))
 
 
         images_dict = {}
@@ -581,6 +583,6 @@ class primary_vertex_trainer:
 
         for branch in list(images.keys()):
             
-            images[branch] = self.transformers[branch.replace('MOTHER','B_plus')].unprocess(images[branch])
+            images[branch] = self.transformers[branch.replace('MOTHER','B_plus')].unprocess(np.asarray(images[branch]))
 
         return images

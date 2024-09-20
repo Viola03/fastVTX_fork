@@ -16,9 +16,9 @@ masses[211] = 139.57039
 masses[13] = 105.66
 masses[11] = 0.51099895000 * 1e-3
 
-# file_name = 'Kee/Signal_tree.root'
+file_name = 'Kee/Signal_tree.root'
 # file_name = 'Kee/Signal_tree_LARGE.root'
-file_name = 'Kee/Signal_tree_no_photos.root'
+# file_name = 'Kee/Signal_tree_LARGE_NNvertex.root'
 # file_name = 'Kmumu/Kmumu_tree.root'
 particles = ["DAUGHTER1", "DAUGHTER2", "DAUGHTER3"]
 mother = 'MOTHER'
@@ -211,14 +211,15 @@ if use_network_to_adapt_vertex_locations:
 		targets=targets,
 		beta=float(rd.beta),
 		latent_dim=rd.latent,
-		batch_size=64,
+		batch_size=256,
 		D_architecture=[1000,2000,1000],
 		G_architecture=[1000,2000,1000],
 		network_option='VAE',
 	)
 	# primary_vertex_trainer_obj.load_state(tag=f"networks/primary_vertex_job2")
 	# primary_vertex_trainer_obj.load_state(tag=f"networks/primary_vertex_job_general")
-	primary_vertex_trainer_obj.load_state(tag=f"networks/primary_vertex_job_generalBplus")
+	# primary_vertex_trainer_obj.load_state(tag=f"networks/primary_vertex_job_generalBplus")
+	primary_vertex_trainer_obj.load_state(tag=f"networks/primary_vertex_job_new_processing")
 
 	# BUG FIX?!
 	events[f"{mother}_P"] *= 1./1000.

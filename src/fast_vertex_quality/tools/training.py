@@ -22,7 +22,7 @@ def kl_loss(z_mean, z_log_var):
 
 @tf.function
 def train_step_vertexing(
-	vae, optimizer, images, cut_idx, kl_factor, reco_factor, toggle_kl, last_mse
+	vae, optimizer, images, cut_idx, kl_factor, reco_factor, toggle_kl, last_mse=None
 ):
 
 	sample_targets, sample_conditions = images[:, 0, :cut_idx], images[:, 0, cut_idx:]

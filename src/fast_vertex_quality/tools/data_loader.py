@@ -899,7 +899,13 @@ class dataset:
 		print(self.Transformers[name].process(value))
 		return self.Transformers[name].process(value)
 	
-	def plot(self,filename, variables=None,save_vars=False):
+	def plot(self,filename, variables=None,save_vars=False, overlay=None, bins=50):
+		
+
+		if overlay:
+			if not isinstance(overlay, list):
+				overlay = [overlay]
+
 
 		if variables == None:
 			variables = list(self.all_data["physical"].keys())
@@ -918,18 +924,43 @@ class dataset:
 
 					plt.subplot(2,2,1)
 					plt.title(variable)
-					plt.hist(self.all_data["physical"][variable], bins=50, density=True, histtype='step')
+					if overlay:
+						info = [self.all_data["physical"][variable]]
+						for overlay_i in overlay:
+							info.append(overlay_i.all_data["physical"][variable])
+						plt.hist(info, bins=bins, density=True, histtype='step')
+						# plt.legend()
+					else:
+						plt.hist(self.all_data["physical"][variable], bins=bins, density=True, histtype='step')
 					
 					plt.subplot(2,2,2)
 					plt.title(f'{variable} processed')
-					plt.hist(self.all_data["processed"][variable], bins=50, density=True, histtype='step', range=[-1,1])
+					if overlay:
+						info = [self.all_data["processed"][variable]]
+						for overlay_i in overlay:
+							info.append(overlay_i.all_data["processed"][variable])
+						plt.hist(info, bins=bins, density=True, histtype='step')
+					else:
+						plt.hist(self.all_data["processed"][variable], bins=bins, density=True, histtype='step', range=[-1,1])
 
 					plt.subplot(2,2,3)
-					plt.hist(self.all_data["physical"][variable], bins=50, density=True, histtype='step')
+					if overlay:
+						info = [self.all_data["physical"][variable]]
+						for overlay_i in overlay:
+							info.append(overlay_i.all_data["physical"][variable])
+						plt.hist(info, bins=bins, density=True, histtype='step')
+					else:
+						plt.hist(self.all_data["physical"][variable], bins=bins, density=True, histtype='step')
 					plt.yscale('log')
 					
 					plt.subplot(2,2,4)
-					plt.hist(self.all_data["processed"][variable], bins=50, density=True, histtype='step', range=[-1,1])
+					if overlay:
+						info = [self.all_data["processed"][variable]]
+						for overlay_i in overlay:
+							info.append(overlay_i.all_data["processed"][variable])
+						plt.hist(info, bins=bins, density=True, histtype='step')
+					else:
+						plt.hist(self.all_data["processed"][variable], bins=bins, density=True, histtype='step', range=[-1,1])
 					plt.yscale('log')
 
 					pdf.savefig(bbox_inches="tight")
@@ -1043,5 +1074,7 @@ def load_data(path, equal_sizes=True, N=-1, transformers=None, convert_to_RK_bra
 
 	events_dataset = dataset(filenames=path, transformers=transformers, name=name)
 	events_dataset.fill(events, turn_off_processing, avoid_physics_variables=avoid_physics_variables, testing_frac=testing_frac)
+
+	events_dataset.add_missing_mass_frac_branch()
 
 	return events_dataset

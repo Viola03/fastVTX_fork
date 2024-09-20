@@ -133,6 +133,8 @@ arguments["info_string"] = info_string
 rd = SimpleNamespace(**arguments)
 
 rd.use_QuantileTransformer = False
+rd.include_dropout = True
+rd.use_beta_schedule = False
 
 ####
 ####

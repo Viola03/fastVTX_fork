@@ -19,7 +19,7 @@ from particle import Particle
 rd.use_QuantileTransformer = False
 
 use_intermediate = False
-
+rd.include_dropout = True
 
 # load_state = f"networks/vertex_job_9thSept_C"
 # load_state = f"networks/vertex_job_9thSept_D"
@@ -29,7 +29,7 @@ use_intermediate = False
 # load_state = f"networks/vertex_job_9thSept_RAIN_best"
 # load_state = f"networks/vertex_job_9thSept_RAIN_best"
 # load_state = f"networks/testing_50"
-load_state = f"test_runs/VAE_lower_LR/networks/VAE_lower_LR"
+load_state = f"test_runs/20th_VAE_beta_2000_dropout/networks/20th_VAE_beta_2000_dropout"
 
 
 ####################################################################################################################################
@@ -55,6 +55,8 @@ training_data_loader.add_missing_mass_frac_branch()
 transformers = training_data_loader.get_transformers()
 
 
+
+
 print(f"Creating vertex_quality_trainer...")
 
 trackchi2_trainer_obj = None
@@ -75,6 +77,13 @@ vertex_quality_trainer_obj = vertex_quality_trainer(
 
 vertex_quality_trainer_obj.load_state(tag=load_state)
 # vertex_quality_trainer_obj.make_plots(filename=f'example_training_plots_general',testing_file=training_data_loader.get_file_names(),offline=True)
+# quit()
+
+
+# print("plot conditions...")
+# training_data_loader.plot('conditions.pdf',rd.conditions)
+# print("plot targets...")
+# training_data_loader.plot('targets.pdf',rd.targets)
 # quit()
 
 # BDT_targets = rd.targets
@@ -109,13 +118,13 @@ BDT_tester_obj = BDT_tester(
     use_intermediate=use_intermediate
 )
 
-scores = BDT_tester_obj.plot_detailed_metrics(
-    rd.conditions,
-    rd.targets,
-    vertex_quality_trainer_obj, f"metrics_{rd.network_option}.pdf",
-    # only_signal=True,
-    # avoid_rapidsim=True,
-)
+# scores = BDT_tester_obj.plot_detailed_metrics(
+#     rd.conditions,
+#     rd.targets,
+#     vertex_quality_trainer_obj, f"metrics_{rd.network_option}.pdf",
+#     # only_signal=True,
+#     # avoid_rapidsim=True,
+# )
 
 scores = BDT_tester_obj.plot_differential_metrics(
     rd.conditions,
@@ -147,7 +156,7 @@ quit()
 #     rd.conditions,
 #     rd.targets,
 #     vertex_quality_trainer_obj, f"metrics_{rd.network_option}_prcBDT.pdf",
-#     only_signal=False
+#     # only_signal=True,
 # )
 
 # scores = BDT_tester_obj.plot_differential_metrics(
@@ -155,7 +164,6 @@ quit()
 #     rd.targets,
 #     vertex_quality_trainer_obj, f"differential_metrics_{rd.network_option}_prcBDT.pdf",
 #     # only_signal=True,
-#     only_signal=False,
 #     BDT_cut=0.55
 # )
 

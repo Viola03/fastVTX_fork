@@ -52,7 +52,8 @@ rd.current_mse_raw = tf.convert_to_tensor(1.0)
 # test_tag = 'VAE_apply_clipped_grads_05'
 # test_tag = 'VAE_lower_LR_extra_layer'
 # test_tag = '20th_VAE_beta_2000_nodropout'
-test_tag = 'test'
+# test_tag = '20th_dont_use_schedule'
+test_tag = '20th_new_PV_smear'
 
 #/software/am13743/env_may_2024/bin/python3.9 GAN_distances.py -processID 1
 
@@ -77,7 +78,9 @@ rd.latent = 10 # VAE latent dims
 # rd.G_architecture=[512,1024,1024,512]
 rd.D_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)] # couldnt get to work
 rd.G_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
-rd.include_dropout = False
+rd.include_dropout = True
+rd.use_beta_schedule = False
+
 # rd.D_architecture=[128,256,512,1024] # decent
 # rd.G_architecture=[1024,512,256,128]
 
@@ -138,7 +141,7 @@ rd.conditions = [
 	"IP_e_plus_true_vertex",
 	"IP_e_minus_true_vertex",
 	"FD_B_plus_true_vertex",
-	"DIRA_B_plus_true_vertex", # problem branch
+	"DIRA_B_plus_true_vertex",
 
 	"missing_B_plus_P",
 	"missing_B_plus_PT",

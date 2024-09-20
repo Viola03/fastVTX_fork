@@ -2133,6 +2133,9 @@ class BDT_tester:
             # N=-1,
             convert_branches=True,
         )  
+
+        event_loader_MC_stripping_effs = self.get_stripping_eff(event_loader_MC)
+
         print("Cutting pass_stripping for MC")
         event_loader_MC.fill_stripping_bool()
         event_loader_MC.cut("pass_stripping")
@@ -2147,35 +2150,7 @@ class BDT_tester:
         event_loader_MC.cut("abs(e_minus_TRUEID)==11")
         event_loader_MC.add_dalitz_masses()
 
-        # ###############
-        # event_loader_gen_MC = self.get_event_loader(
-        #     "datasets/Kee_Merge_cut_chargeCounters_more_vars.root",
-        #     vertex_quality_trainer_obj,
-        #     generate=True,
-        #     N=100000,
-        #     # N=-1,
-        #     convert_branches=True,
-        #     rapidsim=False,
-        # )  
-        # event_loader_gen_MC.cut("abs(K_Kst_TRUEID)==321")
-        # event_loader_gen_MC.cut("abs(e_plus_TRUEID)==11")
-        # event_loader_gen_MC.cut("abs(e_minus_TRUEID)==11")
-        # event_loader_gen_MC.add_dalitz_masses()
-
-        # ###############
-        # event_loader_RapidSim = self.get_event_loader(
-        #     # "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root",
-        #     "/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_LARGE_NNvertex_more_vars.root",
-        #     vertex_quality_trainer_obj,
-        #     generate=True,
-        #     N=100000,
-        #     # N=-1,
-        #     convert_branches=True,
-        #     rapidsim=True,
-        # )  
-        # event_loader_RapidSim.add_dalitz_masses()
-
-        return event_loader_MC#, event_loader_gen_MC, event_loader_RapidSim
+        return event_loader_MC, event_loader_MC_stripping_effs
 
 
 

@@ -276,13 +276,12 @@ class vertex_quality_trainer:
 
 		self.BDT_tester_obj = BDT_tester_obj
 		# self.event_loader_MC, self.event_loader_gen_MC, self.event_loader_RapidSim = BDT_tester_obj.get_event_loaders_for_live_tests(self)
-		self.event_loader_MC = BDT_tester_obj.get_event_loaders_for_live_tests(self)
+		self.event_loader_MC, self.event_loader_MC_stripping_effs = BDT_tester_obj.get_event_loaders_for_live_tests(self)
 		self.BDT_cut = BDT_cut
 
 
-
 	def run_BDT_test(self, filename='outBDT.pdf'):
-		
+
 		####
 		###############
 		self.event_loader_RapidSim = self.BDT_tester_obj.get_event_loader(
@@ -297,6 +296,7 @@ class vertex_quality_trainer:
 			rapidsim=True,
 		)  
 		
+		event_loader_RapidSim_stripping_effs = self.BDT_tester_obj.get_stripping_eff(self.event_loader_RapidSim)
 
 		self.event_loader_RapidSim.add_dalitz_masses()
 
@@ -323,25 +323,50 @@ class vertex_quality_trainer:
 			convert_branches=True,
 			rapidsim=False,
 		)  
+
+		event_loader_gen_MC_stripping_effs = self.BDT_tester_obj.get_stripping_eff(self.event_loader_gen_MC)
+
 		self.event_loader_gen_MC.add_dalitz_masses()
 
 
 		self.event_loader_gen_MC = self.predict_from_data_loader(
-		        self.event_loader_gen_MC
-		    )
+				self.event_loader_gen_MC
+			)
 		self.event_loader_gen_MC.fill_stripping_bool()
 		self.event_loader_gen_MC.cut("pass_stripping")
 
 
 		BDT_scores = self.BDT_tester_obj.get_BDT_scores(
-		    self.event_loader_gen_MC,
-		    generate=True
+			self.event_loader_gen_MC,
+			generate=True
 		)  
 
 		self.event_loader_gen_MC.add_branch_to_physical("BDT_score", np.asarray(BDT_scores))
 
 		chi2 = [0,0,0]
 		with PdfPages(filename) as pdf:
+			
+
+			plt.title(r"$B^+\to K^+e^+e^-$")
+			plt.errorbar(np.arange(np.shape(self.event_loader_MC_stripping_effs)[0]), self.event_loader_MC_stripping_effs[:,0], yerr=self.event_loader_MC_stripping_effs[:,1],label=r"$B^+\to K^+e^+e^-$ MC",color='tab:blue',linestyle='-')
+
+			plt.errorbar(np.arange(np.shape(event_loader_gen_MC_stripping_effs)[0]), event_loader_gen_MC_stripping_effs[:,0], yerr=event_loader_gen_MC_stripping_effs[:,1],label=r"Generated $B^+\to K^+e^+e^-$ (MC)",color='tab:green')
+
+			plt.errorbar(np.arange(np.shape(event_loader_RapidSim_stripping_effs)[0]), event_loader_RapidSim_stripping_effs[:,0], yerr=event_loader_RapidSim_stripping_effs[:,1],label=r"Generated $B^+\to K^+e^+e^-$ (Rapidsim)",color='tab:orange')
+
+			plt.ylim(0,1)
+			# cuts_ticks = ['All']+list(self.BDT_tester_obj.cuts.keys())
+			# plt.xticks(np.arange(len(cuts_ticks)), cuts_ticks, rotation=90)
+			# for i in np.arange(len(cuts_ticks)):
+			# 	if i ==0:
+			# 		plt.axvline(x=i, alpha=0.5, ls='-',c='k')
+			# 	else:
+			# 		plt.axvline(x=i, alpha=0.5, ls='--',c='k')
+			plt.legend(frameon=False)
+			plt.ylabel("Cut Efficiency")
+			pdf.savefig(bbox_inches="tight")
+			plt.close()
+
 
 			eff_A, effErr_A, eff_C, effErr_C = self.BDT_tester_obj.plot_efficiency_as_a_function_of_variable(pdf, self.event_loader_MC, self.event_loader_gen_MC, self.event_loader_RapidSim, "q2", f"BDT_score>{self.BDT_cut}", [0,25], r"$B^+\to K^+e^+e^-$", xlabel=r'$q^2$ (GeV$^2$)', signal=True, return_values=True)
 
@@ -463,15 +488,31 @@ class vertex_quality_trainer:
 			
 			self.toggle_kl_value = 1.0
 
+			# self.iteration
+
 			toggle_kl = tf.convert_to_tensor(self.toggle_kl_value)
 
+
+			if rd.use_beta_schedule:
+				inital_boost_factor = 5. # initial boost factor, start reco loss x5 the default
+				inital_boost_halflife = 10. # short halflife of decaying initial boost
+				long_term_KL_boost_term_halflife = 50000. # halflife of long slow rise in KL loss
+				cap_KL_boost = 3. # at most the KL boost will be x3 the default
+
+				initial_boost_term = (inital_boost_factor-1.)*self.reco_factor*np.exp(-np.log(2.)*(self.iteration/inital_boost_halflife))    
+				long_term_KL_boost_term = (1./np.exp(np.log(2.)*(self.iteration/long_term_KL_boost_term_halflife)))*(1.-1/cap_KL_boost)+(1./cap_KL_boost)
+				self.reco_factor_employ = (self.reco_factor + initial_boost_term)*long_term_KL_boost_term
+			else:
+				self.reco_factor_employ = self.reco_factor
+				
+		
 			kl_loss_np, reco_loss_np, reco_loss_np_raw = train_step(
 				self.vae,
 				self.optimizer,
 				samples_for_batch,
 				self.cut_idx,
 				tf.convert_to_tensor(self.kl_factor), # 1.
-				tf.convert_to_tensor(self.reco_factor),
+				tf.convert_to_tensor(self.reco_factor_employ, dtype=tf.float32),
 				toggle_kl,
 				rd.current_mse_raw,
 			)

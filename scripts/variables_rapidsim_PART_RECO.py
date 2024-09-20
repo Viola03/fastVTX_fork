@@ -18,9 +18,10 @@ masses[11] = 0.51099895000 * 1e-3
 
 # file_name = 'Kstree/Partreco_tree.root'
 # file_name = 'Kstree/Partreco_tree_LARGE.root'
-file_name = 'Kstree/Partreco_tree_EVTGEN.root'
+# file_name = 'Kstree/Partreco_tree_EVTGEN.root'
+# file_name = 'Kstree/Partreco_tree_LARGE_NNvertex_more_vars.root'
 # file_name = 'BuD0enuKenu/BuD0enuKenu_tree.root'
-# file_name = 'BuD0piKenu/BuD0piKenu_tree.root'
+file_name = 'BuD0piKenu/BuD0piKenu_tree.root'
 
 particles = ["DAUGHTER1", "DAUGHTER2", "DAUGHTER3"]
 mother = 'MOTHER'
@@ -249,7 +250,8 @@ if use_network_to_adapt_vertex_locations:
 		G_architecture=[1000,2000,1000],
 		network_option='VAE',
 	)
-	primary_vertex_trainer_obj.load_state(tag=f"networks/primary_vertex_job2")
+	# primary_vertex_trainer_obj.load_state(tag=f"networks/primary_vertex_job2")
+	primary_vertex_trainer_obj.load_state(tag=f"networks/primary_vertex_job_new_processing")
 
 	# BUG FIX?!
 	events[f"{mother}_P"] *= 1./1000.
