@@ -108,6 +108,7 @@ class vertex_quality_trainer:
 
 		# self.optimizer = Adam(learning_rate=0.0005) # default
 		self.optimizer = Adam(learning_rate=0.00005)
+		# self.optimizer = Adam(learning_rate=0.00001)
 		
 		# # self.optimizer = Adam(learning_rate=0.000005)
 		# gen_lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(

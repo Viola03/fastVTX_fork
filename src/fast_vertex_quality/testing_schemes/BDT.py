@@ -2074,6 +2074,24 @@ class BDT_tester:
         plt.title(title)
         pdf.savefig(bbox_inches="tight")
         plt.close()
+
+        ### ### ### ### ###
+        x = hist_post_MC[1][:-1]+(hist_post_MC[1][1]-hist_post_MC[1][0])/2.
+        ax = plt.subplot(1,1,1)
+        plt.errorbar(x, hist_post_MC[0]/np.sum(hist_post_MC[0]), yerr=np.sqrt(hist_post_MC[0])/np.sum(hist_post_MC[0]),marker='o',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='MC', color=colour_MC)
+
+        if event_loader_gen_MC:
+            plt.errorbar(x, hist_post_gen_MC[0]/np.sum(hist_post_gen_MC[0]), yerr=np.sqrt(hist_post_gen_MC[0])/np.sum(hist_post_gen_MC[0]),marker='o',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='Generated (MC)', color=colour_gen_MC)
+
+        if event_loader_RapidSim:
+            plt.errorbar(x, hist_post_RS[0]/np.sum(hist_post_RS[0]), yerr=np.sqrt(hist_post_RS[0])/np.sum(hist_post_RS[0]),marker='o',capsize=2,linewidth=1.75, markersize=8,alpha=1.,label='Generated (Rapidsim)', color=colour_gen_RapidSim)
+
+        plt.legend()
+        plt.xlabel(xlabel)
+        plt.ylim(ymin=0.)
+        plt.title(f'{title} - Normalised lineshape')
+        pdf.savefig(bbox_inches="tight")
+        plt.close()
         ### ### ### ### ###
 
         

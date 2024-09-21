@@ -53,7 +53,9 @@ rd.current_mse_raw = tf.convert_to_tensor(1.0)
 # test_tag = 'VAE_lower_LR_extra_layer'
 # test_tag = '20th_VAE_beta_2000_nodropout'
 # test_tag = '20th_dont_use_schedule'
-test_tag = '20th_new_PV_smear'
+# test_tag = '20th_long_1000'
+# test_tag = '20th_long_2000_lower_LR'
+test_tag = '20th_long_100'
 
 #/software/am13743/env_may_2024/bin/python3.9 GAN_distances.py -processID 1
 
@@ -86,7 +88,7 @@ rd.use_beta_schedule = False
 
 # rd.beta = 750. # this is the minimum value of beta, the annealing means it starts from higher
 
-rd.beta = 2000.
+rd.beta = 100.
 
 # rd.beta = 2500. # maybe good
 # rd.batch_size = 1024
@@ -225,13 +227,13 @@ rd.intermediate_particle = 'J_psi_1S'
 print(f"Loading data...")
 training_data_loader = data_loader.load_data(
 	[
-		# "datasets/general_sample_chargeCounters_cut_more_vars.root",
-		"datasets/general_sample_chargeCounters_cut_more_vars_HEADfactor20.root",
+		"datasets/general_sample_chargeCounters_cut_more_vars.root",
+		# "datasets/general_sample_chargeCounters_cut_more_vars_HEADfactor20.root",
 	],
 	convert_to_RK_branch_names=True,
 	conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
-	testing_frac=0.1
-	# testing_frac=0.1/20.
+	# testing_frac=0.1
+	testing_frac=0.1/20. * 2.
 )
 
 training_data_loader.add_missing_mass_frac_branch()
@@ -522,8 +524,8 @@ best_chi2 = chi2
 
 
 
-# for i in range(int(1E30)):
-for i in range(250):
+for i in range(int(1E30)):
+# for i in range(250):
 	vertex_quality_trainer_obj.train_more_steps(steps=steps_for_plot)
 	# vertex_quality_trainer_obj.train_more_steps(steps=steps_for_plot, reset_optimizer_state=True)
 
