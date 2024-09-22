@@ -1,5 +1,31 @@
 # fast_vertexing_variables
 
+# Inference
+
+## Installation
+
+To install the package
+```
+pip install --no-dependencies -e inference/src/.
+```
+
+## Updating electron smeaing in RapidSim
+
+
+## Running RapidSim
+```
+paramsStable : M P PT PX PY PZ origX origY origZ
+paramsDecaying : M P PT PX PY PZ vtxX vtxY vtxZ origX origY origZ
+```
+
+## Query tool to add vertex quality branches
+
+
+## Examples
+
+
+# Training
+
 ## Installation
 
 To install the package
@@ -134,3 +160,20 @@ mass constrained varaibles = track error matrix
 add isolation, add vertex 
 
 - Kee isolation variables as a function of all stuff i condition on 
+
+
+
+best so far
+
+# test_tag = '20th_long_2000_lower_LR'
+
+training_data_loader.reweight_for_training("fully_reco", weight_value=100., plot_variable='B_plus_M')
+
+latent = 10
+# rd.D_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
+# rd.G_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
+rd.beta = 2000.
+rd.batch_size = 256
+self.optimizer = Adam(learning_rate=0.00001)
+rd.include_dropout = True
+rd.use_beta_schedule = False
