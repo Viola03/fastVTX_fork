@@ -12,19 +12,35 @@ List_Of_Paths = []
 i = 0
 # inclusive B
 # PATH_name = "/MC/2018/Beam6500GeV-2018-MagDown-Nu1.6-25ns-Pythia8/Sim09k/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/10000023/ALLSTREAMS.DST"
-# Kee
-decay_name = "Kee"
-PATH_name = "/MC/2018/Beam6500GeV-2018-MagDown-Nu1.6-25ns-Pythia8/Sim09g/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/12123003/ALLSTREAMS.DST"
-# K*ee
+
+# # Kee
+# decay_name = "Kee"
+# PATH_name = "/MC/2018/Beam6500GeV-2018-MagDown-Nu1.6-25ns-Pythia8/Sim09g/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/12123003/ALLSTREAMS.DST"
+# TRUEID_MATCH_OPTION_FILE = "./TRUEIDs/TRUEIDs_Kee.py"
+
+# # K*ee
 # decay_name = "Kstee"
 # PATH_name = "/MC/2015/Beam6500GeV-2015-MagUp-Nu1.6-25ns-Pythia8/Sim09i/Trig0x411400a2/Reco15a/Turbo02/Stripping24r1NoPrescalingFlagged/11124002/ALLSTREAMS.DST"
+# TRUEID_MATCH_OPTION_FILE = "./TRUEIDs/TRUEIDs_Kee.py"
+
+# K*plusee
+# decay_name = "Kstplusee"
+# PATH_name = "/MC/2018/Beam6500GeV-2018-MagUp-Nu1.6-25ns-Pythia8/Sim09l/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/12123445/ALLSTREAMS.DST"
+# TRUEID_MATCH_OPTION_FILE = "./TRUEIDs/TRUEIDs_Kee.py"
+
+
+
 # BuD0enuKenu
 # decay_name = "BuD0enuKenu" # THIS HAS high q2 CUT!!!
 # PATH_name = "/MC/2018/Beam6500GeV-2018-MagDown-Nu1.6-25ns-Pythia8/Sim09k/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/12583023/ALLSTREAMS.DST"
+
 # decay_name = "BuD0piKenu" 
 # PATH_name = "/MC/2018/Beam6500GeV-2018-MagDown-Nu1.6-25ns-Pythia8/Sim09m/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/12583040/ALLSTREAMS.DST"
-# decay_name = "Kmumu" 
-# PATH_name = "/MC/2018/Beam6500GeV-2018-MagDown-Nu1.6-25ns-Pythia8/Sim09i/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/12113002/ALLSTREAMS.DST"
+# TRUEID_MATCH_OPTION_FILE = "./TRUEIDs/TRUEIDs_Kepi.py"
+
+decay_name = "Kmumu" 
+PATH_name = "/MC/2018/Beam6500GeV-2018-MagDown-Nu1.6-25ns-Pythia8/Sim09i/Trig0x617d18a4/Reco18/Turbo05-WithTurcal/Stripping34NoPrescalingFlagged/12113002/ALLSTREAMS.DST"
+TRUEID_MATCH_OPTION_FILE = "./TRUEIDs/TRUEIDs_Kuu.py"
 
 print(PATH_name)
 job_name = (
@@ -61,7 +77,7 @@ for job_name, path_dict in job_setting.items():
     # myApp.options = ["./davinci_intermediates.py", "./print_something.py"]
     # myApp.options = ["./davinci_intermediates.py"]
     # myApp.options = ["./davinci_intermediates_MUON.py"]
-    myApp.options = ["./davinci_Kee_mcmatch_intermediates.py"]
+    myApp.options = [TRUEID_MATCH_OPTION_FILE, "./davinci_specific_mcmatch_intermediates_withChargeCounters.py"]
 
     bck = Dirac()
 
@@ -91,6 +107,7 @@ for job_name, path_dict in job_setting.items():
         + job_name
         + '.root"  ; '
         + "DaVinci().EvtMax        =              -1             ; "
+        # + "DaVinci().EvtMax        =              20             ; "
         + "DaVinci().PrintFreq        =              2500             ; "
         + "DaVinci().VerboseMessages        =              False             ; "
         + "from Configurables import CondDB                      ; "
@@ -103,13 +120,20 @@ for job_name, path_dict in job_setting.items():
     )
 
     print("Create job for thee jobs: ", job.name)
-    job.inputdata  = dataset
-    # job.inputdata  = dataset[:3]
+    # # to stop downloading log
+    job.backend.downloadSandbox = False
+    # job.inputdata  = dataset
+    try:
+        job.inputdata  = dataset[:450]
+    except:
+        job.inputdata  = dataset
 
     job.outputfiles = [
-        LocalFile(namePattern="DTT*.root"),
-        LocalFile("summary.xml"),
-    ] 
+        DiracFile(namePattern="DTT*.root"),
+    ]  # keep my Tuples on grid element (retrive manually)
+
+    job.backend.settings['BannedSites'] = ['LCG.Beijing.cn'] #We have issues with this grid site in particular
+
     jobs.parallel_submit = True
     job.submit()
     print("======================================")

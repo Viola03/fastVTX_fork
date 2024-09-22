@@ -255,4 +255,11 @@ def cut(loc, out_loc, file, throw_away_partreco_frac=0.):
 		print(f'TIME: {total:.2f}')
 
 # cut(loc='.', out_loc='.', file='MergeTest_*', throw_away_partreco_frac=0.5)
-cut(loc='.', out_loc='.', file='MergeTest.root', throw_away_partreco_frac=0.)
+# cut(loc='.', out_loc='.', file='MergeTest.root', throw_away_partreco_frac=0.)
+# cut(loc='.', out_loc='.', file='MergeTest.root', throw_away_partreco_frac=0.)
+
+
+# cut(loc='.', out_loc='.', file='Kee_Merge.root', throw_away_partreco_frac=0.)
+# cut(loc='.', out_loc='.', file='Kstzeroee_Merge.root', throw_away_partreco_frac=0.)
+# cut(loc='.', out_loc='.', file='Kstplusee_Merge.root', throw_away_partreco_frac=0.)
+cut(loc='.', out_loc='.', file='BuD0piKenu_Merge.root', throw_away_partreco_frac=0.)

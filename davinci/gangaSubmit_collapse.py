@@ -8,15 +8,13 @@ import pickle
 # 	filehandler = open(output_name, 'wb') 
 # 	pickle.dump(files, filehandler)
 
-# dumpDataAccessURLs(jobs(2070), "OutputDataAccessURLs_2070.pkl")
+# dumpDataAccessURLs(jobs(2282), "OutputDataAccessURLs_2282.pkl")
 
 # quit()
 
 # How do I run an executable job that uses input files on the Grid as arguments to the script?
 
-JOB_ID = 2068
-
-filesPerJob = 1
+JOB_ID = 2283
 
 ############################
 

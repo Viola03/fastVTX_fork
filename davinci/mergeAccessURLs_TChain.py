@@ -1,36 +1,6 @@
 
 # # source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_102b_LHCB_Core x86_64-centos9-gcc11-opt
 
-# import pickle
-# from ROOT import TFile, TTree, TList
-
-# filehandler = open("OutputDataAccessURLs.pkl", 'rb') 
-# pathList = pickle.load(filehandler)
-	
-# treeList = TList()
-# outputFile = TFile('MergeTest.root', 'recreate')
-# pyfilelist = []
-# pytreelist = []
-
-# for path_idx, path in enumerate(pathList):
-# 		print("Path", path)
-# 		inputFile = TFile.Open(path, 'read')
-# 		pyfilelist.append(inputFile) # Make this TFile survive the loop!
-# 		inputTree = inputFile.Get('DecayTree')
-# 		pytreelist.append(inputTree) # Make this TTree survive the loop!
-# 		outputTree = inputTree.CloneTree() #instead of extensive processing
-# 		treeList.Add(inputTree)
-
-# outputFile.cd()
-# outputTree = TTree.MergeTrees(treeList)
-# outputFile.Write()
-# outputFile.Close()
-
-
-
-
-
-
 import pickle
 import threading
 from ROOT import TFile, TTree, TList
@@ -81,8 +51,11 @@ def merge_root_files(pickle_file, output_file_name_prefix, timeout=30, split_up=
 		if idx<=skip_splits: 
 			print(f'Skipping {idx}')
 			continue
-
-		outname = f"{output_file_name_prefix}_{idx}.root"
+		
+		if split_up == 1:
+			outname = f"{output_file_name_prefix}.root"		
+		else:
+			outname = f"{output_file_name_prefix}_{idx}.root"
 
 		treeList = TList()
 		outputFile = TFile(outname, 'recreate')
@@ -127,10 +100,12 @@ def merge_root_files(pickle_file, output_file_name_prefix, timeout=30, split_up=
 
 if __name__ == "__main__":
 	# Path to the pickle file containing the list of input ROOT files
-	pickle_file = "OutputDataAccessURLs_2070.pkl"
+	pickle_file = "OutputDataAccessURLs_2282.pkl"
 	
 	# Name of the output ROOT file
-	output_file_name_prefix = "MergeTest"
+	output_file_name_prefix = "BuD0piKenu_Merge"
 	
 	# Call the merge function with desired basket size and timeout
-	merge_root_files(pickle_file, output_file_name_prefix, timeout=25, split_up=10)
+	merge_root_files(pickle_file, output_file_name_prefix, timeout=25, split_up=1)
+	# merge_root_files(pickle_file, output_file_name_prefix, timeout=25, split_up=10, skip_splits=-1)
+	# merge_root_files(pickle_file, output_file_name_prefix, timeout=25, split_up=10, skip_splits=5)
