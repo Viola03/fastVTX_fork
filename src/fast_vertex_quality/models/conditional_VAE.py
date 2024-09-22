@@ -1,8 +1,11 @@
+from fast_vertex_quality.tools.config import read_definition, rd
+
 import tensorflow as tf
 from tensorflow.keras import backend as K
 from tensorflow.keras.layers import (
     Activation,
     BatchNormalization,
+    LayerNormalization,
     Concatenate,
     Dense,
     Dropout,
@@ -17,12 +20,10 @@ from tensorflow.keras.models import Model
 
 _EPSILON = K.epsilon()
 
-
 def sampling(args):
     z_mean, z_log_var = args
     epsilon = K.random_normal(shape=K.shape(z_mean), mean=0, stddev=1)
     return z_mean + K.exp(z_log_var / 2) * epsilon
-
 
 class VAE_builder:
 
@@ -50,14 +51,17 @@ class VAE_builder:
         )
 
         H = Dense(int(self.E_architecture[0]))(encoder_network_input)
-        # H = BatchNormalization()(H)
+        H = BatchNormalization()(H)
         H = LeakyReLU()(H)
+        if rd.include_dropout: H = Dropout(0.2)(H)        
         H = Concatenate(axis=-1)([H, momentum_conditions])
+        
 
         for layer in self.E_architecture[1:]:
             H = Dense(int(layer))(H)
-            # H = BatchNormalization()(H)
+            H = BatchNormalization()(H)
             H = LeakyReLU()(H)
+            if rd.include_dropout: H = Dropout(0.2)(H)  
             H = Concatenate(axis=-1)([H, momentum_conditions])
 
         z_mean = Dense(self.latent_dim)(H)
@@ -80,20 +84,19 @@ class VAE_builder:
         decoder_network_input = Concatenate()([input_latent, momentum_conditions])
 
         H = Dense(int(self.D_architecture[0]))(decoder_network_input)
-        # H = BatchNormalization()(H)
+        H = BatchNormalization()(H)
         H = LeakyReLU()(H)
+        if rd.include_dropout: H = Dropout(0.2)(H)  
         H = Concatenate(axis=-1)([H, momentum_conditions])
 
         for layer in self.D_architecture[1:]:
             H = Dense(int(layer))(H)
-            # H = BatchNormalization()(H)
+            H = BatchNormalization()(H)
             H = LeakyReLU()(H)
+            if rd.include_dropout: H = Dropout(0.2)(H)  
             H = Concatenate(axis=-1)([H, momentum_conditions])
 
         decoded_mean = Dense(self.target_dim, activation="tanh")(H)
-        # decoded_mean = Dense(self.target_dim)(H)
-        # decoded_mean = Dense(self.target_dim, activation="sigmoid")(H)
-        # decoded_mean = Dense(self.target_dim)(H)
         decoder = Model(
             inputs=[input_latent, momentum_conditions], outputs=[decoded_mean]
         )

@@ -175,6 +175,34 @@ def plot(data, gen_data, filename, targets, Nevents=10000, offline=False):
                 plt.close()
 
 
+                plt.figure(figsize=(8, 7))
+
+                ax = plt.subplot(1, 1, 1)
+                colours = ['tab:blue', 'tab:red']
+                values = [
+                        data_all[column][:Nevents],
+                        np.asarray(gen_data_all[column])[:Nevents],
+                    ]
+                hist = plt.hist(
+                    values,
+                    bins=75,
+                    alpha=0.25,
+                    color=colours,
+                    # label=["Training sample", "Generated sample"],
+                    density=True,
+                    histtype="stepfilled",
+                )
+                ymin, ymax = ax.get_ylim()
+                xmin, xmax = hist[1][0], hist[1][-1]
+                alexPlot.plot_data(values, density=True, also_plot_hist=True, bins=75, color=colours, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, only_canvas=True, label=["Training sample", "Generated sample"])
+                plt.xlim(xmin, xmax)
+                plt.xlabel(column)
+                plt.legend()
+
+                pdf.savefig(bbox_inches="tight")
+                plt.close()
+
+
             plt.figure(figsize=(8, 7))
             
             ax = plt.subplot(1, 1, 1)

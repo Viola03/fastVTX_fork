@@ -22,8 +22,9 @@ def write_df_to_root(df, output_name):
 		f["DecayTree"] = uproot3.newtree(branch_dict)
 		f["DecayTree"].extend(data_dict)
 		
-reduce_factor = 10
-file_name = "general_sample_intermediate_All_more_vars.root"
+reduce_factor = 20
+file_name = "general_sample_chargeCounters_cut_more_vars.root"
+# file_name = "MergeTest_cut.root"
 
 file = uproot.open(file_name)['DecayTree']
 

@@ -14,11 +14,15 @@ def reco_loss(x, x_decoded_mean):
 def kl_loss(z_mean, z_log_var):
 	kl_loss = -0.5 * K.sum(1 + z_log_var - K.square(z_mean) - K.exp(z_log_var), axis=-1)
 	return kl_loss
-
+# def kl_loss(z_mean, z_log_var, variance_penalty=1e-2):
+#     kl_loss = -0.5 * K.sum(1 + z_log_var - K.square(z_mean) - K.exp(z_log_var), axis=-1)
+#     # Penalize large values of z_log_var
+#     penalty = variance_penalty * K.sum(K.square(z_log_var), axis=-1)
+#     return kl_loss + penalty
 
 @tf.function
 def train_step_vertexing(
-	vae, optimizer, images, cut_idx, kl_factor, reco_factor, toggle_kl
+	vae, optimizer, images, cut_idx, kl_factor, reco_factor, toggle_kl, last_mse=None
 ):
 
 	sample_targets, sample_conditions = images[:, 0, :cut_idx], images[:, 0, cut_idx:]
@@ -32,12 +36,28 @@ def train_step_vertexing(
 		vae_reco_loss = vae_reco_loss_raw * reco_factor
 		vae_kl_loss = kl_loss(vae_z_mean, vae_z_log_var)
 		vae_kl_loss = tf.math.reduce_mean(vae_kl_loss) * toggle_kl * kl_factor
-
 		vae_loss = vae_kl_loss + vae_reco_loss
+
+		# # balancing 
+		# # https://xplorestaging.ieee.org/ielx7/6287639/8948470/09244048.pdf?arnumber=9244048 # this sounds like fiction
+		# # https://proceedings.mlr.press/v119/shao20b/shao20b.pdf # this sounds a bit better
+		# vae_reco_loss = reco_loss(sample_targets, vae_out)
+		# vae_reco_loss = tf.math.reduce_mean(vae_reco_loss)
+		# vae_reco_loss_raw = vae_reco_loss
+		# vae_kl_loss = kl_loss(vae_z_mean, vae_z_log_var)
+		# vae_kl_loss = tf.math.reduce_mean(vae_kl_loss)
+		# vae_loss = vae_kl_loss + vae_reco_loss/last_mse
 
 	grad_vae = tape.gradient(vae_loss, vae.trainable_variables)
 
 	optimizer.apply_gradients(zip(grad_vae, vae.trainable_variables))
+	
+	# clip_value = 1.0 # looks like it helps
+	# # clip_value = 0.5 # looks worse than 1.0
+	# # clip_value = 3.
+	# # clip_value = 0.75 
+	# clipped_grads, _ = tf.clip_by_global_norm(grad_vae, clip_value)
+	# optimizer.apply_gradients(zip(clipped_grads, vae.trainable_variables))
 
 	return vae_kl_loss, vae_reco_loss, vae_reco_loss_raw
 
@@ -99,19 +119,21 @@ def WGAN_generator_loss(fake_img):
 	return -tf.reduce_mean(fake_img)
 
 def WGAN_gradient_penalty(discriminator, batch_size, real_images, real_conditions, fake_images):
+	# https://github.com/kochlisGit/Generative-Adversarial-Networks/blob/main/mnist-digits-wgan/mnist-wgan.py	
 	# Get the interpolated image
 	alpha = tf.random.normal([batch_size, tf.shape(fake_images)[1]], 0.0, 1.0)
 	diff = fake_images - real_images
 	interpolated = real_images + alpha * diff
+	# interpolated = alpha*real_images + (1.-alpha) * fake_images
 
 	with tf.GradientTape() as gp_tape:
 		gp_tape.watch(interpolated)
 		pred = discriminator([interpolated, real_conditions], training=True)
 
-	grads = gp_tape.gradient(pred, [interpolated])[0]
-	norm = tf.sqrt(tf.reduce_sum(tf.square(grads), axis=[1]))
+	grads = gp_tape.gradient(pred, [interpolated])#[0] # i think this [0] might mean i was only applying the penalty to the first array of the gradients?
+	norm = tf.sqrt(tf.reduce_sum(tf.square(grads), axis=[1]) + 1e-12)
 
-	liptschitz_penalty = False
+	liptschitz_penalty = True # https://stackoverflow.com/questions/59526299/wgan-gp-large-oscillating-loss
 	if not liptschitz_penalty:
 		gp = tf.reduce_mean((norm - 1.0) ** 2)
 	else:
@@ -120,8 +142,13 @@ def WGAN_gradient_penalty(discriminator, batch_size, real_images, real_condition
 
 
 d_steps = 3 # number of steps to train D for every one generator step
+# d_steps = 7 # number of steps to train D for every one generator step
 # gp_weight = 10.
-gp_weight = 0.1
+# gp_weight = 0.1
+gp_weight = 10.
+# gp_weight = 10.
+# gp_weight = 100.
+# gp_weight = 0.1
 
 @tf.function
 def train_step_vertexing_WGAN(
@@ -159,6 +186,9 @@ def train_step_vertexing_WGAN(
 				# Get the gradients w.r.t the discriminator loss
 				d_gradient = tape.gradient(d_loss, discriminator.trainable_variables)
 				# Update the weights of the discriminator using the discriminator optimizer
+
+				d_gradient_norm = tf.sqrt(sum([tf.reduce_sum(tf.square(g)) for g in d_gradient if g is not None]))
+
 				disc_optimizer.apply_gradients(zip(d_gradient, discriminator.trainable_variables))
 
 	# Train the generator
@@ -174,9 +204,13 @@ def train_step_vertexing_WGAN(
 		# Get the gradients w.r.t the generator loss
 		gen_gradient = tape.gradient(g_loss, generator.trainable_variables)
 		# Update the weights of the generator using the generator optimizer
+
+		# g_gradient_norm = tf.sqrt(tf.reduce_sum(tf.square(gen_gradient[0]), axis=[1]) + 1e-12)
+		g_gradient_norm = tf.sqrt(sum([tf.reduce_sum(tf.square(g)) for g in gen_gradient if g is not None]))
+
 		gen_optimizer.apply_gradients(zip(gen_gradient, generator.trainable_variables))
 
-	return d_loss, g_loss
+	return d_loss, g_loss, d_gradient_norm, g_gradient_norm
 
 
 

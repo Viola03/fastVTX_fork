@@ -10,8 +10,13 @@ import numpy as np
 import tensorflow as tf
 from fast_vertex_quality.training_schemes.primary_vertex import primary_vertex_trainer
 
+rd.include_dropout = True
+rd.use_beta_schedule = False
+
+# rd.latent = 4 # noise dims
 rd.latent = 2 # noise dims
-# rd.beta = 1000
+# rd.latent = 50 # noise dims
+rd.beta = 750
 
 rd.daughter_particles = ["K_Kst", "e_plus", "e_minus"] # K e e
 rd.mother_particle = 'B_plus'
@@ -22,7 +27,8 @@ training_data_loader = data_loader.load_data(
     [
         # "datasets/cocktail_hierarchy_cut_more_vars.root",
         # "datasets/cocktail_x5_MC_hierachy_cut_more_vars.root",
-        "datasets/general_sample_intermediate_more_vars.root",
+        # "datasets/general_sample_intermediate_more_vars.root",
+		"datasets/general_sample_chargeCounters_cut_more_vars_HEADfactor20.root",
     ],
     convert_to_RK_branch_names=True,
     conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
@@ -32,15 +38,23 @@ training_data_loader.add_branch_and_process(name='B_plus_TRUE_FD',recipe="sqrt((
 training_data_loader.add_branch_and_process(name='B_plus_TRUEP',recipe="sqrt((B_plus_TRUEP_X)**2 + (B_plus_TRUEP_Y)**2 + (B_plus_TRUEP_Z)**2)")
 training_data_loader.add_branch_and_process(name='B_plus_TRUEP_T',recipe="sqrt((B_plus_TRUEP_X)**2 + (B_plus_TRUEP_Y)**2)")
 
+# training_data_loader.add_branch_and_process(name='B_plus_TRUEORIGINVERTEX_R',recipe="sqrt(B_plus_TRUEORIGINVERTEX_X**2+B_plus_TRUEORIGINVERTEX_Y**2)")
+# training_data_loader.add_branch_and_process(name='B_plus_TRUEORIGINVERTEX_PHI',recipe="tan(B_plus_TRUEORIGINVERTEX_X/B_plus_TRUEORIGINVERTEX_Y)")
+
+# data = training_data_loader.get_branches('B_plus_TRUEORIGINVERTEX_PHI', processed=False)
+# plt.hist(data['B_plus_TRUEORIGINVERTEX_PHI'], bins=50)
+# plt.savefig('here')
+# quit()
+
 transformers = training_data_loader.get_transformers()
 
 training_data_loader.cut('B_plus_TRUEP_Z>0')
-training_data_loader.cut('abs(B_plus_TRUEID)>521')
+training_data_loader.cut('abs(B_plus_TRUEID)==521')
 # training_data_loader.print_branches()
 
 
 
-conditions = [
+rd.conditions = [
     "B_plus_TRUEP",
     "B_plus_TRUEP_T",
     "B_plus_TRUEP_X",
@@ -48,11 +62,16 @@ conditions = [
     "B_plus_TRUEP_Z",
 ]
 
-targets = [
+rd.targets = [
     "B_plus_TRUE_FD",
 	"B_plus_TRUEORIGINVERTEX_X",
 	"B_plus_TRUEORIGINVERTEX_Y",
+	# "B_plus_TRUEORIGINVERTEX_R",
+	# "B_plus_TRUEORIGINVERTEX_PHI",
 	"B_plus_TRUEORIGINVERTEX_Z",
+    # "B_plus_TRUEP_X",
+    # "B_plus_TRUEP_Y",
+    # "B_plus_TRUEP_Z",
 ]
 
 
@@ -74,27 +93,39 @@ targets = [
 
 primary_vertex_trainer_obj = primary_vertex_trainer(
     training_data_loader,
-    conditions=conditions,
-    targets=targets,
+    conditions=rd.conditions,
+    targets=rd.targets,
     beta=float(rd.beta),
     latent_dim=rd.latent,
-    batch_size=64,
+    batch_size=256,
     D_architecture=[1000,2000,1000],
     G_architecture=[1000,2000,1000],
+    # D_architecture=[128,256,256,128],
+    # G_architecture=[128,256,256,128],
     network_option='VAE',
     # network_option='WGAN',
 )
 
+# print("plot conditions...")
+# training_data_loader.plot('conditions.pdf',rd.conditions)
+# print("plot targets...")
+# training_data_loader.plot('targets.pdf',rd.targets)
+# quit()
+
+
 steps_for_plot = 5000
 primary_vertex_trainer_obj.train(steps=steps_for_plot)
 # primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job2")
-primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job_generalBplus")
+# primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job_generalBplus")
+primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job_new_processing")
 primary_vertex_trainer_obj.make_plots(filename=f'vertex_plots_0.pdf',testing_file=training_data_loader.get_file_names())
+# quit()
 
 for i in range(100):
     primary_vertex_trainer_obj.train_more_steps(steps=steps_for_plot)
     # primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job2")
-    primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job_generalBplus")
+    # primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job_generalBplus")
+    primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job_new_processing")
     primary_vertex_trainer_obj.make_plots(filename=f'vertex_plots_{i+1}.pdf',testing_file=training_data_loader.get_file_names())
 
 
