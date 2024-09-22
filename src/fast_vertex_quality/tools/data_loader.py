@@ -1010,7 +1010,12 @@ def convert_branches_to_RK_branch_names(columns, conversions):
 
 	return new_columns
 
-def load_data(path, equal_sizes=True, N=-1, transformers=None, convert_to_RK_branch_names=False, conversions=None, turn_off_processing=False,avoid_physics_variables=False, name='', testing_frac=0.1):
+def load_data(path, equal_sizes=True, N=-1, transformers=None, convert_to_RK_branch_names=False, conversions=None, turn_off_processing=False,avoid_physics_variables=False, name='', testing_frac=0.1, empty=False):
+
+	if empty:
+		events_dataset = dataset(filenames='empty', transformers=transformers, name=name)
+		return events_dataset
+
 
 	if isinstance(path, list):
 		for i in range(0, len(path)):

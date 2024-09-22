@@ -55,7 +55,10 @@ rd.current_mse_raw = tf.convert_to_tensor(1.0)
 # test_tag = '20th_dont_use_schedule'
 # test_tag = '20th_long_1000'
 # test_tag = '20th_long_2000_lower_LR'
-test_tag = '20th_long_100'
+# test_tag = '20th_long_100'
+# test_tag = '21th_larger_lowerLR_2000'
+# test_tag = '21th_re_run_of_best'
+test_tag = '22nf_retrun_1000_deeper'
 
 #/software/am13743/env_may_2024/bin/python3.9 GAN_distances.py -processID 1
 
@@ -76,10 +79,12 @@ rd.latent = 10 # VAE latent dims
 # rd.G_architecture=[1600,2600,1600]
 # rd.D_architecture=[512,1024,512]
 # rd.G_architecture=[512,1024,512]
-# rd.D_architecture=[512,1024,1024,512] # couldnt get to work
-# rd.G_architecture=[512,1024,1024,512]
-rd.D_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)] # couldnt get to work
-rd.G_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
+# rd.D_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
+# rd.G_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
+# rd.D_architecture=[int(512*2.5),int(1024*2.5),int(1024*2.5),int(512*2.5)]
+# rd.G_architecture=[int(512*2.5),int(1024*2.5),int(1024*2.5),int(512*2.5)]
+rd.D_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
+rd.G_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
 rd.include_dropout = True
 rd.use_beta_schedule = False
 
@@ -88,7 +93,7 @@ rd.use_beta_schedule = False
 
 # rd.beta = 750. # this is the minimum value of beta, the annealing means it starts from higher
 
-rd.beta = 100.
+rd.beta = 1000.
 
 # rd.beta = 2500. # maybe good
 # rd.batch_size = 1024
@@ -331,9 +336,9 @@ BDT_tester_obj = BDT_tester(
 	use_intermediate=use_intermediate
 )
 
-# steps_for_plot = 10000
+steps_for_plot = 10000
 # steps_for_plot = 500
-steps_for_plot = 5000
+# steps_for_plot = 5000
 # steps_for_plot = 1550
 # steps_for_plot = 50
 

@@ -1,0 +1,12 @@
+Metadata-Version: 2.1
+Name: fast_vertex_quality_inference
+Version: 1.0.0
+Summary: Inference code for fast generation of vertex quality variables
+Home-page: https://gitlab.cern.ch/amarshal/fast_vertexing_variables/-/tree/master/networksinference
+Author: Alex Marshall
+Author-email: alex.marshall@bristol.ac.uk
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Description-Content-Type: text/markdown
+License-File: LICENSE.txt
