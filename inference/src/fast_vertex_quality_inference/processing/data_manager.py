@@ -180,6 +180,8 @@ class data_manager:
 
 		full_rapid_sim_tuple = self.get_branches(vertexing_network)
 
+		initial_branches = list(full_rapid_sim_tuple.keys())
+
 		conditional_input = self.get_branches(PV_smearing_network, PV_smearing_network.conditions, process=True, convert=True)
 		smeared_vertex = self.query_network(PV_smearing_network, conditional_input, PV_smearing_network.targets)
 
@@ -196,14 +198,13 @@ class data_manager:
 		generated_vertexing_info.columns = self.update_conditional_branches(vertexing_network.targets)
 		for branch in list(generated_vertexing_info.keys()):
 			full_rapid_sim_tuple_smeared[branch] = generated_vertexing_info[branch]
-		full_rapid_sim_tuple_smeared = full_rapid_sim_tuple_smeared.drop(columns=converted_condition_branches)
-		# print('\n\n')
-		# for branch in list(full_rapid_sim_tuple_smeared.keys()):
-		# 	print(branch)
+
+		current_branches = list(full_rapid_sim_tuple_smeared.keys())
+
+		full_rapid_sim_tuple_smeared = full_rapid_sim_tuple_smeared[initial_branches+self.update_conditional_branches(vertexing_network.targets)]
 
 		self.write_df_to_root(full_rapid_sim_tuple_smeared, output_tuple)
 
-		quit()
 
 	def compute_distance_wrapped(self, df, A, A_var, B, B_var):
 
@@ -245,11 +246,6 @@ class data_manager:
 		data[f"missing_{self.intermediate}_P"], data[f"missing_{self.intermediate}_PT"] = vt.compute_missing_momentum(
 			data, self.mother,[self.particles[1], self.particles[2]]
 		)
-
-		# print(data['e_plus_P'])
-		# print(data['e_plus_PT'])
-		# print("C")
-		# quit()
 
 		for particle_i in range(0, len(self.particles)):
 			(

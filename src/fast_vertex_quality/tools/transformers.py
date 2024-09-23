@@ -359,7 +359,6 @@ class UpdatedTransformer:
 
 		self.qt = QuantileTransformer(
 			n_quantiles=500, output_distribution="normal"
-			# n_quantiles=2500, output_distribution="normal"
 		)
 
 	def process(self, data_raw):

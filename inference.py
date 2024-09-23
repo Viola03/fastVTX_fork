@@ -32,7 +32,7 @@ data = data_manager(
 					intermediate = 'J_psi',
 					)
 data.process(
-			output_tuple="/users/am13743/fast_vertexing_variables/inference/example/example_smeared.root", PV_smearing_network=rapidsim_PV_smearing_network,
+			output_tuple="/users/am13743/fast_vertexing_variables/inference/example/example_reco.root", PV_smearing_network=rapidsim_PV_smearing_network,
 			vertexing_network=vertexing_network,
 			)
 
