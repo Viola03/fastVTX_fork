@@ -7,6 +7,7 @@ import fast_vertex_quality.tools.data_loader as data_loader
 import pickle
 import tensorflow as tf
 import tf2onnx
+import numpy as np
 
 rd.use_QuantileTransformer = False
 
@@ -31,7 +32,51 @@ primary_vertex_trainer_obj = primary_vertex_trainer(
     load_config=load_state
 )
 
+# mother = 'MOTHER'
+# conditions = [
+#     f"{mother}_TRUEP",
+#     f"{mother}_TRUEP_T",
+#     f"{mother}_TRUEP_X",
+#     f"{mother}_TRUEP_Y",
+#     f"{mother}_TRUEP_Z",
+# ]
+
+# targets = [
+#     f"{mother}_TRUE_FD",
+#     f"{mother}_TRUEORIGINVERTEX_X",
+#     f"{mother}_TRUEORIGINVERTEX_Y",
+#     f"{mother}_TRUEORIGINVERTEX_Z",
+# ]
+# rd.latent = 2 
+
+# primary_vertex_trainer_obj = primary_vertex_trainer(
+# 		None,
+# 		conditions=conditions,
+# 		targets=targets,
+# 		beta=float(rd.beta),
+# 		latent_dim=rd.latent,
+# 		batch_size=256,
+# 		D_architecture=[1000,2000,1000],
+# 		G_architecture=[1000,2000,1000],
+# 		network_option='VAE',
+# 	)
+
 primary_vertex_trainer_obj.load_state(tag=load_state)
+
+
+# [[ 0.22490545  0.85108083  0.12945804  0.01033347]
+#  [ 0.2452658   0.86108065  0.1304835  -0.63626313]
+#  [ 0.22377439  0.8536781   0.11894263  0.03956172]
+#  ...
+#  [-0.23329645  0.8496253   0.13111873  0.06913963]
+#  [-0.19868723  0.8487214   0.13110112  0.0413713 ]
+#  [-0.16821958  0.8487333   0.1299447  -0.17910454]]
+
+# events_gen = np.load('conditions_smearing.npy')
+# gen_noise = np.load('noise_smearing.npy')
+
+# images = np.squeeze(primary_vertex_trainer_obj.decoder.predict([gen_noise, events_gen]))
+# print(images)
 
 
 # Extract the decoder (a Keras model)
@@ -54,3 +99,20 @@ with open(onnx_model_path, "wb") as f:
     f.write(onnx_model.SerializeToString())
 
 print(f"Decoder model saved as {onnx_model_path}")
+
+
+
+
+# from fast_vertex_quality_inference.processing.network_manager import network_manager
+# rapidsim_PV_smearing_network = network_manager(
+#             network=onnx_model_path, 
+#             config="/users/am13743/fast_vertexing_variables/inference/example/smearing_configs.pkl",
+#             transformers="/users/am13743/fast_vertexing_variables/inference/example/smearing_transformers.pkl",
+#             )
+# input_data = {
+#     rapidsim_PV_smearing_network.input_names[0]: gen_noise.astype(np.float32),
+#     rapidsim_PV_smearing_network.input_names[1]: events_gen.astype(np.float32)
+# }
+# images2 = np.squeeze(rapidsim_PV_smearing_network.session.run(rapidsim_PV_smearing_network.output_names, input_data))
+
+# print(images2)

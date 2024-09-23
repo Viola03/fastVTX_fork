@@ -12,7 +12,8 @@ rd.use_QuantileTransformer = False
 use_intermediate = False
 rd.include_dropout = True
 
-load_state = f"test_runs/20th_long_2000_lower_LR/networks/20th_long_2000_lower_LR"
+# load_state = f"test_runs/20th_long_2000_lower_LR/networks/20th_long_2000_lower_LR"
+load_state = f"test_runs/22nf_nomissmass_deeper/networks/22nf_nomissmass_deeper"
 
 transformers = pickle.load(open(f"{load_state}_transfomers.pkl", "rb"))
 

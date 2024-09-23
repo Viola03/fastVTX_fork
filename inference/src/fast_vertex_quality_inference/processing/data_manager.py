@@ -135,7 +135,7 @@ class data_manager:
 
 		for particle in self.particles:
 			for coordinate in ["X", "Y", "Z"]:
-				full_tuple[f"{particle}_TRUEORIGINVERTEX_{coordinate}"] = full_tuple[f"{self.mother}_TRUEENDVERTEX_{coordinate}"]+distance_buffer[f"{particle}_{coordinate}"]
+				full_tuple[f"{particle}_TRUEORIGINVERTEX_{coordinate}"] = full_tuple[f"{self.mother}_TRUEENDVERTEX_{coordinate}"]+ distance_buffer[f"{particle}_{coordinate}"]
 		
 		return full_tuple
 
@@ -284,8 +284,8 @@ class data_manager:
 				)
 			)
 
-		MOTHER_TRUE_MASS = Particle.from_pdgid(int(self.mother_TRUEID)).mass*1E-3
-		data["missing_mass_frac"] = (MOTHER_TRUE_MASS-data["B_plus_M"])/MOTHER_TRUE_MASS
+		# MOTHER_TRUE_MASS = Particle.from_pdgid(int(self.mother_TRUEID)).mass*1E-3
+		# data["missing_mass_frac"] = (MOTHER_TRUE_MASS-data["B_plus_M"])/MOTHER_TRUE_MASS
 
 		return data
 	

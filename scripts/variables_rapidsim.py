@@ -16,6 +16,7 @@ masses[211] = 139.57039
 masses[13] = 105.66
 masses[11] = 0.51099895000 * 1e-3
 
+directory = '/users/am13743/fast_vertexing_variables/rapidsim/'
 file_name = 'Kee/Signal_tree.root'
 # file_name = 'Kee/Signal_tree_LARGE.root'
 # file_name = 'Kee/Signal_tree_LARGE_NNvertex.root'
@@ -24,7 +25,6 @@ particles = ["DAUGHTER1", "DAUGHTER2", "DAUGHTER3"]
 mother = 'MOTHER'
 intermediate = 'INTERMEDIATE'
 
-directory = '/users/am13743/fast_vertexing_variables/rapidsim/'
 print("Opening file...")
 
 file = uproot.open(f"{directory}/{file_name}:DecayTree")
@@ -219,7 +219,8 @@ if use_network_to_adapt_vertex_locations:
 	# primary_vertex_trainer_obj.load_state(tag=f"networks/primary_vertex_job2")
 	# primary_vertex_trainer_obj.load_state(tag=f"networks/primary_vertex_job_general")
 	# primary_vertex_trainer_obj.load_state(tag=f"networks/primary_vertex_job_generalBplus")
-	primary_vertex_trainer_obj.load_state(tag=f"networks/primary_vertex_job_new_processing")
+	# primary_vertex_trainer_obj.load_state(tag=f"networks/primary_vertex_job_new_processing")
+	primary_vertex_trainer_obj.load_state(tag=f"networks/primary_vertex_job_new_processing2")
 
 	# BUG FIX?!
 	# events[f"{mother}_P"] *= 1./1000.

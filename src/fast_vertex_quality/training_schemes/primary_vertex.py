@@ -551,6 +551,8 @@ class primary_vertex_trainer:
 		self.transformers = pickle.load(open(f"{tag}_transfomers.pkl", "rb"))
 		self.trained_weights = pickle.load(open(f"{tag}_trained_weights.pkl", "rb"))
 
+		self.set_trained_weights()
+
 		# decoder = tf.keras.models.load_model("save_state/decoder.h5")
 		# self.trained_weights = decoder.get_weights()
 
@@ -593,6 +595,7 @@ class primary_vertex_trainer:
 			images = np.squeeze(self.decoder.predict([gen_noise, events_gen]))
 		elif self.network_option == 'GAN' or self.network_option == 'WGAN':
 			images = np.squeeze(self.generator.predict([gen_noise, events_gen]))
+
 
 		for branch in list(conditions.keys()):
 			

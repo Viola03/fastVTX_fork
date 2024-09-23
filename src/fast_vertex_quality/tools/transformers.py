@@ -405,12 +405,14 @@ class UpdatedTransformer:
 			return data
 
 		data = data*self.clip_value
+
 		data = self.qt.inverse_transform(data.reshape(-1, 1))[:,0]	
 
 		if 'VTXISOBDTHARD' in self.column:
 			data[np.where(data<-1)] = -1.
 		if 'FLIGHT' in self.column or 'FD' in self.column or 'IP' in self.column:
 			data[np.where(data<0)] = 0.
+
 
 		return data
 
