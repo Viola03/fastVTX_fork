@@ -23,7 +23,7 @@ class vertex_quality_trainer:
 
 	def __init__(
 		self,
-		data_loader_obj,
+		data_loader_obj=None,
 		trackchi2_trainer=None,
 		targets=None,
 		conditions=None,
@@ -185,8 +185,9 @@ class vertex_quality_trainer:
 
 		self.initialised_weights = self.get_weights()
 
-		self.data_loader_obj = data_loader_obj
-		self.transformers = self.data_loader_obj.get_transformers()
+		if data_loader_obj:
+			self.data_loader_obj = data_loader_obj
+			self.transformers = self.data_loader_obj.get_transformers()
 
 		self.trained_weights = {}
 

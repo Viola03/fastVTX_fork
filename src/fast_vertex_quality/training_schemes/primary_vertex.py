@@ -20,7 +20,7 @@ class primary_vertex_trainer:
 
 	def __init__(
 		self,
-		data_loader_obj,
+		data_loader_obj=None,
 		targets=None,
 		conditions=None,
 		beta=1000.0,
