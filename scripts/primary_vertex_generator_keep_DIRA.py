@@ -12,6 +12,10 @@ from fast_vertex_quality.training_schemes.primary_vertex import primary_vertex_t
 
 rd.include_dropout = True
 rd.use_beta_schedule = False
+rd.network_option = 'VAE'
+
+rd.D_architecture=[1000,2000,1000]
+rd.G_architecture=[1000,2000,1000]
 
 # rd.latent = 4 # noise dims
 rd.latent = 2 # noise dims
@@ -98,8 +102,8 @@ primary_vertex_trainer_obj = primary_vertex_trainer(
     beta=float(rd.beta),
     latent_dim=rd.latent,
     batch_size=256,
-    D_architecture=[1000,2000,1000],
-    G_architecture=[1000,2000,1000],
+    D_architecture=rd.D_architecture,
+    G_architecture=rd.G_architecture,
     # D_architecture=[128,256,256,128],
     # G_architecture=[128,256,256,128],
     network_option='VAE',
@@ -117,7 +121,7 @@ steps_for_plot = 5000
 primary_vertex_trainer_obj.train(steps=steps_for_plot)
 # primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job2")
 # primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job_generalBplus")
-primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job_new_processing")
+primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job_new_processing2")
 primary_vertex_trainer_obj.make_plots(filename=f'vertex_plots_0.pdf',testing_file=training_data_loader.get_file_names())
 # quit()
 
@@ -125,7 +129,7 @@ for i in range(100):
     primary_vertex_trainer_obj.train_more_steps(steps=steps_for_plot)
     # primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job2")
     # primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job_generalBplus")
-    primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job_new_processing")
+    primary_vertex_trainer_obj.save_state(tag=f"networks/primary_vertex_job_new_processing2")
     primary_vertex_trainer_obj.make_plots(filename=f'vertex_plots_{i+1}.pdf',testing_file=training_data_loader.get_file_names())
 
 

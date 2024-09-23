@@ -30,7 +30,8 @@ rd.include_dropout = True
 # load_state = f"networks/vertex_job_9thSept_RAIN_best"
 # load_state = f"networks/testing_50"
 # load_state = f"test_runs/20th_VAE_beta_2000_dropout/networks/20th_VAE_beta_2000_dropout"
-load_state = f"test_runs/20th_long_2000_lower_LR/networks/20th_long_2000_lower_LR"
+# load_state = f"test_runs/20th_long_2000_lower_LR/networks/20th_long_2000_lower_LR"
+load_state = f"test_runs/22nf_nomissmass_deeper/networks/22nf_nomissmass_deeper"
 
 
 ####################################################################################################################################
@@ -119,13 +120,13 @@ BDT_targets = [
 #     use_intermediate=use_intermediate
 # )
 
-# # scores = BDT_tester_obj.plot_detailed_metrics(
-# #     rd.conditions,
-# #     rd.targets,
-# #     vertex_quality_trainer_obj, f"metrics_{rd.network_option}.pdf",
-# #     # only_signal=True,
-# #     # avoid_rapidsim=True,
-# # )
+# scores = BDT_tester_obj.plot_detailed_metrics(
+#     rd.conditions,
+#     rd.targets,
+#     vertex_quality_trainer_obj, f"metrics_{rd.network_option}.pdf",
+#     # only_signal=True,
+#     # avoid_rapidsim=True,
+# )
 
 # scores = BDT_tester_obj.plot_differential_metrics(
 #     rd.conditions,
@@ -153,12 +154,12 @@ BDT_tester_obj = BDT_tester(
     background_convert_branches=True,
 )
 
-# scores = BDT_tester_obj.plot_detailed_metrics(
-#     rd.conditions,
-#     rd.targets,
-#     vertex_quality_trainer_obj, f"metrics_{rd.network_option}_prcBDT.pdf",
-#     # only_signal=True,
-# )
+scores = BDT_tester_obj.plot_detailed_metrics(
+    rd.conditions,
+    rd.targets,
+    vertex_quality_trainer_obj, f"metrics_{rd.network_option}_prcBDT.pdf",
+    # only_signal=True,
+)
 
 scores = BDT_tester_obj.plot_differential_metrics(
     rd.conditions,

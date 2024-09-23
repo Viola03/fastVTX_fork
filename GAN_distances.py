@@ -58,7 +58,10 @@ rd.current_mse_raw = tf.convert_to_tensor(1.0)
 # test_tag = '20th_long_100'
 # test_tag = '21th_larger_lowerLR_2000'
 # test_tag = '21th_re_run_of_best'
-test_tag = '22nf_retrun_1000_deeper'
+test_tag = '22nf_retrun_1000_nomissmass'
+
+test_tag = '22nf_nomissmass_deeper'
+
 
 #/software/am13743/env_may_2024/bin/python3.9 GAN_distances.py -processID 1
 
@@ -169,7 +172,7 @@ rd.conditions = [
 	"B_plus_nPositive_missing",
 	"B_plus_nNegative_missing",
 	"fully_reco",
-	"missing_mass_frac",
+	# "missing_mass_frac", # this varaible is badly formmated, somehow it is ruining performance - INVESTIGATE
 ]
 
 rd.targets = [

@@ -222,7 +222,7 @@ if use_network_to_adapt_vertex_locations:
 	primary_vertex_trainer_obj.load_state(tag=f"networks/primary_vertex_job_new_processing")
 
 	# BUG FIX?!
-	events[f"{mother}_P"] *= 1./1000.
+	# events[f"{mother}_P"] *= 1./1000.
 
 	output = primary_vertex_trainer_obj.predict_physical_from_physical_pandas(events[conditions], targets)
 
