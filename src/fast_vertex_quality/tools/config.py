@@ -12,10 +12,15 @@ import logging
 import warnings
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress all TensorFlow logging except errors
 
-import tensorflow as tf
-tf.get_logger().setLevel(logging.ERROR)
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
-warnings.filterwarnings('ignore')
+avoid_tensorflow = False
+try:
+    import tensorflow as tf
+    tf.get_logger().setLevel(logging.ERROR)
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+    warnings.filterwarnings('ignore')
+except:
+    print("Running without tensorflow...")
+    avoid_tensorflow = True
 
 parser = configparser.ConfigParser()
 parser.optionxform = str  # Allows variable names to be case sensitive
@@ -160,26 +165,28 @@ if (
     assert rd.processID <= 5, "\n Only 6 GPUs on gpu01!"
     print("\tCUDA_VISIBLE_DEVICES = {CUDA_VISIBLE_DEVICES}".format(**os.environ))
 else:
+    if not avoid_tensorflow:
+        import tensorflow as tf
+
+        num_threads = 10
+        num_threads += -1
+        os.environ["OMP_NUM_THREADS"] = f"{num_threads}"
+        os.environ["TF_NUM_INTRAOP_THREADS"] = f"{num_threads}"
+        os.environ["TF_NUM_INTEROP_THREADS"] = f"{num_threads}"
+
+        tf.config.threading.set_inter_op_parallelism_threads(num_threads)
+        tf.config.threading.set_intra_op_parallelism_threads(num_threads)
+        tf.config.set_soft_device_placement(True)
+
+if not avoid_tensorflow:
     import tensorflow as tf
 
-    num_threads = 10
-    num_threads += -1
-    os.environ["OMP_NUM_THREADS"] = f"{num_threads}"
-    os.environ["TF_NUM_INTRAOP_THREADS"] = f"{num_threads}"
-    os.environ["TF_NUM_INTEROP_THREADS"] = f"{num_threads}"
-
-    tf.config.threading.set_inter_op_parallelism_threads(num_threads)
-    tf.config.threading.set_intra_op_parallelism_threads(num_threads)
-    tf.config.set_soft_device_placement(True)
-
-import tensorflow as tf
-
-physical_devices = tf.config.list_physical_devices("GPU")
-try:
-    tf.config.experimental.set_memory_growth(physical_devices[0], True)
-except:
-    # Invalid device or cannot modify virtual devices once initialized.
-    pass
+    physical_devices = tf.config.list_physical_devices("GPU")
+    try:
+        tf.config.experimental.set_memory_growth(physical_devices[0], True)
+    except:
+        # Invalid device or cannot modify virtual devices once initialized.
+        pass
 
 # zfit.settings.advanced_warnings["sum_extended_frac"] = False
 
