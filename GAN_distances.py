@@ -3,8 +3,6 @@ from fast_vertex_quality.tools.config import read_definition, rd
 
 import tensorflow as tf
 
-# tf.config.run_functions_eagerly(True)
-
 from fast_vertex_quality.training_schemes.track_chi2 import trackchi2_trainer
 from fast_vertex_quality.training_schemes.vertex_quality import vertex_quality_trainer
 from fast_vertex_quality.testing_schemes.BDT import BDT_tester
@@ -21,49 +19,12 @@ from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import roc_curve, roc_auc_score
 import os
 
-rd.use_QuantileTransformer = False # doesnt work well
-# rd.use_QuantileTransformer = True # doesnt work well
-
 use_intermediate = False
 
 rd.current_mse_raw = tf.convert_to_tensor(1.0)
 
-# fix DIRA_B_plus_true_vertex
-# need to stabalise training - 
-
-
-# rd.network_option = 'VAE'
-# # load_state = f"networks/vertex_job_9thSept_C" # looks good
-# # load_state = f"networks/vertex_job_9thSept_D" decent
-# load_state = f"networks/vertex_job_9thSept_RAIN"
-# rd.latent = 5 # VAE latent dims
-# rd.D_architecture=[1600,2600,2600,1600]
-# rd.G_architecture=[1600,2600,2600,1600]
-
-# rd.beta = 750.
-# rd.batch_size = 64
-
-# test_tag = 'VAE_latent_10'
-# test_tag = 'VAE_latent_10_missing_mass_in_conditions'
-# test_tag = 'VAE_beta_2500'
-# test_tag = 'VAE_balanced'
-# test_tag = 'VAE_apply_grads'
-# test_tag = 'VAE_apply_clipped_grads_1'
-# test_tag = 'VAE_apply_clipped_grads_05'
-# test_tag = 'VAE_lower_LR_extra_layer'
-# test_tag = '20th_VAE_beta_2000_nodropout'
-# test_tag = '20th_dont_use_schedule'
-# test_tag = '20th_long_1000'
-# test_tag = '20th_long_2000_lower_LR'
-# test_tag = '20th_long_100'
-# test_tag = '21th_larger_lowerLR_2000'
-# test_tag = '21th_re_run_of_best'
-# test_tag = '22nf_retrun_1000_nomissmass'
-# test_tag = '22nf_nomissmass_deeper'
 test_tag = 'No_delta_branches'
 
-
-#/software/am13743/env_may_2024/bin/python3.9 GAN_distances.py -processID 1
 
 test_loc = f'test_runs_branches/{test_tag}/'
 try:
@@ -73,15 +34,11 @@ except:
 	print(f"{test_loc} will be overwritten")
 rd.test_loc = test_loc
 
-# 0.92 - didnt improve much yet 
 rd.network_option = 'VAE'
 load_state = f"{test_loc}/networks/{test_tag}"
-# rd.latent = 5 # VAE latent dims
+
 rd.latent = 10 # VAE latent dims
-# rd.D_architecture=[1600,2600,1600]
-# rd.G_architecture=[1600,2600,1600]
-# rd.D_architecture=[512,1024,512]
-# rd.G_architecture=[512,1024,512]
+
 rd.D_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
 rd.G_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
 # rd.D_architecture=[int(512*2.5),int(1024*2.5),int(1024*2.5),int(512*2.5)]
@@ -160,12 +117,12 @@ rd.conditions = [
 	"K_Kst_FLIGHT",
 	"e_plus_FLIGHT",
 	"e_minus_FLIGHT",
-	# "delta_0_P",
-	# "delta_0_PT",
-	# "delta_1_P",
-	# "delta_1_PT",
-	# "delta_2_P",
-	# "delta_2_PT",
+	"delta_0_P",
+	"delta_0_PT",
+	"delta_1_P",
+	"delta_1_PT",
+	"delta_2_P",
+	"delta_2_PT",
 	"K_Kst_TRUEID",
 	"e_plus_TRUEID",
 	"e_minus_TRUEID",
@@ -209,25 +166,7 @@ rd.targets = [
 ]
 
 rd.conditional_targets = []
-# rd.conditional_targets = ['missing_mass_frac']
 
-
-####################################################################################################################################
-
-
-# rd.conditions = [
-# 	"B_plus_P",
-# 	"B_plus_PT",
-# ]
-
-# rd.targets = [
-# 	"B_plus_ENDVERTEX_CHI2",
-# 	"B_plus_IPCHI2_OWNPV",
-# 	"B_plus_FDCHI2_OWNPV",
-# 	"B_plus_DIRA_OWNPV",
-# ]
-
-####
 rd.daughter_particles = ["K_Kst", "e_plus", "e_minus"] # K e e
 rd.mother_particle = 'B_plus'
 rd.intermediate_particle = 'J_psi_1S'
@@ -245,33 +184,8 @@ training_data_loader = data_loader.load_data(
 )
 
 training_data_loader.add_missing_mass_frac_branch()
-# training_data_loader.add_branch_and_process('missing_mass_frac','(B_plus_M-B_plus_M_reco)/B_plus_M')
 
 transformers = training_data_loader.get_transformers()
-
-
-# data = training_data_loader.get_branches(rd.targets+['B_plus_M','B_plus_M_reco'],processed=False)
-# data['missing_mass'] = data.eval('B_plus_M-B_plus_M_reco')
-# with PdfPages('2D.pdf') as pdf:
-# 	for tar in rd.targets:
-# 		plt.hist2d(data['missing_mass'], data[tar], bins=50, norm=LogNorm())
-# 		pdf.savefig(bbox_inches="tight")
-# 		plt.close()
-# quit()
-
-
-# print(f"Loading Kee...")
-# data_loader_Kee = data_loader.load_data(
-# 	[
-# 		"datasets/Kee_Merge_cut_chargeCounters_more_vars.root",
-# 	],
-# 	convert_to_RK_branch_names=True,
-# 	conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
-# 	testing_frac=0.08,
-# 	transformers=transformers,
-# )
-# data_loader_Kee.add_missing_mass_frac_branch()
-
 
 print(training_data_loader.shape())
 
@@ -327,7 +241,6 @@ print(f"Initialising BDT tester...")
 BDT_tester_obj = BDT_tester(
 	transformers=transformers,
 	tag="networks/BDT_sig_comb_WGANcocktail_newconditions",
-	# tag="networks/BDT_sig_comb_WGANcocktail_general",
 	train=False,
 	BDT_vars=BDT_targets,
 	signal="datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
@@ -340,21 +253,7 @@ BDT_tester_obj = BDT_tester(
 )
 
 # steps_for_plot = 10000
-# steps_for_plot = 500
 steps_for_plot = 5000
-# steps_for_plot = 1550
-# steps_for_plot = 50
-
-# vertex_quality_trainer_obj.load_state(tag=load_state)
-# vertex_quality_trainer_obj.load_state(tag=f"networks/vertex_job_9thSept_RAIN_best")
-
-
-
-# vertex_quality_trainer_obj.train(steps=5000)
-# vertex_quality_trainer_obj.save_state(tag='ROC')
-
-# vertex_quality_trainer_obj.load_state(tag='ROC')
-# TESTING CODE
 
 
 def test_with_ROC(training_data_loader_roc, vertex_quality_trainer_obj, it, last_BDT_distributions=None, tag='', weight=True):
@@ -398,15 +297,11 @@ def test_with_ROC(training_data_loader_roc, vertex_quality_trainer_obj, it, last
 	# post-processing didnt help.
 	images_dict = {}
 	for i in range(len(ROC_vars)):
-		# if rd.targets[i] in BDT_targets and "DIRA" not in rd.targets[i]:
-		# if rd.targets[i] in BDT_targets:
 		images_dict[ROC_vars[i]] = images[:,i]
 	images = training_data_loader_roc.post_process(pd.DataFrame(images_dict))
 
 	images_true_dict = {}
 	for i in range(len(ROC_vars)):
-		# if rd.targets[i] in BDT_targets and "DIRA" not in rd.targets[i]:
-		# if rd.targets[i] in BDT_targets:
 		images_true_dict[ROC_vars[i]] = images_true[:,i]
 	images_true = training_data_loader_roc.post_process(pd.DataFrame(images_true_dict))
 
@@ -415,25 +310,6 @@ def test_with_ROC(training_data_loader_roc, vertex_quality_trainer_obj, it, last
 		for i in range(len(ROC_vars)):
 			images_cheating_dict[ROC_vars[i]] = images_cheating[:,i]
 		images_cheating = np.squeeze(training_data_loader_roc.post_process(pd.DataFrame(images_cheating_dict)))
-
-
-	# with PdfPages('testing.pdf') as pdf:
-	# 	for i in range(np.shape(images)[1]):
-	# 		plt.subplot(1,2,1)
-	# 		plt.title(rd.targets[i])
-	# 		plt.hist2d(images_true[:,i],images[:,i],bins=75,range=[[-1,1],[-1,1]], norm=LogNorm())
-	# 		plt.ylabel('images')
-	# 		plt.xlabel('images_true')
-	# 		plt.subplot(1,2,2)
-	# 		plt.hist([images_true[:,i],images[:,i]],bins=75,range=[-1,1], label=['true','gen'],histtype='step')
-	# 		plt.legend()
-	# 		plt.xlabel(rd.targets[i])
-	# 		pdf.savefig(bbox_inches="tight")
-	# 		plt.close()
-
-			
-
-	# take conditions, pass through network
 
 	clf = GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, max_depth=4)
 
@@ -480,24 +356,9 @@ def test_with_ROC(training_data_loader_roc, vertex_quality_trainer_obj, it, last
 
 	ROC_AUC_SCORE_curr = roc_auc_score(np.append(np.ones(np.shape(out_real[:,1])),np.zeros(np.shape(out_fake[:,1]))),np.append(out_real[:,1],out_fake[:,1]))
 
-
-	# Labels: 1 for real, 0 for fake
 	y_true = np.append(np.ones(np.shape(out_real[:, 1])), np.zeros(np.shape(out_fake[:, 1])))
 	y_scores = np.append(out_real[:, 1], out_fake[:, 1])
 	fpr, tpr, thresholds = roc_curve(y_true, y_scores)
-
-	# Plot the ROC curve
-	# plt.figure()
-	# plt.plot(fpr, tpr, color='darkorange', lw=2, label=f'ROC curve (AUC = {roc_auc_score(y_true, y_scores):.2f})')
-	# plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')  # Diagonal line for random guessing
-	# plt.xlim([0.0, 1.0])
-	# plt.ylim([0.0, 1.05])
-	# plt.xlabel('False Positive Rate')
-	# plt.ylabel('True Positive Rate')
-	# plt.title('Receiver Operating Characteristic (ROC) Curve')
-	# plt.legend(loc="lower right")
-	# plt.savefig(f'{test_loc}ROC_out_{it}_{rd.network_option}{tag}.png', bbox_inches='tight')
-	# plt.close('all')
 
 	print(ROC_AUC_SCORE_curr)
 	return ROC_AUC_SCORE_curr, last_BDT_distributions
@@ -519,9 +380,6 @@ vertex_quality_trainer_obj.save_state(tag=load_state)
 
 ROC_AUC_SCORE_curr, last_BDT_distributions = test_with_ROC(training_data_loader, vertex_quality_trainer_obj, 0)
 ROC_collect = np.append(ROC_collect, [[0, ROC_AUC_SCORE_curr]], axis=0)
-# ROC_AUC_SCORE_curr_Kee, last_BDT_distributions_Kee = test_with_ROC(data_loader_Kee, vertex_quality_trainer_obj, 0, tag='Kee', weight=False)
-# ROC_collect_Kee = np.append(ROC_collect_Kee, [[0, ROC_AUC_SCORE_curr_Kee]], axis=0)
-
 
 vertex_quality_trainer_obj.initalise_BDT_test(BDT_tester_obj, BDT_cut=0.9)
 chi2 = vertex_quality_trainer_obj.run_BDT_test(filename=f'{test_loc}plots_BDT_0_{rd.network_option}.pdf')
@@ -530,21 +388,14 @@ chi2_collect_best = np.append(chi2_collect_best, [chi2], axis=0)
 min_mean_chi2 = np.mean(chi2)
 best_chi2 = chi2
 
-
-
 for i in range(int(1E30)):
-# for i in range(250):
 	vertex_quality_trainer_obj.train_more_steps(steps=steps_for_plot)
-	# vertex_quality_trainer_obj.train_more_steps(steps=steps_for_plot, reset_optimizer_state=True)
 
 	# vertex_quality_trainer_obj.make_plots(filename=f'plots_{i+1}.pdf',testing_file=["datasets/general_sample_chargeCounters_cut_more_vars_HEADfactor20.root"])
 
 	print("test with ROC")
 	ROC_AUC_SCORE_curr, last_BDT_distributions = test_with_ROC(training_data_loader, vertex_quality_trainer_obj, i+1, last_BDT_distributions=last_BDT_distributions)
 	ROC_collect = np.append(ROC_collect, [[i+1, ROC_AUC_SCORE_curr]], axis=0)
-	# ROC_AUC_SCORE_curr_Kee, last_BDT_distributions_Kee = test_with_ROC(data_loader_Kee, vertex_quality_trainer_obj, i+1, tag='Kee', weight=False, last_BDT_distributions=last_BDT_distributions_Kee)
-	# ROC_collect_Kee = np.append(ROC_collect_Kee, [[i+1, ROC_AUC_SCORE_curr_Kee]], axis=0)
-
 
 	print("run BDT test")
 	chi2 = vertex_quality_trainer_obj.run_BDT_test(filename=f'{test_loc}plots_BDT_{i+1}_{rd.network_option}.pdf')
@@ -575,13 +426,9 @@ for i in range(int(1E30)):
 	plt.savefig(f'{test_loc}Progress_best_{rd.network_option}')
 	plt.close('all')
 
-
 	plt.plot(ROC_collect[:,1])
 	plt.savefig(f'{test_loc}Progress_ROC_{rd.network_option}')
 	plt.close('all')
 
-	# plt.plot(ROC_collect_Kee[:,1])
-	# plt.savefig(f'{test_loc}Progress_ROC_{rd.network_option}_Kee')
-	# plt.close('all')
 
 

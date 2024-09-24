@@ -16,21 +16,8 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 from particle import Particle
 
-rd.use_QuantileTransformer = False
-
 use_intermediate = False
-rd.include_dropout = True
 
-# load_state = f"networks/vertex_job_9thSept_C"
-# load_state = f"networks/vertex_job_9thSept_D"
-# load_state = f"networks/vertex_job_9thSept_E_best"
-# load_state = f"networks/vertex_job_9thSept_E"
-# load_state = f"networks/vertex_job_9thSept_RAIN"
-# load_state = f"networks/vertex_job_9thSept_RAIN_best"
-# load_state = f"networks/vertex_job_9thSept_RAIN_best"
-# load_state = f"networks/testing_50"
-# load_state = f"test_runs/20th_VAE_beta_2000_dropout/networks/20th_VAE_beta_2000_dropout"
-# load_state = f"test_runs/20th_long_2000_lower_LR/networks/20th_long_2000_lower_LR"
 load_state = f"test_runs/22nf_nomissmass_deeper/networks/22nf_nomissmass_deeper"
 
 
@@ -66,29 +53,14 @@ trackchi2_trainer_obj = None
 vertex_quality_trainer_obj = vertex_quality_trainer(
     training_data_loader,
     trackchi2_trainer_obj,
-    # conditions=conditions,
-    # targets=targets,
-    # beta=float(rd.beta),
-    # latent_dim=rd.latent,
-    batch_size=64,
-    # D_architecture=D_architecture,
-    # G_architecture=G_architecture,
-    # network_option=network_option,
+    batch_size=64,n,
     load_config=load_state
 )
 
 vertex_quality_trainer_obj.load_state(tag=load_state)
 # vertex_quality_trainer_obj.make_plots(filename=f'example_training_plots_general',testing_file=training_data_loader.get_file_names(),offline=True)
-# quit()
 
 
-# print("plot conditions...")
-# training_data_loader.plot('conditions.pdf',rd.conditions)
-# print("plot targets...")
-# training_data_loader.plot('targets.pdf',rd.targets)
-# quit()
-
-# BDT_targets = rd.targets
 BDT_targets = [
 "B_plus_ENDVERTEX_CHI2",
 "B_plus_IPCHI2_OWNPV",
@@ -108,7 +80,6 @@ print(f"Initialising BDT tester...")
 BDT_tester_obj = BDT_tester(
     transformers=transformers,
     tag="networks/BDT_sig_comb_WGANcocktail_newconditions",
-    # tag="networks/BDT_sig_comb_WGANcocktail_general",
     train=False,
     BDT_vars=BDT_targets,
     signal="datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
@@ -125,7 +96,6 @@ scores = BDT_tester_obj.plot_detailed_metrics(
     rd.targets,
     vertex_quality_trainer_obj, f"metrics_{rd.network_option}.pdf",
     # only_signal=True,
-    # avoid_rapidsim=True,
 )
 
 scores = BDT_tester_obj.plot_differential_metrics(
@@ -134,7 +104,6 @@ scores = BDT_tester_obj.plot_differential_metrics(
     vertex_quality_trainer_obj, f"differential_metrics_{rd.network_option}.pdf",
     # only_signal=True,
     BDT_cut=0.9,
-    # avoid_rapidsim=True,
 )
 quit()
 
@@ -144,7 +113,6 @@ BDT_tester_obj = BDT_tester(
     tag="networks/BDT_sig_prc_WGANcocktail_newconditions",
     train=False,
     BDT_vars=BDT_targets,
-    # signal="datasets/Kee_2018_truthed_more_vars.csv",
     signal="datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
     background="datasets/dedicated_Kstee_MC_hierachy_cut_more_vars.root",
     signal_label=r"Signal $B^+\to K^+e^+e^-$ MC",
