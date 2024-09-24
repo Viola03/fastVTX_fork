@@ -58,14 +58,14 @@ rd.current_mse_raw = tf.convert_to_tensor(1.0)
 # test_tag = '20th_long_100'
 # test_tag = '21th_larger_lowerLR_2000'
 # test_tag = '21th_re_run_of_best'
-test_tag = '22nf_retrun_1000_nomissmass'
-
-test_tag = '22nf_nomissmass_deeper'
+# test_tag = '22nf_retrun_1000_nomissmass'
+# test_tag = '22nf_nomissmass_deeper'
+test_tag = 'No_delta_branches'
 
 
 #/software/am13743/env_may_2024/bin/python3.9 GAN_distances.py -processID 1
 
-test_loc = f'test_runs/{test_tag}/'
+test_loc = f'test_runs_branches/{test_tag}/'
 try:
 	os.mkdir(f'{test_loc}')
 	os.mkdir(f'{test_loc}/networks')
@@ -82,12 +82,12 @@ rd.latent = 10 # VAE latent dims
 # rd.G_architecture=[1600,2600,1600]
 # rd.D_architecture=[512,1024,512]
 # rd.G_architecture=[512,1024,512]
-# rd.D_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
-# rd.G_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
+rd.D_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
+rd.G_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
 # rd.D_architecture=[int(512*2.5),int(1024*2.5),int(1024*2.5),int(512*2.5)]
 # rd.G_architecture=[int(512*2.5),int(1024*2.5),int(1024*2.5),int(512*2.5)]
-rd.D_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
-rd.G_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
+# rd.D_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
+# rd.G_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
 rd.include_dropout = True
 rd.use_beta_schedule = False
 
@@ -160,12 +160,12 @@ rd.conditions = [
 	"K_Kst_FLIGHT",
 	"e_plus_FLIGHT",
 	"e_minus_FLIGHT",
-	"delta_0_P",
-	"delta_0_PT",
-	"delta_1_P",
-	"delta_1_PT",
-	"delta_2_P",
-	"delta_2_PT",
+	# "delta_0_P",
+	# "delta_0_PT",
+	# "delta_1_P",
+	# "delta_1_PT",
+	# "delta_2_P",
+	# "delta_2_PT",
 	"K_Kst_TRUEID",
 	"e_plus_TRUEID",
 	"e_minus_TRUEID",
@@ -339,9 +339,9 @@ BDT_tester_obj = BDT_tester(
 	use_intermediate=use_intermediate
 )
 
-steps_for_plot = 10000
+# steps_for_plot = 10000
 # steps_for_plot = 500
-# steps_for_plot = 5000
+steps_for_plot = 5000
 # steps_for_plot = 1550
 # steps_for_plot = 50
 

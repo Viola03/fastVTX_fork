@@ -3,4 +3,5 @@ import os
 os.environ["ZFIT_DISABLE_TF_WARNINGS"] = "1"
 
 from .processing import *
+from .example import *
 

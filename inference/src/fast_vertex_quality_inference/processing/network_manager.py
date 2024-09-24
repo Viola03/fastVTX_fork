@@ -47,7 +47,7 @@ class network_manager:
 		print('\n########\n')
 
 
-	def query_network(self, inputs):
+	def query_network(self, inputs, process=True, numpy=False, ignore_targets=False):
 
 		for input_i in inputs:
 			try:
@@ -64,12 +64,20 @@ class network_manager:
 		
 		output = self.session.run(self.output_names, input_data)[0]
 
-		df = {} 
-		for idx, target in enumerate(self.targets):
-			df[target] = output[:,idx]
-		output = pd.DataFrame.from_dict(df)
+		if not ignore_targets:
+			df = {} 
+			for idx, target in enumerate(self.targets):
+				df[target] = output[:,idx]
+			output = pd.DataFrame.from_dict(df)
 
-		output = tfs.untransform_df(output, self.Transformers)
+		if process:
+			output = tfs.untransform_df(output, self.Transformers)
+
+		if numpy:
+			if ignore_targets:
+				output = np.asarray(output)
+			else:
+				output = np.asarray(output[self.targets])
 
 		return output
 

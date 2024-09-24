@@ -62,9 +62,16 @@ class tuple_manager:
 
 		self.tree = tree
 		self.tuple_location = tuple_location
+
 		self.raw_tuple = uproot.open(self.tuple_location)[self.tree]
 
-		self.tuple = self.raw_tuple.arrays(library="pd")
+		list_of_branches = list(self.raw_tuple.keys())
+		list_of_branches = [branch for branch in list_of_branches if "COV" not in branch]
+
+		# for branch in list_of_branches:
+		# 	print(branch)
+
+		self.tuple = self.raw_tuple.arrays(list_of_branches, library="pd")
 		self.map_branch_names()
 		# self.convert_GeV_MeV(1000.)
 
