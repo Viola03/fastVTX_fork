@@ -3,8 +3,6 @@ import uproot
 import uproot3
 import matplotlib.pyplot as plt
 import pandas as pd
-import fast_vertex_quality.tools.variables_tools as vt
-from particle import Particle
 
 
 def transform_df(data, transformers):
