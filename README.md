@@ -2,6 +2,34 @@
 
 # Inference
 
+```
+# grab code (includes one pre-trained model)
+git clone ssh://git@gitlab.cern.ch:7999/amarshal/fast_vertexing_variables.git
+
+# create and active a clean conda environment
+conda create -n fast_vtx python=3.9
+conda activate fast_vtx
+
+# just confirm the right pip and right python and being pointed to
+which pip
+which python
+
+# install all required libraries for inference 
+pip install --no-dependencies -e inference/src/.
+pip install --no-dependencies -e src/.
+pip install numpy==1.26.4
+pip install uproot==5.3.7
+pip install uproot3==3.14.4
+pip install matplotlib
+pip install pandas
+pip install vector==0.8.0
+pip install onnxruntime
+pip install scikit-learn
+pip install str2bool
+```
+
+
+
 ## Installation
 
 To install the package
