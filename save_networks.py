@@ -9,20 +9,35 @@ import pickle
 import tensorflow as tf
 import tf2onnx
 
-def save_model(trainer_obj, onnx_model_path):
+def save_model(save_location, trainer_obj, onnx_model_path, encoder=False):
 
-    decoder_model = trainer_obj.decoder
+    if encoder:
+        encoder_model = trainer_obj.encoder
 
-    input_signature = [
-        tf.TensorSpec(decoder_model.inputs[0].shape, tf.float32, name="input_latent"),
-        tf.TensorSpec(decoder_model.inputs[1].shape, tf.float32, name="momentum_conditions"),
-    ]
-    onnx_model, _ = tf2onnx.convert.from_keras(decoder_model, input_signature=input_signature, opset=13)
+        input_signature = [
+            tf.TensorSpec(encoder_model.inputs[0].shape, tf.float32, name="input_vertex_info"),
+            tf.TensorSpec(encoder_model.inputs[1].shape, tf.float32, name="momentum_conditions"),
+        ]
+        onnx_model, _ = tf2onnx.convert.from_keras(encoder_model, input_signature=input_signature, opset=13)
 
-    with open(onnx_model_path, "wb") as f:
-        f.write(onnx_model.SerializeToString())
+        with open(f"{save_location}/{onnx_model_path}", "wb") as f:
+            f.write(onnx_model.SerializeToString())
 
-    print(f"Decoder model saved as {onnx_model_path}")
+        print(f"Encoder model saved as {save_location}/{onnx_model_path}")
+    
+    else:
+        decoder_model = trainer_obj.decoder
+
+        input_signature = [
+            tf.TensorSpec(decoder_model.inputs[0].shape, tf.float32, name="input_latent"),
+            tf.TensorSpec(decoder_model.inputs[1].shape, tf.float32, name="momentum_conditions"),
+        ]
+        onnx_model, _ = tf2onnx.convert.from_keras(decoder_model, input_signature=input_signature, opset=13)
+
+        with open(f"{save_location}/{onnx_model_path}", "wb") as f:
+            f.write(onnx_model.SerializeToString())
+
+        print(f"Decoder model saved as {save_location}/{onnx_model_path}")
 
 def rapidsim_ify__branch_names(branches):
 
@@ -48,7 +63,10 @@ def rapidsim_ify__branch_names(branches):
                 dim = branch[branch.index("_TRUEP") + len("_TRUEP_")]
             except:
                 dim = ''
-            branch = branch.replace(f"TRUEP_{dim}",f"P{dim}_TRUE") 
+            if branch[-5:] == "TRUEP":
+                branch = branch.replace(f"_TRUEP",f"_P_TRUE") 
+            else:
+                branch = branch.replace(f"TRUEP_{dim}",f"P{dim}_TRUE") 
 
         branch = branch.replace('B_plus','MOTHER')
         branch = branch.replace('K_Kst','DAUGHTER1')
@@ -60,12 +78,15 @@ def rapidsim_ify__branch_names(branches):
 
     return rapidsim_ified__branches
 
-def organise_and_save(save_location, load_state, trainer, tag):
+def organise_and_save(save_location, load_state, trainer, tag, save_encoder=False):
 
     transformers = pickle.load(open(f"{load_state}_transfomers.pkl", "rb"))
     trainer_obj = trainer(load_config=load_state)
     trainer_obj.load_state(tag=load_state)
-    save_model(trainer_obj, f"{tag}_model.onnx")
+    save_model(save_location, trainer_obj, f"{tag}_decoder_model.onnx")
+
+    if save_encoder:
+        save_model(save_location, trainer_obj, f"{tag}_encoder_model.onnx", encoder=True)
 
     conditions = trainer_obj.conditions
     targets = trainer_obj.targets
@@ -96,4 +117,4 @@ rapidsim_smearing_state = f"networks/primary_vertex_job_new_processing2"
 vertex_quality_state = f"test_runs/22nf_nomissmass_deeper/networks/22nf_nomissmass_deeper"
 
 organise_and_save(save_location, rapidsim_smearing_state, primary_vertex_trainer, tag="smearing")
-organise_and_save(save_location, vertex_quality_state, vertex_quality_trainer, tag="vertexing")
+organise_and_save(save_location, vertex_quality_state, vertex_quality_trainer, tag="vertexing", save_encoder=True)

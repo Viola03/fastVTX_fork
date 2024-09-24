@@ -1,41 +1,86 @@
-from fast_vertex_quality_inference.processing.data_manager import data_manager
+from fast_vertex_quality_inference.processing.data_manager import data_manager, tuple_manager
 from fast_vertex_quality_inference.processing.network_manager import network_manager
+import numpy as np
 
+# config.verbose = True
 
 #### 
-# INITIALISE NETWORK
+# INITIALISE NETWORKS
 ###
+
 rapidsim_PV_smearing_network = network_manager(
-					network="/users/am13743/fast_vertexing_variables/inference/example/smearing_network.onnx", 
-					config="/users/am13743/fast_vertexing_variables/inference/example/smearing_configs.pkl",
-					transformers="/users/am13743/fast_vertexing_variables/inference/example/smearing_transformers.pkl",
+					network="inference/example/models/smearing_decoder_model.onnx", 
+					config="inference/example/models/smearing_configs.pkl", 
+					transformers="inference/example/models/smearing_transfomers.pkl", 
 					)
 
 vertexing_network = network_manager(
-                    network="/users/am13743/fast_vertexing_variables/inference/example/vertexting_network.onnx", 
-                    config="/users/am13743/fast_vertexing_variables/inference/example/vertexing_configs.pkl",
-                    transformers="/users/am13743/fast_vertexing_variables/inference/example/vertexing_transformers.pkl",
+					network="inference/example/models/vertexing_decoder_model.onnx", 
+					config="inference/example/models/vertexing_configs.pkl", 
+					transformers="inference/example/models/vertexing_transfomers.pkl", 
+                    )
+
+vertexing_encoder = network_manager(
+					network="inference/example/models/vertexing_encoder_model.onnx", 
+					config="inference/example/models/vertexing_configs.pkl", 
+					transformers="inference/example/models/vertexing_transfomers.pkl", 
                     )
 
 
+#### 
+# LOAD RAPIDSIM TUPLE
+###
 
-data = data_manager(
-					tuple="/users/am13743/fast_vertexing_variables/inference/example/example.root", 
+
+data_tuple = tuple_manager(
+					tuple_location="/users/am13743/fast_vertexing_variables/inference/example/example.root",
 					particles_TRUEID=[321, 11, 11],
-					mother_TRUEID=521,
-					fully_reco=True,
+					fully_reco=1,
 					nPositive_missing_particles=0,
 					nNegative_missing_particles=0,
-					tree='DecayTree',
-					particles=["K_plus", "e_plus", "e_minus"],
-					mother = 'B_plus',
-					intermediate = 'J_psi',
+					mother_particle_name="B_plus",
+					intermediate_particle_name="J_psi",
+					daughter_particle_names=["K_plus","e_plus","e_minus"],
 					)
-data.process(
-			output_tuple="/users/am13743/fast_vertexing_variables/inference/example/example_reco.root", PV_smearing_network=rapidsim_PV_smearing_network,
-			vertexing_network=vertexing_network,
-			)
+
+
+#### 
+# SMEAR PV
+###
+
+smearing_conditions = data_tuple.get_branches(
+					rapidsim_PV_smearing_network.conditions, 
+					rapidsim_PV_smearing_network.Transformers, 
+					numpy=True,
+					)
+smeared_PV_output = rapidsim_PV_smearing_network.query_network(
+					['noise',smearing_conditions],
+					)
+data_tuple.smearPV(smeared_PV_output)
 
 
 
+#### 
+# COMPUTE CONDITIONS AND RUN VERTEXING NETWORK
+###
+
+data_tuple.append_conditional_information()
+vertexing_conditions = data_tuple.get_branches(
+					vertexing_network.conditions, 
+					vertexing_network.Transformers, 
+					numpy=True,
+					)
+vertexing_output = vertexing_network.query_network(
+					['noise',vertexing_conditions],
+					)
+data_tuple.add_branches(
+					vertexing_output
+					)
+
+
+#### 
+# WRITE TUPLE
+###
+
+data_tuple.write(new_branches_to_keep=vertexing_network.targets)
 
