@@ -3,7 +3,6 @@ import uproot
 import uproot3
 import matplotlib.pyplot as plt
 import pandas as pd
-from particle import Particle
 import fast_vertex_quality_inference.processing.transformers as tfs
 import fast_vertex_quality_inference.processing.processing_tools as pts
 
