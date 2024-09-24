@@ -33,7 +33,7 @@ vertexing_encoder = network_manager(
 
 
 data_tuple = tuple_manager(
-					tuple_location="/users/am13743/fast_vertexing_variables/inference/example/example.root",
+					tuple_location="inference/example/example.root",
 					particles_TRUEID=[321, 11, 11],
 					fully_reco=1,
 					nPositive_missing_particles=0,
