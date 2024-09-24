@@ -1,4 +1,4 @@
-from fast_vertex_quality_inference.processing.data_manager import data_manager, tuple_manager
+from fast_vertex_quality_inference.processing.data_manager import tuple_manager
 from fast_vertex_quality_inference.processing.network_manager import network_manager
 import numpy as np
 
