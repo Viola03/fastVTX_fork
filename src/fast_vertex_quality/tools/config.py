@@ -17,10 +17,10 @@ try:
     import tensorflow as tf
     tf.get_logger().setLevel(logging.ERROR)
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
-    warnings.filterwarnings('ignore')
 except:
     print("Running without tensorflow...")
     avoid_tensorflow = True
+warnings.filterwarnings('ignore')
 
 parser = configparser.ConfigParser()
 parser.optionxform = str  # Allows variable names to be case sensitive
