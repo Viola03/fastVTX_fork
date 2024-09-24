@@ -114,7 +114,8 @@ def organise_and_save(save_location, load_state, trainer, tag, save_encoder=Fals
 
 save_location = "inference/example/models/"
 rapidsim_smearing_state = f"networks/primary_vertex_job_new_processing2"
-vertex_quality_state = f"test_runs/22nf_nomissmass_deeper/networks/22nf_nomissmass_deeper"
+# vertex_quality_state = f"test_runs/22nf_nomissmass_deeper/networks/22nf_nomissmass_deeper"
+vertex_quality_state = f"test_runs/22nf_retrun_1000_nomissmass/networks/22nf_retrun_1000_nomissmass"
 
 organise_and_save(save_location, rapidsim_smearing_state, primary_vertex_trainer, tag="smearing")
 organise_and_save(save_location, vertex_quality_state, vertex_quality_trainer, tag="vertexing", save_encoder=True)

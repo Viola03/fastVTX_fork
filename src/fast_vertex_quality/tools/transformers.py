@@ -3,7 +3,6 @@ import pandas as pd
 from sklearn.preprocessing import PowerTransformer, QuantileTransformer
 
 from fast_vertex_quality.tools.config import rd, read_definition
-import tensorflow as tf
 import uproot
 
 import uproot3 
@@ -11,9 +10,6 @@ from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 import numpy as np
 import pickle
-from particle import Particle
-from hep_ml.reweight import BinsReweighter, GBReweighter, FoldingReweighter
-from termcolor import colored
 
 
 def symlog(x, linthresh=1.0):
