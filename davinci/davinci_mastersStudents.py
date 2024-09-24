@@ -399,14 +399,11 @@ class GeneralConf(LineBuilder):
 		# _Cut = (
 		# 	"((mcMatch('B+')) | (mcMatch('B-')) | (mcMatch('B0')) | (mcMatch('B~0')) | (mcMatch('B_s0')) | (mcMatch('B_s~0'))  | (mcMatch('B_c+')) | (mcMatch('B_c-')))"
 		# )
-		_Cut = (
-			""
-		)
 
 		_Combine = CombineParticles(
 			'Generalised_combine_Particles',
 			Preambulo = ["from LoKiPhysMC.decorators import *","from LoKiPhysMC.functions import mcMatch"],
-			DecayDescriptors=_Decays, CombinationCut=masscut, MotherCut=_Cut
+			DecayDescriptors=_Decays, CombinationCut=masscut#, MotherCut=_Cut
 		)
 
 		_Merge = MergedSelection("Merge" + name, RequiredSelections=hadrons)
