@@ -18,7 +18,8 @@ from particle import Particle
 
 use_intermediate = False
 
-load_state = f"test_runs/22nf_nomissmass_deeper/networks/22nf_nomissmass_deeper"
+# load_state = f"test_runs/22nf_nomissmass_deeper/networks/22nf_nomissmass_deeper"
+load_state = f"test_runs/22nf_retrun_1000_nomissmass/networks/22nf_retrun_1000_nomissmass"
 
 
 ####################################################################################################################################
@@ -53,7 +54,7 @@ trackchi2_trainer_obj = None
 vertex_quality_trainer_obj = vertex_quality_trainer(
     training_data_loader,
     trackchi2_trainer_obj,
-    batch_size=64,n,
+    batch_size=64,
     load_config=load_state
 )
 
@@ -76,36 +77,36 @@ BDT_targets = [
 "J_psi_1S_IPCHI2_OWNPV"
 ]
 
-print(f"Initialising BDT tester...")
-BDT_tester_obj = BDT_tester(
-    transformers=transformers,
-    tag="networks/BDT_sig_comb_WGANcocktail_newconditions",
-    train=False,
-    BDT_vars=BDT_targets,
-    signal="datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
-    background="datasets/B2Kee_2018_CommonPresel.csv",
-    signal_label=r"Signal $B^+\to K^+e^+e^-$ MC",
-    background_label=r"UMSB Combinatorial",
-    gen_track_chi2=False,
-    signal_convert_branches=True,
-    use_intermediate=use_intermediate
-)
+# print(f"Initialising BDT tester...")
+# BDT_tester_obj = BDT_tester(
+#     transformers=transformers,
+#     tag="networks/BDT_sig_comb_WGANcocktail_newconditions",
+#     train=False,
+#     BDT_vars=BDT_targets,
+#     signal="datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
+#     background="datasets/B2Kee_2018_CommonPresel.csv",
+#     signal_label=r"Signal $B^+\to K^+e^+e^-$ MC",
+#     background_label=r"UMSB Combinatorial",
+#     gen_track_chi2=False,
+#     signal_convert_branches=True,
+#     use_intermediate=use_intermediate
+# )
 
-scores = BDT_tester_obj.plot_detailed_metrics(
-    rd.conditions,
-    rd.targets,
-    vertex_quality_trainer_obj, f"metrics_{rd.network_option}.pdf",
-    # only_signal=True,
-)
+# scores = BDT_tester_obj.plot_detailed_metrics(
+#     rd.conditions,
+#     rd.targets,
+#     vertex_quality_trainer_obj, f"metrics_{rd.network_option}.pdf",
+#     # only_signal=True,
+# )
 
-scores = BDT_tester_obj.plot_differential_metrics(
-    rd.conditions,
-    rd.targets,
-    vertex_quality_trainer_obj, f"differential_metrics_{rd.network_option}.pdf",
-    # only_signal=True,
-    BDT_cut=0.9,
-)
-quit()
+# scores = BDT_tester_obj.plot_differential_metrics(
+#     rd.conditions,
+#     rd.targets,
+#     vertex_quality_trainer_obj, f"differential_metrics_{rd.network_option}.pdf",
+#     # only_signal=True,
+#     BDT_cut=0.9,
+# )
+# quit()
 
 print(f"Initialising BDT tester...")
 BDT_tester_obj = BDT_tester(

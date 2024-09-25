@@ -45,53 +45,11 @@ rd.G_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
 # rd.G_architecture=[int(512*2.5),int(1024*2.5),int(1024*2.5),int(512*2.5)]
 # rd.D_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
 # rd.G_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
-rd.include_dropout = True
-rd.use_beta_schedule = False
-
-# rd.D_architecture=[128,256,512,1024] # decent
-# rd.G_architecture=[1024,512,256,128]
-
-# rd.beta = 750. # this is the minimum value of beta, the annealing means it starts from higher
 
 rd.beta = 1000.
 
-# rd.beta = 2500. # maybe good
-# rd.batch_size = 1024
 rd.batch_size = 256
 # rd.batch_size = 64
-
-# # 0.94
-# rd.network_option = 'VAE'
-# load_state = f"networks/testing"
-# rd.latent = 7 # VAE latent dims
-# rd.D_architecture=[500,1000,500]
-# rd.G_architecture=[500,1000,500]
-# rd.beta = 2500.
-# rd.batch_size = 64
-
-# rd.network_option = 'VAE'
-# load_state = f"networks/testing"
-# rd.latent = 7 # VAE latent dims
-# rd.D_architecture=[1600,2600,1600]
-# rd.G_architecture=[1600,2600,1600]
-# rd.beta = 10000.
-# rd.batch_size = 64
-
-
-
-# rd.network_option = 'WGAN'
-# rd.latent = 50 # noise dims
-# # rd.latent = 100 # noise dims
-
-
-
-# network_option = 'VAE'
-# load_state = f"networks/vertex_job_testing"
-# rd.latent = 7 # VAE latent dims
-# rd.D_architecture=[1600,2600,2600,1600]
-# rd.G_architecture=[1600,2600,2600,1600]
-# rd.beta = 750.
-
 
 rd.conditions = [
 	"B_plus_P",
