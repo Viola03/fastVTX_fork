@@ -75,8 +75,33 @@ class analyser:
 		# 		plt.close()
 				
 		
+		# sample = np.squeeze(np.asarray(sample[BDT_targets]))
+
+		# print(np.shape(sample))
+		# print(np.where(np.isnan(sample)))
+		# print(np.unique(np.where(np.isnan(sample))[0]))
+
+		
+		# self.data[self.BDT_branch_name] = clf.predict_proba(sample)[:, 1]
+
+		# Convert sample to numpy array and squeeze
 		sample = np.squeeze(np.asarray(sample[BDT_targets]))
-		self.data[self.BDT_branch_name] = clf.predict_proba(sample)[:, 1]
+
+		nan_rows = np.unique(np.where(np.isnan(sample))[0])
+
+		# Initialize an array to store BDT responses, filled with NaN
+		bdt_responses = np.full(len(sample), np.nan)
+
+		# Identify the rows without NaN values
+		non_nan_rows = np.setdiff1d(np.arange(len(sample)), nan_rows)
+
+		# For rows without NaN values, make predictions
+		if len(non_nan_rows) > 0:
+			bdt_responses[non_nan_rows] = clf.predict_proba(sample[non_nan_rows])[:, 1]
+
+		# Assign the responses back to the appropriate branch
+		self.data[self.BDT_branch_name] = bdt_responses
+		
 
 
 	def __init__(self, 

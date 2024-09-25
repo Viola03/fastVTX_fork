@@ -10,7 +10,7 @@ masses = {}
 masses[321] = 493.677
 masses[211] = 139.57039
 masses[13] = 105.66
-masses[11] = 0.51099895000 * 1e-3
+masses[11] = 0.51099895000 #* 1e-3
 pid_list = [11,13,211,321]
 
 
@@ -33,6 +33,34 @@ class tuple_manager:
 	# 			if f"_{P}_" in branch or branch[-(len(P)+1):] == f"_{P}":
 	# 				self.tuple[branch] *= factor
 
+	def recompute_reconstructed_mass(self):
+		
+		df = self.tuple
+
+		i = self.particles[0]
+		j = self.particles[1]
+		k = self.particles[2]
+
+		mass_i = masses[self.particles_TRUEID[0]] * 1e-3
+		mass_j = masses[self.particles_TRUEID[1]] * 1e-3
+		mass_k = masses[self.particles_TRUEID[2]] * 1e-3
+
+		PE = np.sqrt(
+			mass_i**2 + df[f"{i}_PX"] ** 2 + df[f"{i}_PY"] ** 2 + df[f"{i}_PZ"] ** 2
+		) + np.sqrt(
+			mass_j**2 + df[f"{j}_PX"] ** 2 + df[f"{j}_PY"] ** 2 + df[f"{j}_PZ"] ** 2
+		) + np.sqrt(
+			mass_k**2 + df[f"{k}_PX"] ** 2 + df[f"{k}_PY"] ** 2 + df[f"{k}_PZ"] ** 2
+		)
+		PX = df[f"{i}_PX"] + df[f"{j}_PX"] + df[f"{k}_PX"]
+		PY = df[f"{i}_PY"] + df[f"{j}_PY"] + df[f"{k}_PY"]
+		PZ = df[f"{i}_PZ"] + df[f"{j}_PZ"] + df[f"{k}_PZ"]
+
+		mass = np.sqrt((PE**2 - PX**2 - PY**2 - PZ**2))
+
+		return mass
+
+
 	def __init__(self, 
 				tuple_location, 
 				particles_TRUEID,
@@ -43,6 +71,7 @@ class tuple_manager:
 				intermediate_particle_name, # make this optional
 				daughter_particle_names,
 				tree='DecayTree',
+				entry_stop=None,
 				):
 
 
@@ -69,11 +98,16 @@ class tuple_manager:
 		# for branch in list_of_branches:
 		# 	print(branch)
 
-		self.tuple = self.raw_tuple.arrays(list_of_branches, library="pd")
+		if entry_stop:
+			self.tuple = self.raw_tuple.arrays(list_of_branches, library="pd", entry_stop=entry_stop)
+		else:
+			self.tuple = self.raw_tuple.arrays(list_of_branches, library="pd")
 		self.map_branch_names()
 		# self.convert_GeV_MeV(1000.)
 
 		self.original_branches = list(self.tuple.keys())
+
+		self.tuple[f"{self.mother}_M"] = self.recompute_reconstructed_mass()
 	
 	def write(self, new_branches_to_keep, output_location=None):
 
