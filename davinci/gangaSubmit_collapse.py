@@ -3,6 +3,7 @@ import numpy as np
 import time
 import pickle 
 
+# # run this to collect the output locations of the collapse job
 # def dumpDataAccessURLs(jobs_i, output_name):
 # 	files = jobs_i.backend.getOutputDataAccessURLs()
 # 	filehandler = open(output_name, 'wb') 
@@ -14,7 +15,7 @@ import pickle
 
 # How do I run an executable job that uses input files on the Grid as arguments to the script?
 
-JOB_ID = 2283
+JOB_ID = 2446
 
 ############################
 
