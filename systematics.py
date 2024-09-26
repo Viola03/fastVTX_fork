@@ -15,6 +15,7 @@ Ntests = 50
 # ###
 
 # tag = 'Kee'
+# latex_tag = r"$B^+\to K^+e^+e^-$"
 
 # def load_up_a_rapidsim_tuple():
 # 	return tuple_manager(
@@ -46,55 +47,20 @@ Ntests = 50
 # Kee_analyser_MC = analyser(MC_data_tuple.tuple, "pass_stripping", "BDT")
 
 
-# ### 
-# # Kstree
-# ##
+### 
+# Kstree
+##
 
-# tag = 'Kstree'
+tag = 'Kstree'
+latex_tag = r"$B^0\to K^{*0}e^+e^-$"
 
-# def load_up_a_rapidsim_tuple():
-# 	return tuple_manager(
-# 					tuple_location="/users/am13743/fast_vertexing_variables/rapidsim/Kstree/Partreco_tree_LARGE.root",
-# 					particles_TRUEID=[321, 11, 11],
-# 					fully_reco=0,
-# 					nPositive_missing_particles=1,
-# 					nNegative_missing_particles=0,
-# 					mother_particle_name="B_plus",
-# 					intermediate_particle_name="J_psi",
-# 					daughter_particle_names=["K_plus","e_plus","e_minus"],
-# 					entry_stop=50000,
-# 					)
-# data_tuple = load_up_a_rapidsim_tuple()
-
-# MC_data_tuple = tuple_manager(
-# 					tuple_location="/users/am13743/fast_vertexing_variables/datasets/Kstzeroee_Merge_chargeCounters_cut_more_vars.root",
-# 					particles_TRUEID=[321, 11, 11],
-# 					fully_reco=0,
-# 					nPositive_missing_particles=1,
-# 					nNegative_missing_particles=0,
-# 					mother_particle_name="B_plus",
-# 					intermediate_particle_name="J_psi_1S",
-# 					daughter_particle_names=["K_Kst","e_plus","e_minus"],
-# 					entry_stop=50000,
-# 					)
-# MC_data_tuple.tuple['MOTHER_M'] = MC_data_tuple.tuple['MOTHER_M_reco']
-# Kee_analyser_MC = analyser(MC_data_tuple.tuple, "pass_stripping", "BDT")
-
-
-
-
-#### 
-# BuD0piKenu
-###
-
-tag = 'BuD0piKenu'
 
 def load_up_a_rapidsim_tuple():
 	return tuple_manager(
-					tuple_location="/users/am13743/fast_vertexing_variables/rapidsim/BuD0piKenu/BuD0piKenu_tree.root",
-					particles_TRUEID=[321, 11, 211],
+					tuple_location="/users/am13743/fast_vertexing_variables/rapidsim/Kstree/Partreco_tree_LARGE.root",
+					particles_TRUEID=[321, 11, 11],
 					fully_reco=0,
-					nPositive_missing_particles=0,
+					nPositive_missing_particles=1,
 					nNegative_missing_particles=0,
 					mother_particle_name="B_plus",
 					intermediate_particle_name="J_psi",
@@ -104,10 +70,10 @@ def load_up_a_rapidsim_tuple():
 data_tuple = load_up_a_rapidsim_tuple()
 
 MC_data_tuple = tuple_manager(
-					tuple_location="/users/am13743/fast_vertexing_variables/datasets/BuD0piKenu_Merge_chargeCounters_cut_more_vars.root",
-					particles_TRUEID=[321, 11, 211],
+					tuple_location="/users/am13743/fast_vertexing_variables/datasets/Kstzeroee_Merge_chargeCounters_cut_more_vars.root",
+					particles_TRUEID=[321, 11, 11],
 					fully_reco=0,
-					nPositive_missing_particles=0,
+					nPositive_missing_particles=1,
 					nNegative_missing_particles=0,
 					mother_particle_name="B_plus",
 					intermediate_particle_name="J_psi_1S",
@@ -116,6 +82,44 @@ MC_data_tuple = tuple_manager(
 					)
 MC_data_tuple.tuple['MOTHER_M'] = MC_data_tuple.tuple['MOTHER_M_reco']
 Kee_analyser_MC = analyser(MC_data_tuple.tuple, "pass_stripping", "BDT")
+
+
+
+
+# #### 
+# # BuD0piKenu
+# ###
+
+# tag = 'BuD0piKenu'
+# latex_tag = r"$B^+\to \bar{D}^{0}(\to K^+e^-\bar{\nu}_e)\pi^+$"
+
+# def load_up_a_rapidsim_tuple():
+# 	return tuple_manager(
+# 					tuple_location="/users/am13743/fast_vertexing_variables/rapidsim/BuD0piKenu/BuD0piKenu_tree.root",
+# 					particles_TRUEID=[321, 11, 211],
+# 					fully_reco=0,
+# 					nPositive_missing_particles=0,
+# 					nNegative_missing_particles=0,
+# 					mother_particle_name="B_plus",
+# 					intermediate_particle_name="J_psi",
+# 					daughter_particle_names=["K_plus","e_plus","e_minus"],
+# 					entry_stop=50000,
+# 					)
+# data_tuple = load_up_a_rapidsim_tuple()
+
+# MC_data_tuple = tuple_manager(
+# 					tuple_location="/users/am13743/fast_vertexing_variables/datasets/BuD0piKenu_Merge_chargeCounters_cut_more_vars.root",
+# 					particles_TRUEID=[321, 11, 211],
+# 					fully_reco=0,
+# 					nPositive_missing_particles=0,
+# 					nNegative_missing_particles=0,
+# 					mother_particle_name="B_plus",
+# 					intermediate_particle_name="J_psi_1S",
+# 					daughter_particle_names=["K_Kst","e_plus","e_minus"],
+# 					entry_stop=50000,
+# 					)
+# MC_data_tuple.tuple['MOTHER_M'] = MC_data_tuple.tuple['MOTHER_M_reco']
+# Kee_analyser_MC = analyser(MC_data_tuple.tuple, "pass_stripping", "BDT")
 
 
 
@@ -197,11 +201,11 @@ with PdfPages(f"systematics_plots/{tag}_Vars.pdf") as pdf:
 	plotter.variable_plotter(pdf, 'BDT', Kee_analyser_MC, Kee_analyser, 'pass_stripping>0.5 and MOTHER_M>4.2 and MOTHER_M<5.8', 'MC', 'Gen', title='BDT after stripping')
 	plotter.variable_plotter(pdf, 'BDT', Kee_analyser_MC, Kee_analyser, 'pass_stripping>0.5 and MOTHER_M>4.2 and MOTHER_M<5.8', 'MC', 'Gen', log=True, title='BDT after stripping')
 
-	for var in vertexing_network.targets:
-		plotter.variable_plotter(pdf, f'{var}', Kee_analyser_MC, Kee_analyser, 'MOTHER_M>4.2 and MOTHER_M<5.8', 'MC', 'Gen', title=f'{var} before stripping')
-		plotter.variable_plotter(pdf, f'{var}', Kee_analyser_MC, Kee_analyser, 'pass_stripping>0.5 and MOTHER_M>4.2 and MOTHER_M<5.8', 'MC', 'Gen', title=f'{var} after stripping')
+# 	for var in vertexing_network.targets:
+# 		plotter.variable_plotter(pdf, f'{var}', Kee_analyser_MC, Kee_analyser, 'MOTHER_M>4.2 and MOTHER_M<5.8', 'MC', 'Gen', title=f'{var} before stripping')
+# 		plotter.variable_plotter(pdf, f'{var}', Kee_analyser_MC, Kee_analyser, 'pass_stripping>0.5 and MOTHER_M>4.2 and MOTHER_M<5.8', 'MC', 'Gen', title=f'{var} after stripping')
 
-quit()
+# quit()
 
 with PdfPages(f"systematics_plots/{tag}_diff.pdf") as pdf:
 
@@ -210,7 +214,7 @@ with PdfPages(f"systematics_plots/{tag}_diff.pdf") as pdf:
 	tuple_B=Kee_analyser.data.query("MOTHER_M>4 and MOTHER_M<5.7"),
 	label_A='MC',
 	label_B='Gen',
-	variable="MOTHER_M",cut="pass_stripping>0.5",range_array=[4,5.7],title=r"$B^+\to K^+e^+e^-$ Stripping", xlabel=r'$m(Kee)$ (GeV)', signal=True
+	variable="MOTHER_M",cut="pass_stripping>0.5",range_array=[4,5.7],title=f"{latex_tag} Stripping", xlabel=r'$m(Kee)$ (GeV)', signal=True
 	)
 	
 	plotter.plot_efficiency_as_a_function_of_variable(pdf,
@@ -218,7 +222,7 @@ with PdfPages(f"systematics_plots/{tag}_diff.pdf") as pdf:
 	tuple_B=Kee_analyser.data.query("pass_stripping>0.5 and MOTHER_M>4 and MOTHER_M<5.7"),
 	label_A='MC',
 	label_B='Gen',
-	variable="MOTHER_M",cut="BDT>0.9",range_array=[4,5.7],title=r"$B^+\to K^+e^+e^-$ BDT (given Stripping)", xlabel=r'$m(Kee)$ (GeV)', signal=True
+	variable="MOTHER_M",cut="BDT>0.9",range_array=[4,5.7],title=f"{latex_tag} BDT (given Stripping)", xlabel=r'$m(Kee)$ (GeV)', signal=True
 	)
 
 	plotter.plot_efficiency_as_a_function_of_variable(pdf,
@@ -226,9 +230,9 @@ with PdfPages(f"systematics_plots/{tag}_diff.pdf") as pdf:
 	tuple_B=Kee_analyser.data.query("MOTHER_M>4 and MOTHER_M<5.7"),
 	label_A='MC',
 	label_B='Gen',
-	variable="MOTHER_M",cut="BDT>0.9 and pass_stripping>0.5",range_array=[4,5.7],title=r"$B^+\to K^+e^+e^-$ Stripping + BDT", xlabel=r'$m(Kee)$ (GeV)', signal=True
+	variable="MOTHER_M",cut="BDT>0.9 and pass_stripping>0.5",range_array=[4,5.7],title=f"{latex_tag} Stripping + BDT", xlabel=r'$m(Kee)$ (GeV)', signal=True
 	)
-
+quit()
 
 
 def repass_network(tuple_in):

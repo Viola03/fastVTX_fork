@@ -3121,7 +3121,7 @@ class BDT_tester:
             values = []
             for key in list(sample_values.keys()):
                 values.append(np.asarray(sample_values[key]))
-            alexPlot.plot_data(values, density=True, also_plot_hist=True, bins=50, color=colours, xmin=0, xmax=1, ymin=ymin, ymax=ymax, only_canvas=True, log=True)
+            alexPlot.plot_data(values, density=True, also_plot_hist=True, bins=50, color=colours, xmin=0, xmax=1, ymin=ymin, ymax=ymax, only_canvas=True, log=True, pulls=False)
             plt.legend(loc='upper left',frameon=False)
             plt.ylim(ymin, ymax)
             plt.xlabel(f"BDT output")
@@ -3173,7 +3173,7 @@ class BDT_tester:
             values = []
             for key in list(sample_values.keys()):
                 values.append(np.asarray(sample_values[key]))
-            alexPlot.plot_data(values, density=True, also_plot_hist=True, bins=50, color=colours, xmin=0, xmax=1, only_canvas=True)
+            alexPlot.plot_data(values, density=True, also_plot_hist=True, bins=50, color=colours, xmin=0, xmax=1, only_canvas=True, pulls=False)
             plt.legend(loc='upper left',frameon=False)
             plt.xlabel(f"BDT output")
             pdf.savefig(bbox_inches="tight")
