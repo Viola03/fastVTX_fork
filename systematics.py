@@ -10,70 +10,34 @@ import fast_vertex_quality_inference.example.plotter as plotter
 # Ntests = 50
 Ntests = 50
 
-# #### 
-# # Kee
-# ###
+#### 
+# Kee
+###
 
-# tag = 'Kee'
-# latex_tag = r"$B^+\to K^+e^+e^-$"
-
-# def load_up_a_rapidsim_tuple():
-# 	return tuple_manager(
-# 						tuple_location="/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_LARGE.root",
-# 						particles_TRUEID=[321, 11, 11],
-# 						fully_reco=1,
-# 						nPositive_missing_particles=0,
-# 						nNegative_missing_particles=0,
-# 						mother_particle_name="B_plus",
-# 						intermediate_particle_name="J_psi",
-# 						daughter_particle_names=["K_plus","e_plus","e_minus"],
-# 						entry_stop=50000,
-# 	)
-
-# data_tuple = load_up_a_rapidsim_tuple()
-
-# MC_data_tuple = tuple_manager(
-# 					tuple_location="/users/am13743/fast_vertexing_variables/datasets/Kee_Merge_cut_chargeCounters_more_vars.root",
-# 					particles_TRUEID=[321, 11, 11],
-# 					fully_reco=1,
-# 					nPositive_missing_particles=0,
-# 					nNegative_missing_particles=0,
-# 					mother_particle_name="B_plus",
-# 					intermediate_particle_name="J_psi_1S",
-# 					daughter_particle_names=["K_Kst","e_plus","e_minus"],
-# 					entry_stop=50000,
-# 					)
-# MC_data_tuple.tuple['MOTHER_M'] = MC_data_tuple.tuple['MOTHER_M_reco']
-# Kee_analyser_MC = analyser(MC_data_tuple.tuple, "pass_stripping", "BDT")
-
-
-### 
-# Kstree
-##
-
-tag = 'Kstree'
-latex_tag = r"$B^0\to K^{*0}e^+e^-$"
-
+tag = 'Kee'
+latex_tag = r"$B^+\to K^+e^+e^-$"
 
 def load_up_a_rapidsim_tuple():
 	return tuple_manager(
-					tuple_location="/users/am13743/fast_vertexing_variables/rapidsim/Kstree/Partreco_tree_LARGE.root",
-					particles_TRUEID=[321, 11, 11],
-					fully_reco=0,
-					nPositive_missing_particles=1,
-					nNegative_missing_particles=0,
-					mother_particle_name="B_plus",
-					intermediate_particle_name="J_psi",
-					daughter_particle_names=["K_plus","e_plus","e_minus"],
-					entry_stop=50000,
-					)
+						# tuple_location="/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_LARGE.root",
+						tuple_location="/users/am13743/fast_vertexing_variables/understanding_rapidsim/new_momenta.root",
+						particles_TRUEID=[321, 11, 11],
+						fully_reco=1,
+						nPositive_missing_particles=0,
+						nNegative_missing_particles=0,
+						mother_particle_name="B_plus",
+						intermediate_particle_name="J_psi",
+						daughter_particle_names=["K_plus","e_plus","e_minus"],
+						entry_stop=50000,
+	)
+
 data_tuple = load_up_a_rapidsim_tuple()
 
 MC_data_tuple = tuple_manager(
-					tuple_location="/users/am13743/fast_vertexing_variables/datasets/Kstzeroee_Merge_chargeCounters_cut_more_vars.root",
+					tuple_location="/users/am13743/fast_vertexing_variables/datasets/Kee_Merge_cut_chargeCounters_more_vars.root",
 					particles_TRUEID=[321, 11, 11],
-					fully_reco=0,
-					nPositive_missing_particles=1,
+					fully_reco=1,
+					nPositive_missing_particles=0,
 					nNegative_missing_particles=0,
 					mother_particle_name="B_plus",
 					intermediate_particle_name="J_psi_1S",
@@ -82,6 +46,43 @@ MC_data_tuple = tuple_manager(
 					)
 MC_data_tuple.tuple['MOTHER_M'] = MC_data_tuple.tuple['MOTHER_M_reco']
 Kee_analyser_MC = analyser(MC_data_tuple.tuple, "pass_stripping", "BDT")
+
+
+# ### 
+# # Kstree
+# ##
+
+# tag = 'Kstree'
+# latex_tag = r"$B^0\to K^{*0}e^+e^-$"
+
+
+# def load_up_a_rapidsim_tuple():
+# 	return tuple_manager(
+# 					tuple_location="/users/am13743/fast_vertexing_variables/rapidsim/Kstree/Partreco_tree_LARGE.root",
+# 					particles_TRUEID=[321, 11, 11],
+# 					fully_reco=0,
+# 					nPositive_missing_particles=1,
+# 					nNegative_missing_particles=0,
+# 					mother_particle_name="B_plus",
+# 					intermediate_particle_name="J_psi",
+# 					daughter_particle_names=["K_plus","e_plus","e_minus"],
+# 					entry_stop=50000,
+# 					)
+# data_tuple = load_up_a_rapidsim_tuple()
+
+# MC_data_tuple = tuple_manager(
+# 					tuple_location="/users/am13743/fast_vertexing_variables/datasets/Kstzeroee_Merge_chargeCounters_cut_more_vars.root",
+# 					particles_TRUEID=[321, 11, 11],
+# 					fully_reco=0,
+# 					nPositive_missing_particles=1,
+# 					nNegative_missing_particles=0,
+# 					mother_particle_name="B_plus",
+# 					intermediate_particle_name="J_psi_1S",
+# 					daughter_particle_names=["K_Kst","e_plus","e_minus"],
+# 					entry_stop=50000,
+# 					)
+# MC_data_tuple.tuple['MOTHER_M'] = MC_data_tuple.tuple['MOTHER_M_reco']
+# Kee_analyser_MC = analyser(MC_data_tuple.tuple, "pass_stripping", "BDT")
 
 
 
@@ -201,9 +202,9 @@ with PdfPages(f"systematics_plots/{tag}_Vars.pdf") as pdf:
 	plotter.variable_plotter(pdf, 'BDT', Kee_analyser_MC, Kee_analyser, 'pass_stripping>0.5 and MOTHER_M>4.2 and MOTHER_M<5.8', 'MC', 'Gen', title='BDT after stripping')
 	plotter.variable_plotter(pdf, 'BDT', Kee_analyser_MC, Kee_analyser, 'pass_stripping>0.5 and MOTHER_M>4.2 and MOTHER_M<5.8', 'MC', 'Gen', log=True, title='BDT after stripping')
 
-# 	for var in vertexing_network.targets:
-# 		plotter.variable_plotter(pdf, f'{var}', Kee_analyser_MC, Kee_analyser, 'MOTHER_M>4.2 and MOTHER_M<5.8', 'MC', 'Gen', title=f'{var} before stripping')
-# 		plotter.variable_plotter(pdf, f'{var}', Kee_analyser_MC, Kee_analyser, 'pass_stripping>0.5 and MOTHER_M>4.2 and MOTHER_M<5.8', 'MC', 'Gen', title=f'{var} after stripping')
+	# for var in vertexing_network.targets:
+	# 	plotter.variable_plotter(pdf, f'{var}', Kee_analyser_MC, Kee_analyser, 'MOTHER_M>4.2 and MOTHER_M<5.8', 'MC', 'Gen', title=f'{var} before stripping')
+	# 	plotter.variable_plotter(pdf, f'{var}', Kee_analyser_MC, Kee_analyser, 'pass_stripping>0.5 and MOTHER_M>4.2 and MOTHER_M<5.8', 'MC', 'Gen', title=f'{var} after stripping')
 
 # quit()
 

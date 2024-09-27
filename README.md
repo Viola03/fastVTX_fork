@@ -205,3 +205,6 @@ rd.batch_size = 256
 self.optimizer = Adam(learning_rate=0.00001)
 rd.include_dropout = True
 rd.use_beta_schedule = False
+
+
+https://indico.cern.ch/event/1455676/contributions/6127526/attachments/2934442/5153761/offline-tools-development-dpa-wp3.pdf

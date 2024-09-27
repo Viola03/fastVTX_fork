@@ -512,34 +512,29 @@ class dataset:
 
 	def add_dalitz_masses(self, pair_1 = ["K_Kst", "e_minus"], pair_2 = ["e_plus", "e_minus"], true_vars=True):
 
-		if true_vars:
-			branches = ["e_plus_TRUEP_X",
-						"e_plus_TRUEP_Y",
-						"e_plus_TRUEP_Z", 
-						"e_minus_TRUEP_X",
-						"e_minus_TRUEP_Y",
-						"e_minus_TRUEP_Z", 
-						"K_Kst_TRUEP_X",
-						"K_Kst_TRUEP_Y",
-						"K_Kst_TRUEP_Z",
-						"K_Kst_TRUEID",
-						"e_minus_TRUEID",
-						"e_plus_TRUEID",
-						]
-		else:
-			branches = ["e_plus_PX",
-						"e_plus_PY",
-						"e_plus_PZ", 
-						"e_minus_PX",
-						"e_minus_PY",
-						"e_minus_PZ", 
-						"K_Kst_PX",
-						"K_Kst_PY",
-						"K_Kst_PZ",
-						"K_Kst_TRUEID",
-						"e_minus_TRUEID",
-						"e_plus_TRUEID",
-						]
+		branches = ["e_plus_TRUEP_X",
+					"e_plus_TRUEP_Y",
+					"e_plus_TRUEP_Z", 
+					"e_minus_TRUEP_X",
+					"e_minus_TRUEP_Y",
+					"e_minus_TRUEP_Z", 
+					"K_Kst_TRUEP_X",
+					"K_Kst_TRUEP_Y",
+					"K_Kst_TRUEP_Z",
+					"K_Kst_TRUEID",
+					"e_minus_TRUEID",
+					"e_plus_TRUEID",
+					"e_plus_PX",
+					"e_plus_PY",
+					"e_plus_PZ", 
+					"e_minus_PX",
+					"e_minus_PY",
+					"e_minus_PZ", 
+					"K_Kst_PX",
+					"K_Kst_PY",
+					"K_Kst_PZ",
+					]
+
 
 		events_i = self.get_branches(branches, processed=False)
 
@@ -551,7 +546,7 @@ class dataset:
 		masses[321] = 493.677
 		masses[211] = 139.57039
 		masses[13] = 105.66
-		masses[11] = 0.51099895000 * 1e-3
+		masses[11] = 0.51099895000 #* 1e-3
 
 
 		pid_list = [11,13,211,321]
@@ -592,6 +587,21 @@ class dataset:
 		px3[where_swap], py3[where_swap], pz3[where_swap] = px2_buffer[where_swap], py2_buffer[where_swap], pz2_buffer[where_swap]
 
 
+		########################
+		# Retrieve momenta (RECONSTRUCTED) and masses
+		px1_reco, py1_reco, pz1_reco = np.asarray(events[f'{particles[0]}_PX']).copy(), np.asarray(events[f'{particles[0]}_PY']).copy(), np.asarray(events[f'{particles[0]}_PZ']).copy()
+		px2_reco, py2_reco, pz2_reco = np.asarray(events[f'{particles[1]}_PX']).copy(), np.asarray(events[f'{particles[1]}_PY']).copy(), np.asarray(events[f'{particles[1]}_PZ']).copy()
+		px3_reco, py3_reco, pz3_reco = np.asarray(events[f'{particles[2]}_PX']).copy(), np.asarray(events[f'{particles[2]}_PY']).copy(), np.asarray(events[f'{particles[2]}_PZ']).copy()
+
+		px2_reco_buffer, py2_reco_buffer, pz2_reco_buffer = px2_reco.copy(), py2_reco.copy(), pz2_reco.copy()
+		px3_reco_buffer, py3_reco_buffer, pz3_reco_buffer = px3_reco.copy(), py3_reco.copy(), pz3_reco.copy()
+
+		px2_reco[where_swap], py2_reco[where_swap], pz2_reco[where_swap] = px3_reco_buffer[where_swap], py3_reco_buffer[where_swap], pz3_reco_buffer[where_swap]
+		px3_reco[where_swap], py3_reco[where_swap], pz3_reco[where_swap] = px2_reco_buffer[where_swap], py2_reco_buffer[where_swap], pz2_reco_buffer[where_swap]
+		########################
+
+
+
 		mass1, mass2, mass3 = np.asarray(events[f'{particles[0]}_mass']).copy(), np.asarray(events[f'{particles[1]}_mass']).copy(), np.asarray(events[f'{particles[2]}_mass']).copy()
 
 		mass2_buffer, mass3_buffer = mass2.copy(), mass3.copy()
@@ -602,22 +612,46 @@ class dataset:
 		E2 = np.sqrt(px2**2 + py2**2 + pz2**2 + mass2**2)
 		E3 = np.sqrt(px3**2 + py3**2 + pz3**2 + mass3**2)
 
+		# Calculate energies
+		E1_reco = np.sqrt(px1_reco**2 + py1_reco**2 + pz1_reco**2 + mass1**2)
+		E2_reco = np.sqrt(px2_reco**2 + py2_reco**2 + pz2_reco**2 + mass2**2)
+		E3_reco= np.sqrt(px3_reco**2 + py3_reco**2 + pz3_reco**2 + mass3**2)
 
 		# Compute invariant mass squared for each pair
 		def invariant_mass_squared(E1, E2, px1, px2, py1, py2, pz1, pz2):
 			return (E1 + E2)**2 - ((px1 + px2)**2 + (py1 + py2)**2 + (pz1 + pz2)**2)
+
+		# Compute invariant mass squared for each pair
+		def invariant_mass_squared_3_particles(E1, E2, E3, px1, px2, px3, py1, py2, py3, pz1, pz2, pz3):
+			return (E1 + E2 + E3)**2 - ((px1 + px2 + px3)**2 + (py1 + py2 + py3)**2 + (pz1 + pz2 + pz3)**2)
 
 		# m12^2, m13^2, and m23^2
 		m12_squared = invariant_mass_squared(E1, E2, px1, px2, py1, py2, pz1, pz2)*1E-6
 		m13_squared = invariant_mass_squared(E1, E3, px1, px3, py1, py3, pz1, pz3)*1E-6
 		m23_squared = invariant_mass_squared(E2, E3, px2, px3, py2, py3, pz2, pz3)*1E-6
 
+		m123_squared = invariant_mass_squared_3_particles(E1, E2, E3, px1, px2, px3, py1, py2, py3, pz1, pz2, pz3)*1E-6
+
+		# m12^2, m13^2, and m23^2
+		m12_squared_reco = invariant_mass_squared(E1_reco, E2_reco, px1_reco, px2_reco, py1_reco, py2_reco, pz1_reco, pz2_reco)*1E-6
+		m13_squared_reco = invariant_mass_squared(E1_reco, E3_reco, px1_reco, px3_reco, py1_reco, py3_reco, pz1_reco, pz3_reco)*1E-6
+		m23_squared_reco = invariant_mass_squared(E2_reco, E3_reco, px2_reco, px3_reco, py2_reco, py3_reco, pz2_reco, pz3_reco)*1E-6
+
+		m123_squared_reco = invariant_mass_squared_3_particles(E1_reco, E2_reco, E3_reco, px1_reco, px2_reco, px3_reco, py1_reco, py2_reco, py3_reco, pz1_reco, pz2_reco, pz3_reco)*1E-6
+
 
 		self.add_branch_to_physical("dalitz_mass_m12", np.asarray(m12_squared))
 		self.add_branch_to_physical("dalitz_mass_m13", np.asarray(m13_squared))
 
+		self.add_branch_to_physical("dalitz_mass_mee", np.asarray(m23_squared))
 		self.add_branch_to_physical("sqrt_dalitz_mass_mee", np.sqrt(np.asarray(m23_squared)))
 		self.add_branch_to_physical("sqrt_dalitz_mass_mkl", np.sqrt(np.asarray(m12_squared)))
+		self.add_branch_to_physical("sqrt_dalitz_mass_mkee", np.sqrt(np.asarray(m123_squared)))
+
+		self.add_branch_to_physical("dalitz_mass_mee_reco", np.asarray(m23_squared_reco))
+		self.add_branch_to_physical("sqrt_dalitz_mass_mee_reco", np.sqrt(np.asarray(m23_squared_reco)))
+		self.add_branch_to_physical("sqrt_dalitz_mass_mkl_reco", np.sqrt(np.asarray(m12_squared_reco)))
+		self.add_branch_to_physical("sqrt_dalitz_mass_mkee_reco", np.sqrt(np.asarray(m123_squared_reco)))
 
 	
 	def add_eta_phi(self):
