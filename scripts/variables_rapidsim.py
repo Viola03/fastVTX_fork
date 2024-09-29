@@ -17,10 +17,24 @@ masses[13] = 105.66
 masses[11] = 0.51099895000 * 1e-3
 
 directory = '/users/am13743/fast_vertexing_variables/rapidsim/'
+
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+
+
 file_name = 'Kee/Signal_tree.root'
-# file_name = 'Kee/Signal_tree_LARGE.root'
-# file_name = 'Kee/Signal_tree_LARGE_NNvertex.root'
+DAUGHTER1_TRUEID = 321
+DAUGHTER2_TRUEID = 11
+DAUGHTER3_TRUEID = 11
+
 # file_name = 'Kmumu/Kmumu_tree.root'
+# DAUGHTER1_TRUEID = 321
+# DAUGHTER2_TRUEID = 13
+# DAUGHTER3_TRUEID = 13
+
+
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+
+
 particles = ["DAUGHTER1", "DAUGHTER2", "DAUGHTER3"]
 mother = 'MOTHER'
 intermediate = 'INTERMEDIATE'
@@ -253,9 +267,9 @@ if use_network_to_adapt_vertex_locations:
 print(new_branches)
 
 # set TRUEID
-events['DAUGHTER1_TRUEID'] = 321
-events['DAUGHTER2_TRUEID'] = 11
-events['DAUGHTER3_TRUEID'] = 11
+events['DAUGHTER1_TRUEID'] = DAUGHTER1_TRUEID
+events['DAUGHTER2_TRUEID'] = DAUGHTER2_TRUEID
+events['DAUGHTER3_TRUEID'] = DAUGHTER3_TRUEID
 
 events['INTERMEDIATE_TRUEENDVERTEX_X'] = events['MOTHER_TRUEENDVERTEX_X'] 
 events['INTERMEDIATE_TRUEENDVERTEX_Y'] = events['MOTHER_TRUEENDVERTEX_Y'] 

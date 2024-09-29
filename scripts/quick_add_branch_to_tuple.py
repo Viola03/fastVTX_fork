@@ -32,10 +32,11 @@ def write_df_to_root(df, output_name):
 
 
 
-# path = '/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root'
+path = '/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_NNvertex_more_vars.root'
 # path = '/users/am13743/fast_vertexing_variables/rapidsim/Kee/Signal_tree_LARGE_NNvertex_more_vars.root'
 # path = '/users/am13743/fast_vertexing_variables/rapidsim/Kstree/Partreco_tree_LARGE_NNvertex_more_vars.root'
-path = '/users/am13743/fast_vertexing_variables/rapidsim/BuD0piKenu/BuD0piKenu_tree_NNvertex_more_vars.root'
+# path = '/users/am13743/fast_vertexing_variables/rapidsim/BuD0piKenu/BuD0piKenu_tree_NNvertex_more_vars.root'
+# path = '/users/am13743/fast_vertexing_variables/rapidsim/Kmumu/Kmumu_tree_NNvertex_more_vars.root'
 new_path = f"{path}_temp.root"
 
 file = uproot.open(f"{path}:DecayTree")
@@ -44,10 +45,10 @@ print(branches)
 
 events = file.arrays(branches, library='pd')
 
-events['MOTHER_nPositive_missing'] = np.asarray(np.ones(np.shape(events['MOTHER_M']))*1,dtype=np.int32)
+events['MOTHER_nPositive_missing'] = np.asarray(np.ones(np.shape(events['MOTHER_M']))*0,dtype=np.int32)
 events['MOTHER_nNegative_missing'] = np.asarray(np.ones(np.shape(events['MOTHER_M']))*0,dtype=np.int32)
 
-events['fully_reco'] = np.asarray(np.ones(np.shape(events['MOTHER_M']))*0,dtype=np.int32)
+events['fully_reco'] = np.asarray(np.ones(np.shape(events['MOTHER_M']))*1,dtype=np.int32)
 
 events['B_plus_TRUEID'] = np.asarray(np.ones(np.shape(events['MOTHER_M']))*521,dtype=np.int32)
 # events['B_plus_TRUEID'] = np.asarray(np.ones(np.shape(events['MOTHER_M']))*511,dtype=np.int32)

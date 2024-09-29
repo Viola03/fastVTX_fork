@@ -41,6 +41,92 @@ def compute_q2(df):
 
     return q2
 
+# full_reco_MC = uproot.open('../datasets/Kee_Merge_cut_chargeCounters.root')['DecayTree']
+full_reco_MC = uproot.open('../datasets/general_sample_chargeCounters_cut_more_vars.root')['DecayTree']
+full_reco_MC_branches = [
+    "MOTHER_TRUEP_X",
+    "MOTHER_TRUEP_Y",
+    "MOTHER_TRUEP_Z",
+    "DAUGHTER1_TRUEP_X",
+    "DAUGHTER1_TRUEP_Y",
+    "DAUGHTER1_TRUEP_Z",
+    "DAUGHTER2_TRUEP_X",
+    "DAUGHTER2_TRUEP_Y",
+    "DAUGHTER2_TRUEP_Z",
+    "DAUGHTER3_TRUEP_X",
+    "DAUGHTER3_TRUEP_Y",
+    "DAUGHTER3_TRUEP_Z",
+]
+full_reco_MC = full_reco_MC.arrays(full_reco_MC_branches, library="pd")#, entry_stop=50)#, entry_stop=25000)
+for key in list(full_reco_MC.keys()):
+    full_reco_MC[key] *= 1./1000.
+full_reco_MC = full_reco_MC.query('MOTHER_TRUEP_Z>0.')
+
+particles = {
+    'B_plus':'MOTHER',
+    'K_plus':'DAUGHTER1',
+    'e_plus':'DAUGHTER2',
+    'e_minus':'DAUGHTER3',
+}
+for particle in list(particles.keys()):
+    for dim in ['X', 'Y', 'Z']:
+        full_reco_MC[f'{particle}_P{dim}_TRUE'] = full_reco_MC[f'{particles[particle]}_TRUEP_{dim}']
+
+for particle in ['B_plus', 'K_plus', 'e_plus', 'e_minus']:
+    full_reco_MC[f'{particle}_P_TRUE'] = compute_P(full_reco_MC, particle)
+    full_reco_MC[f'{particle}_PT_TRUE'] = compute_PT(full_reco_MC, particle)
+    full_reco_MC[f'{particle}_eta_TRUE'] = compute_eta(full_reco_MC, particle)
+
+full_reco_MC['B_plus_eta_TRUE'] = compute_eta(full_reco_MC, 'B_plus')
+full_reco_MC['K_plus_eta_TRUE'] = compute_eta(full_reco_MC, 'K_plus')
+full_reco_MC['e_plus_eta_TRUE'] = compute_eta(full_reco_MC, 'e_plus')
+full_reco_MC['e_minus_eta_TRUE'] = compute_eta(full_reco_MC, 'e_minus')
+full_reco_MC['q2_TRUE'] = compute_q2(full_reco_MC)
+
+
+full_reco_MC_KEE = uproot.open('../datasets/Kee_Merge_cut_chargeCounters.root')['DecayTree']
+full_reco_MC_KEE_branches = [
+    "MOTHER_TRUEP_X",
+    "MOTHER_TRUEP_Y",
+    "MOTHER_TRUEP_Z",
+    "DAUGHTER1_TRUEP_X",
+    "DAUGHTER1_TRUEP_Y",
+    "DAUGHTER1_TRUEP_Z",
+    "DAUGHTER2_TRUEP_X",
+    "DAUGHTER2_TRUEP_Y",
+    "DAUGHTER2_TRUEP_Z",
+    "DAUGHTER3_TRUEP_X",
+    "DAUGHTER3_TRUEP_Y",
+    "DAUGHTER3_TRUEP_Z",
+]
+full_reco_MC_KEE = full_reco_MC_KEE.arrays(full_reco_MC_KEE_branches, library="pd")#, entry_stop=50)#, entry_stop=25000)
+for key in list(full_reco_MC_KEE.keys()):
+    full_reco_MC_KEE[key] *= 1./1000.
+full_reco_MC_KEE = full_reco_MC_KEE.query('MOTHER_TRUEP_Z>0.')
+
+particles = {
+    'B_plus':'MOTHER',
+    'K_plus':'DAUGHTER1',
+    'e_plus':'DAUGHTER2',
+    'e_minus':'DAUGHTER3',
+}
+for particle in list(particles.keys()):
+    for dim in ['X', 'Y', 'Z']:
+        full_reco_MC_KEE[f'{particle}_P{dim}_TRUE'] = full_reco_MC_KEE[f'{particles[particle]}_TRUEP_{dim}']
+
+for particle in ['B_plus', 'K_plus', 'e_plus', 'e_minus']:
+    full_reco_MC_KEE[f'{particle}_P_TRUE'] = compute_P(full_reco_MC_KEE, particle)
+    full_reco_MC_KEE[f'{particle}_PT_TRUE'] = compute_PT(full_reco_MC_KEE, particle)
+    full_reco_MC_KEE[f'{particle}_eta_TRUE'] = compute_eta(full_reco_MC_KEE, particle)
+
+full_reco_MC_KEE['B_plus_eta_TRUE'] = compute_eta(full_reco_MC_KEE, 'B_plus')
+full_reco_MC_KEE['K_plus_eta_TRUE'] = compute_eta(full_reco_MC_KEE, 'K_plus')
+full_reco_MC_KEE['e_plus_eta_TRUE'] = compute_eta(full_reco_MC_KEE, 'e_plus')
+full_reco_MC_KEE['e_minus_eta_TRUE'] = compute_eta(full_reco_MC_KEE, 'e_minus')
+full_reco_MC_KEE['q2_TRUE'] = compute_q2(full_reco_MC_KEE)
+
+
+
 rapidsim = uproot.open('Signal_tree_PHOTOS.root')['DecayTree']
 rapidsim_branches = [
     "B_plus_P_TRUE",
@@ -223,7 +309,7 @@ full_mc_decproducut['q2_TRUE'] = compute_q2(full_mc_decproducut)
 
 
 # with PdfPages(f"acceptance_opt.pdf") as pdf:
-with PdfPages(f"acceptance_opt_new.pdf") as pdf:
+with PdfPages(f"acceptance_opt_new_checkKeeMC.pdf") as pdf:
 
 
     rapidsim_4pi_cut = rapidsim_4pi.query('B_plus_eta_TRUE>0.')
@@ -345,7 +431,7 @@ with PdfPages(f"acceptance_opt_new.pdf") as pdf:
 
 
     
-
+    store_effs = {}
     for particle in ['B_plus', 'K_plus', 'e_plus', 'e_minus']:
 
         ####################
@@ -357,7 +443,7 @@ with PdfPages(f"acceptance_opt_new.pdf") as pdf:
         pdf.savefig(bbox_inches="tight")
         plt.close()
 
-        alexPlot.plot_data([full_mc_decproducut_cut[f'{particle}_eta_TRUE'], rapidsim_cut[f'{particle}_eta_TRUE'], rapidsim_newacceptance_cut[f'{particle}_eta_TRUE']], density=True, also_plot_hist=True, bins=100, label=["full mc", "rapidsim","new rapidsim"], only_canvas=True, pulls=True)
+        alexPlot.plot_data([full_mc_decproducut_cut[f'{particle}_eta_TRUE'], rapidsim_cut[f'{particle}_eta_TRUE'], rapidsim_newacceptance_cut[f'{particle}_eta_TRUE'], full_reco_MC[f'{particle}_eta_TRUE'], full_reco_MC_KEE[f'{particle}_eta_TRUE']], density=True, also_plot_hist=True, bins=100, label=["full mc", "rapidsim","new rapidsim","cocktail - reco", "Kee - reco"], only_canvas=True, pulls=True)
         plt.legend()
         plt.title("Acceptance")
         plt.xlabel(f'{particle}_eta_TRUE')
@@ -367,24 +453,79 @@ with PdfPages(f"acceptance_opt_new.pdf") as pdf:
         # ####################
 
 
-        # alexPlot.plot_data([full_mc_decproducut_cut[f'{particle}_eta_TRUE'], rapidsim_cut[f'{particle}_eta_TRUE'], rapidsim_alex_immitation[f'{particle}_eta_TRUE']], density=True, also_plot_hist=True, bins=100, label=["full mc", "rapidsim"], only_canvas=True, pulls=True, xmin=1.4,xmax=1.8)
-        # plt.legend()
-        # plt.title("Acceptance")
-        # plt.xlabel(f'{particle}_eta_TRUE')
-        # pdf.savefig(bbox_inches="tight")
-        # plt.close()
+        alexPlot.plot_data([full_mc_decproducut_cut[f'{particle}_eta_TRUE'], rapidsim_cut[f'{particle}_eta_TRUE'], rapidsim_alex_immitation[f'{particle}_eta_TRUE'], full_reco_MC[f'{particle}_eta_TRUE'], full_reco_MC_KEE[f'{particle}_eta_TRUE']], density=True, also_plot_hist=True, bins=100, label=["full mc", "rapidsim", "immitation","cocktail - reco", "Kee - reco"], only_canvas=True, pulls=True, xmin=1.4,xmax=1.8)
+        plt.legend()
+        plt.title("Acceptance")
+        plt.xlabel(f'{particle}_eta_TRUE')
+        pdf.savefig(bbox_inches="tight")
+        plt.close()
 
 
         # ####################
 
-        # alexPlot.plot_data([full_mc_decproducut_cut[f'{particle}_eta_TRUE'], rapidsim_cut[f'{particle}_eta_TRUE'], rapidsim_alex_immitation[f'{particle}_eta_TRUE']], density=True, also_plot_hist=True, bins=100, label=["full mc", "rapidsim"], only_canvas=True, pulls=True, xmin=5.2,xmax=5.6)
-        # plt.legend()
-        # plt.title("Acceptance")
-        # plt.xlabel(f'{particle}_eta_TRUE')
-        # pdf.savefig(bbox_inches="tight")
-        # plt.close()
+        # alexPlot.plot_data([full_mc_decproducut_cut[f'{particle}_eta_TRUE'], rapidsim_cut[f'{particle}_eta_TRUE'], rapidsim_alex_immitation[f'{particle}_eta_TRUE'],full_reco_MC[f'{particle}_eta_TRUE']], density=True, also_plot_hist=True, bins=100, label=["full mc", "rapidsim", "immitation","full MC - reco"], only_canvas=True, pulls=True, xmin=5.2,xmax=5.6)
+        alexPlot.plot_data([full_mc_decproducut_cut[f'{particle}_eta_TRUE'], rapidsim_cut[f'{particle}_eta_TRUE'], rapidsim_alex_immitation[f'{particle}_eta_TRUE'],full_reco_MC[f'{particle}_eta_TRUE'], full_reco_MC_KEE[f'{particle}_eta_TRUE']], density=True, also_plot_hist=True, bins=100, label=["full mc", "rapidsim", "immitation","cocktail - reco","Kee - reco"], only_canvas=True, pulls=True, xmin=4.9,xmax=5.6)
+        plt.legend()
+        plt.title("Acceptance")
+        plt.xlabel(f'{particle}_eta_TRUE')
+        pdf.savefig(bbox_inches="tight")
+        plt.close()
 
+    
         # ####################
+
+        if particle in ['K_plus', 'e_plus', 'e_minus']:
+            Nbins_ratio = 250
+            hist_before = np.histogram(full_mc_decproducut_cut[f'{particle}_eta_TRUE'], bins=Nbins_ratio, range=[1.595,5.3])
+            hist_after = np.histogram(full_reco_MC_KEE[f'{particle}_eta_TRUE'], bins=hist_before[1])
+            hist_counts_before = np.asarray(hist_before[0],np.float64)
+            hist_counts_after = np.asarray(hist_after[0],np.float64)
+            ratio = hist_counts_after/hist_counts_before
+            ratio_err = ratio * np.sqrt((np.sqrt(hist_counts_after)/hist_counts_after)**2+(np.sqrt(hist_counts_before)/hist_counts_before)**2)
+            ratio_max = np.amax(ratio)
+            ratio *= 1./ratio_max
+            ratio_err *= 1./ratio_max
+            x = hist_before[1][:-1] + (hist_before[1][1]-hist_before[1][0])/2.
+            plt.axhline(y=1,c='k')
+            plt.errorbar(x, ratio, yerr=ratio_err,c='tab:red')
+            plt.ylim(0,1.1)
+            pdf.savefig(bbox_inches="tight")
+            plt.close()
+
+            store_effs[particle] = {}
+            store_effs[particle]['x'] = x
+            store_effs[particle]['y'] = ratio
+            store_effs[particle]['yerr'] = ratio_err
+
+            # Create a ROOT file to save the histogram
+            with uproot.recreate(f"accept_reject_eta_{particle}.root") as root_file:
+                # Write the histogram to the ROOT file
+                root_file["accept_reject_eta"] = np.histogram(x, bins=hist_before[1], weights=ratio)
+
+                print(f"Histogram written successfully to accept_reject_eta_{particle}.root")
+
+
+
+
+    plt.axhline(y=1,c='k')
+    for key in list(store_effs.keys()):
+        plt.errorbar(store_effs[key]['x'], store_effs[key]['y'], yerr=store_effs[key]['yerr'],label=key,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8)
+    plt.legend()
+    plt.ylabel("Efficiency (after decprodcut)")
+    plt.xlabel('eta')
+    plt.ylim(0,1.1)
+    pdf.savefig(bbox_inches="tight")
+    plt.close()
+
+    for key in list(store_effs.keys()):
+        plt.errorbar(store_effs[key]['x'], store_effs[key]['y']/np.sum(store_effs[key]['y']), yerr=store_effs[key]['yerr']/np.sum(store_effs[key]['y']),label=key,marker='o',fmt=' ',capsize=2,linewidth=1.75, markersize=8)
+    plt.legend()
+    plt.ylabel("Efficiency (after decprodcut)")
+    plt.title("normalised")
+    plt.xlabel('eta')
+    pdf.savefig(bbox_inches="tight")
+    plt.close()
+
 
     alexPlot.plot_data([full_mc_cut[f'q2_TRUE'], rapidsim_4pi_cut[f'q2_TRUE']], density=True, also_plot_hist=True, bins=100, label=["full mc", "rapidsim"], only_canvas=True, pulls=True,xmin=0,xmax=23)
     plt.title("4pi")
