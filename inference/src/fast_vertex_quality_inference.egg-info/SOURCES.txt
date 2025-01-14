@@ -6,4 +6,9 @@ fast_vertex_quality_inference.egg-info/PKG-INFO
 fast_vertex_quality_inference.egg-info/SOURCES.txt
 fast_vertex_quality_inference.egg-info/dependency_links.txt
 fast_vertex_quality_inference.egg-info/top_level.txt
-fast_vertex_quality_inference/pre_processing/conditions.py
+fast_vertex_quality_inference/example/Kee_selection.py
+fast_vertex_quality_inference/example/plotter.py
+fast_vertex_quality_inference/processing/data_manager.py
+fast_vertex_quality_inference/processing/network_manager.py
+fast_vertex_quality_inference/processing/processing_tools.py
+fast_vertex_quality_inference/processing/transformers.py

@@ -39,24 +39,22 @@ load_state = f"{test_loc}/networks/{test_tag}"
 
 rd.latent = 10 # VAE latent dims
 
-#2 layer of 250 to stars 
-rd.D_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
-rd.G_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
+# rd.D_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
+# rd.G_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
 
-# rd.D_architecture=[int(512*2.5),int(1024*2.5),int(1024*2.5),int(512*2.5)]
-# rd.G_architecture=[int(512*2.5),int(1024*2.5),int(1024*2.5),int(512*2.5)]
-# rd.D_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
-# rd.G_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
+# 2 layers of 250 to start
+rd.D_architecture=[250]
+rd.G_architecture=[250]
 
 rd.beta = 1000.
 
 rd.batch_size = 256
 # rd.batch_size = 64
 
-# To be changed
+# Modified
 
 rd.conditions = [
-#recomputed
+# Recomputed
 	"B_plus_P",
 	"B_plus_PT",
 	"angle_K_Kst",
@@ -66,26 +64,27 @@ rd.conditions = [
 	"e_plus_eta",
 	"e_minus_eta",
  
-#recomputed 
+# Recomputed 
 	"IP_B_plus_true_vertex",
 	"IP_K_Kst_true_vertex",
 	"IP_e_plus_true_vertex",
 	"IP_e_minus_true_vertex",
-	"FD_B_plus_true_vertex", #drop
+	# "FD_B_plus_true_vertex", 
 	"DIRA_B_plus_true_vertex",
 
- # rm
-	"missing_B_plus_P",
-	"missing_B_plus_PT",
-	"missing_J_psi_1S_P",
-	"missing_J_psi_1S_PT",
- #from pv
+ # Rm
+	# "missing_B_plus_P",
+	# "missing_B_plus_PT",
+	# "missing_J_psi_1S_P",
+	# "missing_J_psi_1S_PT",
+ 
+ # Recomputed from pv
  
 	"K_Kst_FLIGHT",
 	"e_plus_FLIGHT",
 	"e_minus_FLIGHT",
  
- #delta 0 is daughter 1, diff reconstructed and true momenta
+ # Note: delta 0 is daughter 1 etc., Diff between reconstructed and true momenta
 	"delta_0_P",
 	"delta_0_PT",
 	"delta_1_P",
@@ -97,11 +96,11 @@ rd.conditions = [
 	"e_plus_TRUEID",
 	"e_minus_TRUEID",
  
- #rm
-	"B_plus_nPositive_missing",
-	"B_plus_nNegative_missing",
- #rm
-	"fully_reco",
+ # Rm
+	# "B_plus_nPositive_missing",
+	# "B_plus_nNegative_missing",
+ # Rm
+	# "fully_reco",
 	# "missing_mass_frac", # this varaible is badly formmated, somehow it is ruining performance - INVESTIGATE
 ]
 
@@ -179,7 +178,7 @@ trackchi2_trainer_obj = None
 # training_data_loader.plot('targets.pdf',rd.targets)
 # quit()
 
-# network creation
+# Network creation
 vertex_quality_trainer_obj = vertex_quality_trainer(
 	training_data_loader,
 	trackchi2_trainer_obj,
@@ -193,46 +192,10 @@ vertex_quality_trainer_obj = vertex_quality_trainer(
 	network_option=rd.network_option,
 )
 
-BDT_targets = [
-"B_plus_ENDVERTEX_CHI2",
-"B_plus_IPCHI2_OWNPV",
-"B_plus_FDCHI2_OWNPV",
-"B_plus_DIRA_OWNPV",
-"K_Kst_IPCHI2_OWNPV",
-"K_Kst_TRACK_CHI2NDOF",
-"e_minus_IPCHI2_OWNPV",
-"e_minus_TRACK_CHI2NDOF",
-"e_plus_IPCHI2_OWNPV",
-"e_plus_TRACK_CHI2NDOF",
-"J_psi_1S_FDCHI2_OWNPV",
-"J_psi_1S_IPCHI2_OWNPV"
-]
-
-
-
-print(f"Initialising BDT tester...")
-BDT_tester_obj = BDT_tester(
-	transformers=transformers,
-	tag="networks/BDT_sig_comb_WGANcocktail_newconditions",
-	train=False,
-	BDT_vars=BDT_targets,
-	signal="datasets/dedicated_Kee_MC_hierachy_cut_more_vars.root",
-	background="datasets/B2Kee_2018_CommonPresel.csv",
-	signal_label=r"Signal $B^+\to K^+e^+e^-$ MC",
-	background_label=r"UMSB Combinatorial",
-	gen_track_chi2=False,
-	signal_convert_branches=True,
-	use_intermediate=use_intermediate
-)
-
-# steps_for_plot = 10000
-steps_for_plot = 5000
-
 
 def test_with_ROC(training_data_loader_roc, vertex_quality_trainer_obj, it, last_BDT_distributions=None, tag='', weight=True):
 
 	ROC_vars = [tar for tar in rd.targets if tar not in rd.conditional_targets]
-
 
 	resample = False
 
@@ -337,6 +300,9 @@ def test_with_ROC(training_data_loader_roc, vertex_quality_trainer_obj, it, last
 	return ROC_AUC_SCORE_curr, last_BDT_distributions
 
 
+steps_for_plot = 5000 # number of training iterations between plots/checkpoints
+
+
 ROC_collect = np.empty((0,2))
 ROC_collect_Kee = np.empty((0,2))
 ROC_collect = np.append(ROC_collect, [[0, 1.]], axis=0)
@@ -347,61 +313,22 @@ chi2_collect_best = np.empty((0,3))
 
 vertex_quality_trainer_obj.train(steps=steps_for_plot)
 vertex_quality_trainer_obj.save_state(tag=load_state)
-# vertex_quality_trainer_obj.make_plots(filename=f'plots_0.pdf',testing_file=["datasets/general_sample_chargeCounters_cut_more_vars_HEADfactor20.root"])
-# vertex_quality_trainer_obj.make_plots(filename=f'example_training_plots_general.pdf',testing_file=training_data_loader.get_file_names(),offline=True)
-
 
 ROC_AUC_SCORE_curr, last_BDT_distributions = test_with_ROC(training_data_loader, vertex_quality_trainer_obj, 0)
 ROC_collect = np.append(ROC_collect, [[0, ROC_AUC_SCORE_curr]], axis=0)
 
-vertex_quality_trainer_obj.initalise_BDT_test(BDT_tester_obj, BDT_cut=0.9)
-chi2 = vertex_quality_trainer_obj.run_BDT_test(filename=f'{test_loc}plots_BDT_0_{rd.network_option}.pdf')
-chi2_collect = np.append(chi2_collect, [chi2], axis=0)
-chi2_collect_best = np.append(chi2_collect_best, [chi2], axis=0)
-min_mean_chi2 = np.mean(chi2)
-best_chi2 = chi2
-
 for i in range(int(1E30)):
+
 	vertex_quality_trainer_obj.train_more_steps(steps=steps_for_plot)
 
+	# # the testing file here is was just a smaller version of the training sample for a quick judge of performance
 	# vertex_quality_trainer_obj.make_plots(filename=f'plots_{i+1}.pdf',testing_file=["datasets/general_sample_chargeCounters_cut_more_vars_HEADfactor20.root"])
 
-	print("test with ROC")
 	ROC_AUC_SCORE_curr, last_BDT_distributions = test_with_ROC(training_data_loader, vertex_quality_trainer_obj, i+1, last_BDT_distributions=last_BDT_distributions)
 	ROC_collect = np.append(ROC_collect, [[i+1, ROC_AUC_SCORE_curr]], axis=0)
 
-	print("run BDT test")
-	chi2 = vertex_quality_trainer_obj.run_BDT_test(filename=f'{test_loc}plots_BDT_{i+1}_{rd.network_option}.pdf')
-	chi2_collect = np.append(chi2_collect, [chi2], axis=0)
-
 	vertex_quality_trainer_obj.save_state(tag=load_state)
-
-	mean_chi2 = np.mean(chi2)
-	if mean_chi2 < min_mean_chi2:
-		print("NEW BEST MEAN_CHI2")
-		min_mean_chi2 = mean_chi2
-		vertex_quality_trainer_obj.save_state(tag=load_state+"_best")
-		best_chi2 = chi2
-
-	chi2_collect_best = np.append(chi2_collect_best, [best_chi2], axis=0)
-
-	plt.plot(chi2_collect[:,0],label=r'$q^2$')
-	plt.plot(chi2_collect[:,1],label=r'$m(Ke)$')
-	plt.plot(chi2_collect[:,2],label=r'$m(Kee)$')
-	plt.legend()
-	plt.savefig(f'{test_loc}Progress_{rd.network_option}')
-	plt.close('all')
-
-	plt.plot(chi2_collect_best[:,0],label=r'$q^2$')
-	plt.plot(chi2_collect_best[:,1],label=r'$m(Ke)$')
-	plt.plot(chi2_collect_best[:,2],label=r'$m(Kee)$')
-	plt.legend()
-	plt.savefig(f'{test_loc}Progress_best_{rd.network_option}')
-	plt.close('all')
 
 	plt.plot(ROC_collect[:,1])
 	plt.savefig(f'{test_loc}Progress_ROC_{rd.network_option}')
 	plt.close('all')
-
-
-

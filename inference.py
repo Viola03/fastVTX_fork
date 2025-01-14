@@ -31,17 +31,27 @@ vertexing_encoder = network_manager(
 # LOAD RAPIDSIM TUPLE
 ###
 
-
 data_tuple = tuple_manager(
-					tuple_location="inference/example/example.root",
+					tuple_location="datasets/combinatorial_select_Kuu_inferable_edit.root",
 					particles_TRUEID=[321, 11, 11],
 					fully_reco=1,
 					nPositive_missing_particles=0,
 					nNegative_missing_particles=0,
-					mother_particle_name="B_plus",
+					mother_particle_name="MOTHER",
 					intermediate_particle_name="J_psi",
-					daughter_particle_names=["K_plus","e_plus","e_minus"],
+					daughter_particle_names=["DAUGHTER1","DAUGHTER2","DAUGHTER3"],
 					)
+
+# data_tuple = tuple_manager(
+# 					tuple_location="datasets_mixed/mixed2_Kee.root",
+# 					particles_TRUEID=[321, 11, 11],
+# 					fully_reco=1,
+# 					nPositive_missing_particles=0,
+# 					nNegative_missing_particles=0,
+# 					mother_particle_name="B_plus",
+# 					intermediate_particle_name="J_psi",
+# 					daughter_particle_names=["K_plus","e_plus","e_minus"],
+# 					)
 
 
 #### 
@@ -65,6 +75,12 @@ data_tuple.smearPV(smeared_PV_output)
 ###
 
 data_tuple.append_conditional_information()
+
+# missing_branches = ["missing_MOTHER_P", "missing_MOTHER_PT", "missing_INTERMEDIATE_P", "missing_INTERMEDIATE_PT"]
+# print(data_tuple.get_branches(missing_branches))
+
+print("Warning - manually setting missing P branches to zero")
+
 vertexing_conditions = data_tuple.get_branches(
 					vertexing_network.conditions, 
 					vertexing_network.Transformers, 

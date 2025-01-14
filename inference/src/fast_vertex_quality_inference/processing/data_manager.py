@@ -177,12 +177,17 @@ class tuple_manager:
 
 		self.tuple[f"{self.intermediate}_P"], self.tuple[f"{self.intermediate}_PT"] = pts.compute_reconstructed_intermediate_momenta(self.tuple, [self.particles[1], self.particles[2]])
 
-		self.tuple[f"missing_{self.mother}_P"], self.tuple[f"missing_{self.mother}_PT"] = pts.compute_missing_momentum(
-			self.tuple, self.mother,self.particles
-		)
-		self.tuple[f"missing_{self.intermediate}_P"], self.tuple[f"missing_{self.intermediate}_PT"] = pts.compute_missing_momentum(
-			self.tuple, self.mother,[self.particles[1], self.particles[2]]
-		)
+		# self.tuple[f"missing_{self.mother}_P"], self.tuple[f"missing_{self.mother}_PT"] = pts.compute_missing_momentum(
+		# 	self.tuple, self.mother,self.particles
+		# )
+		# self.tuple[f"missing_{self.intermediate}_P"], self.tuple[f"missing_{self.intermediate}_PT"] = pts.compute_missing_momentum(
+		# 	self.tuple, self.mother,[self.particles[1], self.particles[2]]
+		# )
+  
+
+		# Manually set to zero for now
+		self.tuple[f"missing_{self.mother}_P"], self.tuple[f"missing_{self.mother}_PT"] = float(0), float(0)
+		self.tuple[f"missing_{self.intermediate}_P"], self.tuple[f"missing_{self.intermediate}_PT"] = float(0), float(0)
 		
 		for particle_i in range(0, len(self.particles)):
 			(
