@@ -23,8 +23,9 @@ use_intermediate = False
 
 rd.current_mse_raw = tf.convert_to_tensor(1.0)
 
-test_tag = 'No_delta_branches'
+### Directory setup to save model ###
 
+test_tag = 'NewConditions_mini'
 
 test_loc = f'test_runs_branches/{test_tag}/'
 try:
@@ -36,6 +37,9 @@ rd.test_loc = test_loc
 
 rd.network_option = 'VAE'
 load_state = f"{test_loc}/networks/{test_tag}"
+
+
+### Network Configuration ###
 
 rd.latent = 10 # VAE latent dims
 
@@ -143,11 +147,13 @@ rd.daughter_particles = ["K_Kst", "e_plus", "e_minus"] # K e e
 rd.mother_particle = 'B_plus'
 rd.intermediate_particle = 'J_psi_1S'
 
+### Data Loading ###
+
 print(f"Loading data...")
 training_data_loader = data_loader.load_data(
 	[
 		"datasets/general_sample_chargeCounters_cut_more_vars.root",
-		# "datasets/general_sample_chargeCounters_cut_more_vars_HEADfactor20.root",
+		
 	],
 	convert_to_RK_branch_names=True,
 	conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'},
@@ -178,7 +184,9 @@ trackchi2_trainer_obj = None
 # training_data_loader.plot('targets.pdf',rd.targets)
 # quit()
 
-# Network creation
+
+### Network creation ###
+
 vertex_quality_trainer_obj = vertex_quality_trainer(
 	training_data_loader,
 	trackchi2_trainer_obj,
@@ -299,10 +307,11 @@ def test_with_ROC(training_data_loader_roc, vertex_quality_trainer_obj, it, last
 	print(ROC_AUC_SCORE_curr)
 	return ROC_AUC_SCORE_curr, last_BDT_distributions
 
+### Training / Testing / Saving ###
 
 steps_for_plot = 5000 # number of training iterations between plots/checkpoints
 
-
+# Initial evaluation
 ROC_collect = np.empty((0,2))
 ROC_collect_Kee = np.empty((0,2))
 ROC_collect = np.append(ROC_collect, [[0, 1.]], axis=0)
@@ -317,11 +326,13 @@ vertex_quality_trainer_obj.save_state(tag=load_state)
 ROC_AUC_SCORE_curr, last_BDT_distributions = test_with_ROC(training_data_loader, vertex_quality_trainer_obj, 0)
 ROC_collect = np.append(ROC_collect, [[0, ROC_AUC_SCORE_curr]], axis=0)
 
+
+# Infinite training, creates and outputs progress plots
 for i in range(int(1E30)):
 
 	vertex_quality_trainer_obj.train_more_steps(steps=steps_for_plot)
 
-	# # the testing file here is was just a smaller version of the training sample for a quick judge of performance
+	# # the testing file here was just a smaller version of the training sample for a quick judge of performance
 	# vertex_quality_trainer_obj.make_plots(filename=f'plots_{i+1}.pdf',testing_file=["datasets/general_sample_chargeCounters_cut_more_vars_HEADfactor20.root"])
 
 	ROC_AUC_SCORE_curr, last_BDT_distributions = test_with_ROC(training_data_loader, vertex_quality_trainer_obj, i+1, last_BDT_distributions=last_BDT_distributions)
