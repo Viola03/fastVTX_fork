@@ -15,8 +15,10 @@ which pip
 which python
 
 # install all required libraries for inference 
+
 pip install --no-dependencies -e inference/src/.
 pip install --no-dependencies -e src/.
+
 pip install numpy==1.26.4
 pip install uproot==5.3.7
 pip install uproot3==3.14.4
@@ -26,10 +28,14 @@ pip install vector==0.8.0
 pip install onnxruntime
 pip install scikit-learn
 pip install str2bool
+pip install particle
+pip install hep_ml
+pip install tensorflow
+pip install mplhep
+
+pip install tensorflow-addons
+
 ```
-
-
-
 
 
 ## Installation

@@ -1,19 +1,21 @@
 import tensorflow as tf
-from tensorflow.keras import backend as K
-from tensorflow.keras.layers import (
-    Activation,
-    BatchNormalization,
-    Concatenate,
-    Dense,
-    Dropout,
-    Flatten,
-    Input,
-    Lambda,
-    LeakyReLU,
-    ReLU,
-    Reshape,
-)
-from tensorflow.keras.models import Model
+
+K = tf.keras.backend
+
+Activation         = tf.keras.layers.Activation
+BatchNormalization = tf.keras.layers.BatchNormalization
+LayerNormalization = tf.keras.layers.LayerNormalization
+Concatenate        = tf.keras.layers.Concatenate
+Dense              = tf.keras.layers.Dense
+Dropout            = tf.keras.layers.Dropout
+Flatten            = tf.keras.layers.Flatten
+Input              = tf.keras.layers.Input
+Lambda             = tf.keras.layers.Lambda
+LeakyReLU          = tf.keras.layers.LeakyReLU
+ReLU               = tf.keras.layers.ReLU
+Reshape            = tf.keras.layers.Reshape
+
+Model = tf.keras.models.Model
 
 _EPSILON = K.epsilon()
 

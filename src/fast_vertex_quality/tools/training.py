@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.keras import backend as K
+K = tf.keras.backend
 import numpy as np
 _EPSILON = K.epsilon()
 
