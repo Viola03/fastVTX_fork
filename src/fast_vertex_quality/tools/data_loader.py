@@ -47,13 +47,13 @@ def produce_physics_variables(data):
 	for particle_i in rd.daughter_particles:
 
 		physics_variables[f"{particle_i}_P"] = np.sqrt(
-			data[f"{particle_i}_PX"] ** 2
-			+ data[f"{particle_i}_PY"] ** 2
-			+ data[f"{particle_i}_PZ"] ** 2
+			data[f"{particle_i}_PX_TRUE"] ** 2
+			+ data[f"{particle_i}_PY_TRUE"] ** 2
+			+ data[f"{particle_i}_PZ_TRUE"] ** 2
 		)
 
 		physics_variables[f"{particle_i}_PT"] = np.sqrt(
-			data[f"{particle_i}_PX"] ** 2 + data[f"{particle_i}_PY"] ** 2
+			data[f"{particle_i}_PX_TRUE"] ** 2 + data[f"{particle_i}_PY_TRUE"] ** 2
 		)
 
 		physics_variables[f"{particle_i}_eta"] = -np.log(
@@ -69,25 +69,25 @@ def produce_physics_variables(data):
 	physics_variables["kFold"] = np.random.randint(
 		low=0,
 		high=9,
-		size=np.shape(data[f"{rd.daughter_particles[0]}_PX"])[0],
+		size=np.shape(data[f"{rd.daughter_particles[0]}_PX_TRUE"])[0],
 	)
 
 	electron_mass = 0.51099895000 * 1e-3
 
 	PE = np.sqrt(
 		electron_mass**2
-		+ data[f"{rd.daughter_particles[1]}_PX"] ** 2
-		+ data[f"{rd.daughter_particles[1]}_PY"] ** 2
-		+ data[f"{rd.daughter_particles[1]}_PZ"] ** 2
+		+ data[f"{rd.daughter_particles[1]}_PX_TRUE"] ** 2
+		+ data[f"{rd.daughter_particles[1]}_PY_TRUE"] ** 2
+		+ data[f"{rd.daughter_particles[1]}_PZ_TRUE"] ** 2
 	) + np.sqrt(
 		electron_mass**2
-		+ data[f"{rd.daughter_particles[2]}_PX"] ** 2
-		+ data[f"{rd.daughter_particles[2]}_PY"] ** 2
-		+ data[f"{rd.daughter_particles[2]}_PZ"] ** 2
+		+ data[f"{rd.daughter_particles[2]}_PX_TRUE"] ** 2
+		+ data[f"{rd.daughter_particles[2]}_PY_TRUE"] ** 2
+		+ data[f"{rd.daughter_particles[2]}_PZ_TRUE"] ** 2
 	)
-	PX = data[f"{rd.daughter_particles[1]}_PX"] + data[f"{rd.daughter_particles[2]}_PX"]
-	PY = data[f"{rd.daughter_particles[1]}_PY"] + data[f"{rd.daughter_particles[2]}_PY"]
-	PZ = data[f"{rd.daughter_particles[1]}_PZ"] + data[f"{rd.daughter_particles[2]}_PZ"]
+	PX = data[f"{rd.daughter_particles[1]}_PX_TRUE"] + data[f"{rd.daughter_particles[2]}_PX_TRUE"]
+	PY = data[f"{rd.daughter_particles[1]}_PY_TRUE"] + data[f"{rd.daughter_particles[2]}_PY_TRUE"]
+	PZ = data[f"{rd.daughter_particles[1]}_PZ_TRUE"] + data[f"{rd.daughter_particles[2]}_PZ_TRUE"]
 
 	physics_variables["q2"] = (PE**2 - PX**2 - PY**2 - PZ**2) * 1e-6
 
@@ -131,7 +131,7 @@ class dataset:
 		for lepton in ['e_minus', 'e_plus']:
 			cuts[f'{lepton}_IPCHI2_OWNPV'] = ">9"
 			# cuts[f'{lepton}_PT'] = ">300"
-		for hadron in ['K_Kst']:
+		for hadron in ['K_plus']:
 			cuts[f'{hadron}_IPCHI2_OWNPV'] = ">9"
 			# cuts[f'{hadron}_PT'] = ">400"
 		# cuts['m_12'] = "<5500"
@@ -681,11 +681,13 @@ class dataset:
 		else:
 			print("using loaded transformers")
 			fresh_transformers = False
+   
 
 		for column in list(physical_data.keys()):
-
+      
 			if column == "file" or column == "pass_stripping" or column == "training_weight" or column == "in_training":
 				df[column] = physical_data[column]
+    
 			else:
 				# if "TRUEID" in column:
 				#     print("MUST DELETE THIS")
@@ -713,7 +715,9 @@ class dataset:
 					    # print(f"\n\n pre_process: An error occurred: {e}")
 					except:
 						pass
-			# print(np.shape(df[column]), column)
+
+			#print(np.shape(df[column]), column)
+			df = {k: v for k, v in df.items() if "COV" not in k}
 
 		return pd.DataFrame.from_dict(df)
 

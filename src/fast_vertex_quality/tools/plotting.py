@@ -4,7 +4,59 @@ from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LogNorm
-import alexPlot
+#import alexPlot
+
+
+def plot_data(values, density=True, also_plot_hist=True, bins=75, color=None, 
+              xmin=None, xmax=None, ymin=None, ymax=None, only_canvas=True, label=None):
+    """
+    A replacement function for alexPlot.plot_data.
+
+    """
+    if not isinstance(values, list) or len(values) < 1:
+        raise ValueError("`values` must be a non-empty list of arrays.")
+
+    if color is None:
+        color = [None] * len(values)
+
+    if label is None:
+        label = [None] * len(values)
+
+    # Create the plot
+    plt.figure(figsize=(8, 6))
+    
+    for idx, data in enumerate(values):
+        if density:
+            # Plot density (normalized histogram)
+            plt.hist(data, bins=bins, density=True, alpha=0.5, color=color[idx] if color[idx] else None, 
+                     label=label[idx], histtype='stepfilled')
+        
+        if also_plot_hist:
+            # Overlay histogram without normalization
+            plt.hist(data, bins=bins, density=False, alpha=0.3, color=color[idx] if color[idx] else None,
+                     label=None if density else label[idx])
+
+    # Set axis limits if specified
+    if xmin is not None or xmax is not None:
+        plt.xlim(xmin, xmax)
+    if ymin is not None or ymax is not None:
+        plt.ylim(ymin, ymax)
+
+    # Customize plot
+    if not only_canvas:
+        plt.xlabel("Value")
+        plt.ylabel("Frequency" if not density else "Density")
+        plt.title("Data Plot")
+        if label[0] is not None:
+            plt.legend()
+
+    # Remove axis if only_canvas is True
+    if only_canvas:
+        plt.axis('off')
+
+    # Show the plot
+    plt.show()
+
 
 def loss_plot(loss_list, reco_factor, kl_factor, filename="LOSSES.png"):
 
@@ -166,7 +218,7 @@ def plot(data, gen_data, filename, targets, Nevents=10000, offline=False):
                 plt.yscale('log')
                 ymin, ymax = ax.get_ylim()
                 xmin, xmax = hist[1][0], hist[1][-1]
-                alexPlot.plot_data(values, density=True, also_plot_hist=True, bins=75, color=colours, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, only_canvas=True, label=["Training sample", "Generated sample"])
+                plot_data(values, density=True, also_plot_hist=True, bins=75, color=colours, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, only_canvas=True, label=["Training sample", "Generated sample"])
                 plt.xlim(xmin, xmax)
                 plt.xlabel(column)
                 plt.legend()
@@ -194,7 +246,7 @@ def plot(data, gen_data, filename, targets, Nevents=10000, offline=False):
                 )
                 ymin, ymax = ax.get_ylim()
                 xmin, xmax = hist[1][0], hist[1][-1]
-                alexPlot.plot_data(values, density=True, also_plot_hist=True, bins=75, color=colours, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, only_canvas=True, label=["Training sample", "Generated sample"])
+                plot_data(values, density=True, also_plot_hist=True, bins=75, color=colours, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, only_canvas=True, label=["Training sample", "Generated sample"])
                 plt.xlim(xmin, xmax)
                 plt.xlabel(column)
                 plt.legend()
@@ -223,7 +275,7 @@ def plot(data, gen_data, filename, targets, Nevents=10000, offline=False):
             )
             # plt.yscale('log')
             ymin, ymax = ax.get_ylim()
-            alexPlot.plot_data(values, density=True, also_plot_hist=True, bins=75, color=colours, xmin=-1, xmax=1, ymin=ymin, ymax=ymax, only_canvas=True, label=["Training sample", "Generated sample"])
+            plot_data(values, density=True, also_plot_hist=True, bins=75, color=colours, xmin=-1, xmax=1, ymin=ymin, ymax=ymax, only_canvas=True, label=["Training sample", "Generated sample"])
             plt.xlim(-1, 1)
             plt.xlabel(f'Processed({column})')
             plt.legend()

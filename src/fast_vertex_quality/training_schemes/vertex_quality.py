@@ -18,6 +18,7 @@ from tensorflow.keras.optimizers.legacy import RMSprop
 from tensorflow.keras.optimizers.legacy import SGD
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.colors import LogNorm
+import os
 
 class vertex_quality_trainer:
 
@@ -38,6 +39,7 @@ class vertex_quality_trainer:
 	):
 
 		self.trackchi2_trainer = trackchi2_trainer
+		self.latest_input_batch = None
 
 		if load_config:
 
@@ -610,6 +612,8 @@ class vertex_quality_trainer:
 
 				if self.iteration % 100 == 0:
 					print("Iteration:", self.iteration)
+				
+				self.latest_input_batch = samples_for_batch.numpy() # Save batch input dist
 
 				loss_list_i = self.step(samples_for_batch)
 
@@ -641,6 +645,28 @@ class vertex_quality_trainer:
 		self.trained_weights = self.get_weights()
 
 		self.plot_losses()
+
+
+	def save_vae_input_distributions(self, iteration, save_dir):
+		if self.latest_input_batch is None:
+			print(f"No input batch recorded for iteration {iteration}")
+			return
+
+		input_batch = self.latest_input_batch.squeeze(axis=1)  # Reshape from (batch, 1, features) to (batch, features)
+
+		for feature_idx, feature in enumerate(self.conditions):
+			plt.figure()
+			plt.hist(input_batch[:, feature_idx], bins=50, alpha=0.7, color='green', edgecolor='black', density=True)	
+			plt.xlabel(feature)
+			plt.ylabel("Density")
+			plt.title(f"VAE Input Distribution: {feature} (Iteration {iteration}")
+
+			os.makedirs(save_dir, exist_ok=True)  # Ensure directory exists
+			save_path = os.path.join(save_dir, f"{feature}_iter_{iteration}.png")
+			plt.savefig(save_path, bbox_inches='tight')
+			plt.close()
+
+		print(f"Saved VAE input distributions for iteration {iteration}")
 
 	def plot_losses(self):
 
@@ -816,8 +842,12 @@ class vertex_quality_trainer:
 			self.gen_optimizer_weights = self.gen_optimizer.get_weights()
 			self.disc_optimizer_weights = self.disc_optimizer.get_weights()
 
-	def make_plots(self, N=10000, filename=f"plots", testing_file="datasets/B2KEE_three_body_cut_more_vars.root", offline=False):
+	def make_plots(self, N=10000, filename=f"plots", save_dir="plots", testing_file="datasets/B2KEE_three_body_cut_more_vars.root", offline=False):
 
+		os.makedirs(save_dir, exist_ok=True)
+
+    	## Construct full filename path
+		filename = os.path.join(save_dir, filename)
 		self.set_trained_weights()
 
 		gen_noise = np.random.normal(0, 1, (N, self.latent_dim))
@@ -829,11 +859,12 @@ class vertex_quality_trainer:
 		#     ],
 		#     transformers=self.transformers,
 		# )
+  
 		X_test_data_loader = data_loader.load_data(
 					testing_file,
 					transformers=self.transformers,
 					convert_to_RK_branch_names=True,
-					conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_Kst', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
+					conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_plus', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
 				)
 		X_test_data_loader.add_missing_mass_frac_branch()
 
@@ -869,20 +900,39 @@ class vertex_quality_trainer:
 						pdf.savefig(bbox_inches="tight")
 						plt.close()
 
+			# Try version with just this line
 			images = np.squeeze(self.decoder.predict([gen_noise, X_test_conditions]))
 		elif self.network_option == 'GAN' or self.network_option == 'WGAN':
 			images = np.squeeze(self.generator.predict([gen_noise, X_test_conditions]))
 
+		# Plot image vs test target
+
+		with PdfPages(filename.replace('.pdf', '_image_vs_target_hist.pdf')) as pdf:
+			for i, target in enumerate(self.targets):
+				plt.figure()
+				plt.hist(X_test_targets[:, i], bins=100, alpha=0.5, label='True', density=True)
+				plt.hist(images[:, i], bins=100, alpha=0.5, label='Generated', density=True)
+				plt.xlabel(f"{target}")
+				plt.ylabel("Density")
+				plt.title(f"Generated vs True {target}")
+				plt.legend()
+				pdf.savefig(bbox_inches="tight")
+				plt.close()
+
+		# 
+  
 		X_test_data_loader.fill_target(images, self.targets)
 
-		plotting.plot(
-			self.data_loader_obj,
-			X_test_data_loader,
-			filename,
-			self.targets,
-			Nevents=10000,
-			offline=offline
-		)
+		#Not sure about these 
+
+		# plotting.plot(
+		# 	self.data_loader_obj,
+		# 	X_test_data_loader,
+		# 	filename,
+		# 	self.targets,
+		# 	Nevents=10000,
+		# 	offline=offline
+		# )
 	
 	def gen_data(self, filename, N=10000):
 

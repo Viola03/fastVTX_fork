@@ -16,11 +16,62 @@ import pandas as pd
 from matplotlib.colors import LogNorm
 
 import pkg_resources
-import alexPlot
+#import alexPlot
 import mplhep
 mplhep.style.use('LHCb2')
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+
+def plot_data(values, density=True, also_plot_hist=True, bins=75, color=None, 
+              xmin=None, xmax=None, ymin=None, ymax=None, only_canvas=True, label=None):
+    """
+    A replacement function for alexPlot.plot_data.
+
+    """
+    if not isinstance(values, list) or len(values) < 1:
+        raise ValueError("`values` must be a non-empty list of arrays.")
+
+    if color is None:
+        color = [None] * len(values)
+
+    if label is None:
+        label = [None] * len(values)
+
+    # Create the plot
+    plt.figure(figsize=(8, 6))
+    
+    for idx, data in enumerate(values):
+        if density:
+            # Plot density (normalized histogram)
+            plt.hist(data, bins=bins, density=True, alpha=0.5, color=color[idx] if color[idx] else None, 
+                     label=label[idx], histtype='stepfilled')
+        
+        if also_plot_hist:
+            # Overlay histogram without normalization
+            plt.hist(data, bins=bins, density=False, alpha=0.3, color=color[idx] if color[idx] else None,
+                     label=None if density else label[idx])
+
+    # Set axis limits if specified
+    if xmin is not None or xmax is not None:
+        plt.xlim(xmin, xmax)
+    if ymin is not None or ymax is not None:
+        plt.ylim(ymin, ymax)
+
+    # Customize plot
+    if not only_canvas:
+        plt.xlabel("Value")
+        plt.ylabel("Frequency" if not density else "Density")
+        plt.title("Data Plot")
+        if label[0] is not None:
+            plt.legend()
+
+    # Remove axis if only_canvas is True
+    if only_canvas:
+        plt.axis('off')
+
+    # Show the plot
+    plt.show()
 
 
 def poisson_asym_errors(y_points, avoid_errorbars_on_edges=True, blind=False, x_points=None):
@@ -3144,7 +3195,7 @@ class BDT_tester:
             values = []
             for key in list(sample_values.keys()):
                 values.append(np.asarray(sample_values[key]))
-            alexPlot.plot_data(values, density=True, also_plot_hist=True, bins=50, color=colours, xmin=0, xmax=1, ymin=ymin, ymax=ymax, only_canvas=True, log=True, pulls=False)
+            plot_data(values, density=True, also_plot_hist=True, bins=50, color=colours, xmin=0, xmax=1, ymin=ymin, ymax=ymax, only_canvas=True, log=True, pulls=False)
             plt.legend(loc='upper left',frameon=False)
             plt.ylim(ymin, ymax)
             plt.xlabel(f"BDT output")
@@ -3196,7 +3247,7 @@ class BDT_tester:
             values = []
             for key in list(sample_values.keys()):
                 values.append(np.asarray(sample_values[key]))
-            alexPlot.plot_data(values, density=True, also_plot_hist=True, bins=50, color=colours, xmin=0, xmax=1, only_canvas=True, pulls=False)
+            plot_data(values, density=True, also_plot_hist=True, bins=50, color=colours, xmin=0, xmax=1, only_canvas=True, pulls=False)
             plt.legend(loc='upper left',frameon=False)
             plt.xlabel(f"BDT output")
             pdf.savefig(bbox_inches="tight")
