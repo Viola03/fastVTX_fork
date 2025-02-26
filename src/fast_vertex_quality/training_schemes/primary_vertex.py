@@ -12,7 +12,7 @@ import fast_vertex_quality.tools.plotting as plotting
 import pickle
 import fast_vertex_quality.tools.data_loader as data_loader
 import matplotlib.pyplot as plt
-import tensorflow_addons as tfa
+# import tensorflow_addons as tfa
 import pandas as pd
 from tensorflow.keras.optimizers.legacy import Adam
 

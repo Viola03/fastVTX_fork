@@ -113,6 +113,11 @@ class vertex_quality_trainer:
 
 		# self.optimizer = Adam(learning_rate=0.0005) # default
 		# self.optimizer = Adam(learning_rate=0.00005)
+  
+		# To avoid keras error
+		os.environ["TF_USE_LEGACY_KERAS"] = "True"
+  
+  
 		self.optimizer = Adam(learning_rate=0.00001) # lower LR
 		# self.optimizer = Adam(learning_rate=0.000003)
 
@@ -936,6 +941,70 @@ class vertex_quality_trainer:
 		# 	Nevents=10000,
 		# 	offline=offline
 		# )
+  
+	def make_inverse_plots(self, N=10000, filename="plots_inverse.pdf", save_dir="plots_inverse", testing_file="datasets/B2KEE_three_body_cut_more_vars.root"):
+		os.makedirs(save_dir, exist_ok=True)
+		full_filename = os.path.join(save_dir, filename)
+
+    	# load test data using the same transformers used during training
+		X_test_data_loader = data_loader.load_data(
+			testing_file,
+			transformers=self.transformers,
+			convert_to_RK_branch_names=True,
+			conversions={'MOTHER':'B_plus', 'DAUGHTER1':'K_plus', 'DAUGHTER2':'e_plus', 'DAUGHTER3':'e_minus', 'INTERMEDIATE':'J_psi_1S'}
+		)
+		
+		X_test_data_loader.add_missing_mass_frac_branch()
+		X_test_data_loader.select_randomly(Nevents=N)
+
+    # gt conditions and targets (in the transformed space)
+		X_test_conditions = X_test_data_loader.get_branches(self.conditions, processed=True)
+		X_test_conditions = np.asarray(X_test_conditions[self.conditions])
+    
+		X_test_targets = X_test_data_loader.get_branches(self.targets, processed=True)
+		X_test_targets = np.asarray(X_test_targets[self.targets])
+
+    #generate outputs from the model
+		gen_noise = np.random.normal(0, 1, (N, self.latent_dim))
+		if self.network_option == 'VAE':
+			images = np.squeeze(self.decoder.predict([gen_noise, X_test_conditions]))
+		elif self.network_option in ['GAN', 'WGAN']:
+			images = np.squeeze(self.generator.predict([gen_noise, X_test_conditions]))
+		else:
+			raise ValueError("Invalid network option.")
+
+		# initialize arrays for the inverse-transformed (original space) values
+		X_test_targets_original = np.zeros_like(X_test_targets)
+		images_original = np.zeros_like(images)
+
+    # assume self.transformers is a dictionary mapping each target name to a fitted transformer
+		for idx, target in enumerate(self.targets):
+			transformer = self.transformers.get(target, None)
+			if transformer is not None and hasattr(transformer, 'inverse_transform'):
+            # transformer expects a 2D array
+				X_test_targets_original[:, idx] = transformer.inverse_transform(X_test_targets[:, idx].reshape(-1, 1)).flatten()
+				images_original[:, idx] = transformer.inverse_transform(images[:, idx].reshape(-1, 1)).flatten()
+			else:
+            # if no transformer is found, assume data is already in original space
+				X_test_targets_original[:, idx] = X_test_targets[:, idx]
+				images_original[:, idx] = images[:, idx]
+
+    # plot histograms comparing the true and generated outputs in the original space
+		with PdfPages(full_filename) as pdf:
+			for i, target in enumerate(self.targets):
+				plt.figure()
+				plt.hist(X_test_targets_original[:, i], bins=100, alpha=0.5, label='True', density=True)
+				plt.hist(images_original[:, i], bins=100, alpha=0.5, label='Generated', density=True)
+				plt.xlabel(target)
+				plt.ylabel("Density")
+				plt.title(f"Inverse Transformed: {target}")
+				plt.legend()
+				pdf.savefig(bbox_inches="tight")
+				plt.close()
+
+		print(f"Inverse transformed plots saved to {full_filename}")
+
+  
 	
 	def gen_data(self, filename, N=10000):
 

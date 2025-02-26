@@ -75,14 +75,9 @@ class tuple_manager:
 				):
 
 
-		# self.particles = ["DAUGHTER1", "DAUGHTER2", "DAUGHTER3"]
-		# self.mother = 'MOTHER'
-		# self.intermediate = 'INTERMEDIATE'
-  
-		self.particles = daughter_particle_names
-		self.mother = mother_particle_name
-		self.intermediate = intermediate_particle_name
-  
+		self.particles = ["DAUGHTER1", "DAUGHTER2", "DAUGHTER3"]
+		self.mother = 'MOTHER'
+		self.intermediate = 'INTERMEDIATE'
 		self.fully_reco = fully_reco
 		self.nPositive_missing_particles = nPositive_missing_particles
 		self.nNegative_missing_particles = nNegative_missing_particles
@@ -107,11 +102,10 @@ class tuple_manager:
 			self.tuple = self.raw_tuple.arrays(list_of_branches, library="pd", entry_stop=entry_stop)
 		else:
 			self.tuple = self.raw_tuple.arrays(list_of_branches, library="pd")
-		
-  		# self.map_branch_names()
+		self.map_branch_names()
   
-	# for branch in list_of_branches:
-	# 		print(branch)
+		# for branch in list_of_branches:
+		# 	print(branch)
   
 		# self.convert_GeV_MeV(1000.)
 
