@@ -958,7 +958,7 @@ class dataset:
 			for variable in variables:
 				
 				try:
-					plt.figure(figsize=(10,8))
+					plt.figure(figsize=(12,10))
 
 					plt.subplot(2,2,1)
 					plt.title(variable)
@@ -966,10 +966,10 @@ class dataset:
 						info = [self.all_data["physical"][variable]]
 						for overlay_i in overlay:
 							info.append(overlay_i.all_data["physical"][variable])
-						plt.hist(info, bins=bins, density=True, histtype='step')
+						plt.hist(info, bins=bins, density=True)
 						# plt.legend()
 					else:
-						plt.hist(self.all_data["physical"][variable], bins=bins, density=True, histtype='step')
+						plt.hist(self.all_data["physical"][variable], bins=bins, density=True)
 					
 					plt.subplot(2,2,2)
 					plt.title(f'{variable} processed')
@@ -977,18 +977,18 @@ class dataset:
 						info = [self.all_data["processed"][variable]]
 						for overlay_i in overlay:
 							info.append(overlay_i.all_data["processed"][variable])
-						plt.hist(info, bins=bins, density=True, histtype='step')
+						plt.hist(info, bins=bins, density=True)
 					else:
-						plt.hist(self.all_data["processed"][variable], bins=bins, density=True, histtype='step', range=[-1,1])
+						plt.hist(self.all_data["processed"][variable], bins=bins, density=True, range=[-1,1])
 
 					plt.subplot(2,2,3)
 					if overlay:
 						info = [self.all_data["physical"][variable]]
 						for overlay_i in overlay:
 							info.append(overlay_i.all_data["physical"][variable])
-						plt.hist(info, bins=bins, density=True, histtype='step')
+						plt.hist(info, bins=bins, density=True)
 					else:
-						plt.hist(self.all_data["physical"][variable], bins=bins, density=True, histtype='step')
+						plt.hist(self.all_data["physical"][variable], bins=bins, density=True)
 					plt.yscale('log')
 					
 					plt.subplot(2,2,4)
@@ -996,9 +996,9 @@ class dataset:
 						info = [self.all_data["processed"][variable]]
 						for overlay_i in overlay:
 							info.append(overlay_i.all_data["processed"][variable])
-						plt.hist(info, bins=bins, density=True, histtype='step')
+						plt.hist(info, bins=bins, density=True)
 					else:
-						plt.hist(self.all_data["processed"][variable], bins=bins, density=True, histtype='step', range=[-1,1])
+						plt.hist(self.all_data["processed"][variable], bins=bins, density=True, range=[-1,1])
 					plt.yscale('log')
 
 					pdf.savefig(bbox_inches="tight")

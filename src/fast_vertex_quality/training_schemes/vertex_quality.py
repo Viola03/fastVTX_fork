@@ -12,6 +12,8 @@ import fast_vertex_quality.tools.plotting as plotting
 import pickle
 import fast_vertex_quality.tools.data_loader as data_loader
 import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
+import pandas as pd
 
 #import tensorflow_addons as tfa
 
@@ -22,6 +24,8 @@ from tensorflow.keras.optimizers.legacy import SGD
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.colors import LogNorm
 import os
+
+from scipy.stats import ks_2samp
 
 class vertex_quality_trainer:
 
@@ -117,8 +121,11 @@ class vertex_quality_trainer:
 		# To avoid keras error
 		os.environ["TF_USE_LEGACY_KERAS"] = "True"
   
+		self.lr = 0.00001
+		self.csvname = 'ld10'
+		# self.lr = 0.00005
   
-		self.optimizer = Adam(learning_rate=0.00001) # lower LR
+		self.optimizer = Adam(learning_rate=self.lr) # lower LR
 		# self.optimizer = Adam(learning_rate=0.000003)
 
 		
@@ -630,7 +637,7 @@ class vertex_quality_trainer:
 					[loss_list_i],
 					axis=0,
 				)
-
+    
 				if np.isnan(self.loss_list[-1]).any():
 					print(samples_for_batch)
 					print(
@@ -653,6 +660,7 @@ class vertex_quality_trainer:
 		self.trained_weights = self.get_weights()
 
 		self.plot_losses()
+		self.plot_losses_new()
 
 
 	def save_vae_input_distributions(self, iteration, save_dir):
@@ -724,6 +732,56 @@ class vertex_quality_trainer:
 
 		plt.savefig(f"{rd.test_loc}Losses.png")
 		plt.close("all")
+  
+	def plot_losses_new(self):
+		"""
+		Produces two side-by-side plots:
+	 	1) Total loss vs iteration
+	 	2) KL and Reconstruction loss overlaid
+    	"""
+		# Extract columns for clarity
+		iterations = self.loss_list[:, 0]
+		kl_loss    = self.loss_list[:, 1]
+		reco_loss  = self.loss_list[:, 2]
+
+		# Compute total loss (KL + Reconstruction, for example)
+		total_loss = kl_loss + reco_loss
+  
+		# === Save to CSV ===
+    	# Create a DataFrame with these arrays
+		df_losses = pd.DataFrame({
+			"iteration": iterations,
+			"kl_loss":   kl_loss,
+			"reco_loss": reco_loss,
+			"total_loss": total_loss
+		})
+		
+		csv_path = f"{rd.test_loc}{self.csvname}.csv"
+		df_losses.to_csv(csv_path, index=False)
+		
+		print(f"Loss data saved to: {csv_path}")
+
+		# Create the figure with 2 subplots
+		fig, axes = plt.subplots(1, 2)
+
+		# === 1) Plot total loss ===
+		axes[0].plot(iterations, total_loss, label="Total Loss")
+		axes[0].set_title("Total Loss")
+		axes[0].set_xlabel("Iteration")
+		axes[0].set_ylabel("Loss Value")
+
+		# === 2) Overlay KL and Reco on the same subplot ===
+		axes[1].plot(iterations, kl_loss, alpha=0.7,  label="KL Loss")
+		axes[1].plot(iterations, reco_loss, alpha=0.7,label="Reconstruction Loss")
+		axes[1].set_title("KL / Reconstruction Loss")
+		axes[1].set_xlabel("Iteration")
+		axes[1].set_ylabel("Loss Value")
+		axes[1].legend()
+
+		# Save and/or show
+		plt.savefig(f"{rd.test_loc}Losses_new.png")
+		plt.show()	
+		plt.close(fig)
 
 	def train(self, steps=10000):
 
@@ -850,7 +908,7 @@ class vertex_quality_trainer:
 			self.gen_optimizer_weights = self.gen_optimizer.get_weights()
 			self.disc_optimizer_weights = self.disc_optimizer.get_weights()
 
-	def make_plots(self, N=10000, filename=f"plots", save_dir="plots", testing_file="datasets/B2KEE_three_body_cut_more_vars.root", offline=False):
+	def make_plots(self, N=10000, filename=f"plots", save_dir="plots", testing_file="datasets/B2KEE_three_body_cut_more_vars.root", offline=False, iteration=0):
 
 		os.makedirs(save_dir, exist_ok=True)
 
@@ -901,10 +959,20 @@ class vertex_quality_trainer:
 			latent = np.squeeze(self.encoder.predict([X_test_targets, X_test_conditions]))
 			z = latent[0]
 
+			### Plot Latent Representations ###
+	
 			with PdfPages(filename.replace('.pdf','_latent.pdf')) as pdf:
 				for i in range(np.shape(z)[1]):
 					for j in range(i+1, np.shape(z)[1]):
 						plt.hist2d(z[:,i],z[:,j],bins=25,range=[[-5,5],[-5,5]],norm=LogNorm())
+						
+						cb = plt.colorbar()
+						cb.set_label("Counts (log scale)")
+
+						plt.xlabel(f"Latent dim {i}")
+						plt.ylabel(f"Latent dim {j}")
+						plt.title("2D Latent Representation")
+      
 						pdf.savefig(bbox_inches="tight")
 						plt.close()
 
@@ -913,7 +981,64 @@ class vertex_quality_trainer:
 		elif self.network_option == 'GAN' or self.network_option == 'WGAN':
 			images = np.squeeze(self.generator.predict([gen_noise, X_test_conditions]))
 
-		# Plot image vs test target
+
+
+
+		#### Compute KS Distance ###
+		ks_results = {}
+		for i, target in enumerate(self.targets):
+			real_data = X_test_targets[:, i]
+			generated_data = images[:, i]
+			ks_statistic, _ = ks_2samp(real_data, generated_data)
+			ks_results[target] = ks_statistic
+
+		# # Save KS Distance to CSV
+		ks_df = pd.DataFrame(list(ks_results.items()), columns=["Variable", "KS Distance"])
+		ks_df.to_csv(os.path.join(save_dir, "KS_Distance.csv"), index=False)
+
+
+		### Plot KS Distance ###
+		plt.figure(figsize=(10, 5))
+		plt.bar(ks_results.keys(), ks_results.values(), color='tab:blue', alpha=0.7)
+		plt.xticks(rotation=90)
+		plt.ylabel("KS Distance")
+		plt.title("Kolmogorov-Smirnov Distance for Targets")
+		plt.grid()
+		plt.tight_layout()
+		plt.savefig(os.path.join(save_dir, "KS_Distance.png"))
+		plt.close()
+
+
+		# === Compute KS Distance ===
+		ks_values = {"iteration": iteration}  # Store iteration number
+
+		for i, target in enumerate(self.targets):
+			real_data = X_test_targets[:, i]
+			generated_data = images[:, i]
+			ks_statistic, _ = ks_2samp(real_data, generated_data)
+			ks_values[target] = ks_statistic
+
+		# === Convert to DataFrame ===
+		new_row_df = pd.DataFrame([ks_values])  # Wrap in list to make it a single-row DataFrame
+
+		# === CSV Path ===
+		ks_csv_path = f"{rd.test_loc}KS_Distance.csv"
+
+		# === Append to CSV ===
+		if os.path.exists(ks_csv_path):
+			existing_df = pd.read_csv(ks_csv_path)
+			updated_df = pd.concat([existing_df, new_row_df], ignore_index=True)
+		else:
+			updated_df = new_row_df
+
+		# === Save updated CSV ===
+		updated_df.to_csv(ks_csv_path, index=False)
+
+		print(f"KS Distance data saved to: {ks_csv_path}")
+
+
+
+		### Plot image vs test target ###
 
 		with PdfPages(filename.replace('.pdf', '_image_vs_target_hist.pdf')) as pdf:
 			for i, target in enumerate(self.targets):
@@ -931,7 +1056,7 @@ class vertex_quality_trainer:
   
 		X_test_data_loader.fill_target(images, self.targets)
 
-		#Not sure about these 
+		#Previous plots - Not sure about these 
 
 		# plotting.plot(
 		# 	self.data_loader_obj,

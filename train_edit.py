@@ -57,12 +57,13 @@ load_state = f"{test_loc}/networks/{test_tag}"
 
 rd.latent = 10 # VAE latent dims
 
-# rd.D_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
-# rd.G_architecture=[int(512*1.5),int(1024*1.5),int(1024*1.5),int(512*1.5)]
-
-# 2 layers of 250 to start
+# 2 layers of 250
 rd.D_architecture=[250]
 rd.G_architecture=[250]
+
+# rd.E_architecture=[250]
+# rd.D_architecture=[250]
+
 
 rd.beta = 1000.
 
